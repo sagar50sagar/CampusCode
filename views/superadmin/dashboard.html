@@ -159,7 +159,8 @@
             const totalCollegesEl = document.getElementById('stat-total-colleges');
 
             try {
-                const response = await fetch('/api/superadmin/colleges');
+                // CHANGED API URL HERE
+                const response = await fetch('/superadmin/api/colleges');
                 const data = await response.json();
 
                 if (data.success) {
@@ -222,7 +223,8 @@
             const name = document.getElementById('collegeName').value.trim();
 
             try {
-                const response = await fetch('/api/superadmin/colleges', {
+                // CHANGED API URL HERE
+                const response = await fetch('/superadmin/api/colleges', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name })
@@ -245,7 +247,8 @@
         async function deleteCollege(id) {
             if (confirm("Are you sure you want to permanently delete this college? This may orphan users associated with it.")) {
                 try {
-                    const response = await fetch(`/api/superadmin/colleges/${id}`, { method: 'DELETE' });
+                    // CHANGED API URL HERE
+                    const response = await fetch(`/superadmin/api/colleges/${id}`, { method: 'DELETE' });
                     const result = await response.json();
                     
                     if(result.success) {

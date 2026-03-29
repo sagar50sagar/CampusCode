@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CampusCode - Settings</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ["Poppins", "sans-serif"] },
+                    colors: {
+                        primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" },
+                        dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" }
+                    },
+                },
+            },
+        };
+    </script>
+
+    <style>
+        /* --- Scrollbar --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        .dark ::-webkit-scrollbar-track { background: #111827; }
+        ::-webkit-scrollbar-thumb { background: #7ba4d0; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #2e5e99; }
+
+        /* --- Sidebar Logic --- */
+        .sidebar { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
+        .sidebar.collapsed { width: 5rem; }
+        .sidebar.collapsed .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
+        .sidebar.collapsed .nav-item i { margin-right: 0; font-size: 1.25rem; }
+        .sidebar.collapsed .nav-item span { display: none; }
+        .sidebar.collapsed .logo-text { display: none; }
+        .sidebar.collapsed .bottom-menu span { display: none; }
+        .sidebar.collapsed .bottom-menu .nav-item { justify-content: center; }
+
+        /* --- Crisp Nav Item Styling --- */
+        .nav-item { 
+            transition: all 0.2s ease; 
+            position: relative; 
+            display: flex; 
+            align-items: center; 
+            padding: 0.75rem 1rem; 
+            margin-bottom: 0.375rem; 
+            color: #4b5563; 
+            border-radius: 0.5rem; 
+            cursor: pointer; 
+            white-space: nowrap; 
+            border: 1px solid transparent; 
+        }
+        .nav-item:hover { background-color: #f9fafb; border-color: #e5e7eb; color: #1e4a7a; }
+        .dark .nav-item { color: #d1d5db; }
+        .dark .nav-item:hover { background-color: #374151; border-color: #4b5563; color: #ffffff; }
+        
+        /* Active State */
+        .nav-item.active { 
+            background-color: #f0f7ff; 
+            color: #1e4a7a; 
+            border-color: #bfdbfe; 
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); 
+            font-weight: 600; 
+        }
+        .dark .nav-item.active { 
+            background-color: rgba(30, 74, 122, 0.4); 
+            color: #60a5fa; 
+            border-color: #1e4a7a; 
+        }
+        .nav-item.active::before { 
+            content: ""; 
+            position: absolute; 
+            left: -1px; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            height: 70%; 
+            width: 4px; 
+            background-color: #3b82f6; 
+            border-radius: 0 4px 4px 0; 
+        }
+        .dark .nav-item.active::before { background-color: #60a5fa; }
+        
+        .nav-item i { width: 1.5rem; text-align: center; margin-right: 0.75rem; font-size: 1.1rem; flex-shrink: 0; transition: transform 0.2s ease; }
+        .nav-item:hover i { transform: scale(1.1); }
+        .nav-item span { font-size: 0.875rem; }
+    </style>
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200">
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside id="mainSidebar" class="sidebar w-64 bg-white dark:bg-gray-800 shadow-md border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen flex-shrink-0 transition-colors duration-200 z-50">
+            <div class="p-6 flex-shrink-0 flex items-center justify-between h-[88px]">
+                <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2 overflow-hidden whitespace-nowrap">
+                    <i class="fas fa-code text-primary-500 text-2xl flex-shrink-0"></i>
+                    <span class="logo-text">CampusCode</span>
+                </h1>
+                <button id="sidebarToggleBtn" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 border border-transparent hover:border-gray-200 dark:hover:border-gray-600 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500/30">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+
+            <nav class="flex-1 px-4 space-y-1 overflow-y-auto mt-2">
+                <a href="/college/dashboard" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+                <a href="/college/program" class="nav-item"><i class="fa-solid fa-layer-group"></i><span>Programs</span></a>
+                <a href="/college/contest" class="nav-item"><i class="fas fa-trophy"></i><span>Contests</span></a>
+                <a href="/college/manage_user" class="nav-item"><i class="fa-solid fa-users"></i><span>User</span></a>
+                <a href="/college/report" class="nav-item"><i class="fas fa-file-invoice"></i><span>Reports</span></a>
+                <a href="/college/profile" class="nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+            </nav>
+
+            <div class="p-4 space-y-1 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0 bottom-menu">
+                <a href="/college/help_support" class="nav-item"><i class="far fa-question-circle"></i><span>Help &amp; Support</span></a>
+                <a href="/college/setting" class="nav-item active"><i class="fas fa-cog"></i><span>Settings</span></a>
+            </div>
+        </aside>
+
+        <div class="flex-1 overflow-y-auto relative">
+            <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-200 sticky top-0 z-40">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+                    <div class="flex-1 max-w-2xl ml-4 flex items-center gap-4">
+                        <div class="relative flex items-center w-full">
+                            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" class="block w-full pl-10 pr-3 py-2 rounded-lg border border-gray-400 bg-white shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 placeholder-gray-500 text-sm transition-all" placeholder="Search settings..." />
+                        </div>
+                    </div>
+
+                    <div class="ml-4 flex items-center gap-3">
+                        <button id="themeToggleBtn" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200 focus:outline-none transition-colors">
+                            <i class="fas fa-moon text-xl"></i>
+                        </button>
+                        
+                        <div class="relative">
+                            <button id="notificationBtn" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400 hover:text-gray-700 transition-colors">
+                                <i class="fas fa-bell text-xl"></i>
+                                <span class="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-white dark:border-gray-800"></span>
+                            </button>
+                        </div>
+
+                        <button onclick="toggleProfile()" class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-600">
+                            <div class="profile-initials-display h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm shadow-sm">--</div>
+                            <span class="profile-name-display text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block">Loading...</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="mb-6 flex justify-between items-center">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Settings</h1>
+                        <p class="text-gray-600 dark:text-gray-400">Manage your account preferences and security</p>
+                    </div>
+                    <button id="saveChangesBtn" class="px-5 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary-500/50">
+                        Save Changes
+                    </button>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div class="p-6 border-b border-gray-100 dark:border-gray-700">
+                            <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Profile Information</h2>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Update your photo and personal details.</p>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex flex-col sm:flex-row gap-6 mb-6">
+                                <div class="flex-shrink-0">
+                                    <div class="profile-initials-display h-24 w-24 rounded-full bg-primary-50 dark:bg-primary-900/30 text-primary-500 flex items-center justify-center text-3xl font-bold border-4 border-white dark:border-gray-800 shadow-md">--</div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First Name</label>
+                                    <input type="text" id="firstNameInput" class="w-full px-3 py-2 rounded-lg border border-gray-400 bg-white shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm transition-all">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Name</label>
+                                    <input type="text" id="lastNameInput" class="w-full px-3 py-2 rounded-lg border border-gray-400 bg-white shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm transition-all">
+                                </div>
+
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
+                                    <div class="flex gap-3">
+                                        <div class="relative flex-1">
+                                            <i class="far fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                            <input type="email" id="emailInput" class="w-full pl-10 pr-3 py-2 rounded-lg border border-gray-400 bg-white shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm transition-all">
+                                        </div>
+                                        <button type="button" id="changeEmailBtn" class="px-4 py-2 bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white rounded-lg text-sm font-medium transition-colors border border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30">
+                                            Update
+                                        </button>
+                                    </div>
+                                    
+                                    <div id="emailOtpSection" class="hidden mt-4 p-4 bg-primary-50 dark:bg-gray-800/80 rounded-lg border border-primary-200 dark:border-gray-700 shadow-inner">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <p class="text-sm text-gray-700 dark:text-gray-300">
+                                                OTP sent to: <span id="otpTargetEmail" class="font-bold text-primary-600 dark:text-primary-400"></span>
+                                            </p>
+                                        </div>
+                                        <div class="flex gap-3 items-center">
+                                            <input type="text" id="emailOtpInput" placeholder="Enter 6-digit OTP" class="flex-1 px-3 py-2 rounded-lg border border-gray-400 bg-white shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 text-sm transition-all tracking-widest font-mono">
+                                            <button type="button" id="verifyEmailBtn" class="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium shadow-sm transition-colors">Verify</button>
+                                        </div>
+                                        <button type="button" id="resendEmailOtpBtn" class="mt-3 text-sm text-primary-600 dark:text-primary-400 font-medium hover:underline disabled:text-gray-400 dark:disabled:text-gray-500 disabled:no-underline transition-all" disabled>
+                                            Resend OTP in <span id="emailOtpTimer">30</span>s
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Department / Designation</label>
+                                    <input type="text" id="designationInput" class="w-full px-3 py-2 rounded-lg border border-gray-400 bg-white shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm transition-all">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                        <div class="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                            <div>
+                                <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Security & Password</h2>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Ensure your account is secure using a strong password.</p>
+                            </div>
+                            <button onclick="toggleForgotPasswordModal()" class="text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 hover:underline px-3 py-1.5 rounded-md hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors">
+                                Forgot Password?
+                            </button>
+                        </div>
+                        <div class="p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                                <div class="md:col-span-2 bg-gray-50 dark:bg-gray-900/50 p-5 rounded-lg border border-gray-300 dark:border-gray-700 shadow-sm">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Current Password</label>
+                                    <div class="relative">
+                                        <i class="fas fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                        <input type="password" id="currPassword" placeholder="Enter current password to authorize changes" class="w-full pl-10 pr-3 py-2 rounded-lg border border-gray-400 bg-white shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm transition-all">
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New Password</label>
+                                    <input type="password" id="newPassword" placeholder="Minimum 8 characters" class="w-full px-3 py-2 rounded-lg border border-gray-400 bg-white shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm transition-all">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm New Password</label>
+                                    <input type="password" id="confirmPassword" placeholder="Match new password" class="w-full px-3 py-2 rounded-lg border border-gray-400 bg-white shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm transition-all">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                        <div class="p-6 border-b border-gray-100 dark:border-gray-700">
+                            <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Notifications</h2>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Manage what alerts you receive.</p>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-800 dark:text-gray-200">Email Notifications</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Receive emails about new contests.</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-500/30 rounded-full peer dark:bg-gray-700 peer-checked:bg-primary-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all after:shadow-sm dark:border-gray-600 dark:after:border-gray-500 border border-gray-300 dark:border-gray-600 shadow-inner"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="forgotPasswordModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white dark:bg-gray-800 w-[400px] rounded-2xl shadow-2xl p-6 border border-gray-200 dark:border-gray-700">
+            <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-2">Reset Password</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">We'll send an OTP to your registered email to verify your identity.</p>
+            
+            <div id="fpRequestSection">
+                <button id="fpSendOtpBtn" class="w-full bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500/50">
+                    Send Verification OTP
+                </button>
+            </div>
+
+            <div id="fpVerifySection" class="hidden space-y-4">
+                <div class="p-3 bg-primary-50 dark:bg-gray-700/50 border border-primary-200 dark:border-gray-600 rounded-lg text-center shadow-inner">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">OTP sent to:</p>
+                    <p id="fpSentEmailDisplay" class="text-sm font-bold text-gray-800 dark:text-white"></p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Enter OTP</label>
+                    <input type="text" id="fpOtpInput" placeholder="6-digit OTP" class="w-full px-3 py-2 rounded-lg border border-gray-400 bg-white shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 text-sm transition-all text-center tracking-widest font-mono">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">New Password</label>
+                    <input type="password" id="fpNewPassword" placeholder="Enter New Password" class="w-full px-3 py-2 rounded-lg border border-gray-400 bg-white shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 text-sm transition-all">
+                </div>
+                
+                <button id="fpResetBtn" class="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-sm mt-2 focus:outline-none focus:ring-2 focus:ring-green-500/50">
+                    Reset Password
+                </button>
+                <div class="text-center mt-2">
+                    <button type="button" id="fpResendOtpBtn" class="text-sm text-primary-600 dark:text-primary-400 hover:underline disabled:text-gray-400 disabled:no-underline transition-colors" disabled>
+                        Resend OTP in <span id="fpTimer">30</span>s
+                    </button>
+                </div>
+            </div>
+
+            <button onclick="toggleForgotPasswordModal()" class="w-full mt-4 text-sm font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">Cancel</button>
+        </div>
+    </div>
+
+    <div id="profileOverlay" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white dark:bg-gray-800 w-[320px] rounded-3xl overflow-hidden shadow-2xl transform transition-all duration-300 scale-95 opacity-0">
+            <div class="bg-[#1e4a7a] p-6 text-center relative h-32">
+                <button onclick="toggleProfile()" class="absolute top-4 right-4 text-white/80 hover:text-white transition-colors">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+                <div class="absolute -bottom-10 left-1/2 -translate-x-1/2">
+                    <div class="profile-initials-display h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 bg-[#1e4a7a] flex items-center justify-center text-white text-2xl font-bold shadow-md">--</div>
+                </div>
+            </div>
+            <div class="pt-12 pb-6 px-6 text-center">
+                <h3 class="profile-name-display text-xl font-bold text-gray-800 dark:text-white">Loading...</h3>
+                <p id="overlayCollege" class="text-xs text-gray-500 flex items-center justify-center gap-1 mt-1"><i class="fas fa-university"></i> Loading...</p>
+                <p id="overlayId" class="text-xs text-gray-500 mb-3 flex items-center justify-center gap-1">Role: ...</p>
+                
+                <button id="logoutBtn" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all border border-transparent hover:border-red-100 dark:hover:border-red-900/50">
+                    <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 flex items-center justify-center transition-transform group-hover:scale-110">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </div>
+                    <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
+                </button>
+                <button onclick="toggleProfile()" class="mt-4 text-[10px] font-bold text-gray-400 uppercase hover:text-gray-600 transition-colors tracking-wider">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- TIMER UTILITY FUNCTION ---
+        let emailTimerInterval, fpTimerInterval;
+        
+        function startOtpTimer(duration, displayElement, btnElement, intervalRef) {
+            let timer = duration;
+            btnElement.disabled = true;
+            clearInterval(intervalRef);
+            intervalRef = setInterval(function () {
+                displayElement.textContent = timer;
+                if (--timer < 0) {
+                    clearInterval(intervalRef);
+                    displayElement.textContent = "0";
+                    btnElement.disabled = false;
+                    btnElement.innerHTML = "Resend OTP";
+                } else {
+                    btnElement.innerHTML = `Resend OTP in <span id="${displayElement.id}">${timer}</span>s`;
+                }
+            }, 1000);
+            return intervalRef;
+        }
+
+        // --- CORE DATABASE CONNECTION: FETCH PROFILE ---
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchProfile();
+        });
+
+        async function fetchProfile() {
+            try {
+                const response = await fetch('/college/api/profile'); 
+                const data = await response.json();
+
+                if (data.success !== false && data.user) {
+                    const user = data.user;
+                    
+                    document.getElementById('firstNameInput').value = user.firstName || (user.fullName ? user.fullName.split(' ')[0] : '');
+                    document.getElementById('lastNameInput').value = user.lastName || (user.fullName ? user.fullName.split(' ').slice(1).join(' ') : '');
+                    document.getElementById('emailInput').value = user.email || '';
+                    document.getElementById('designationInput').value = user.designation || user.role || '';
+
+                    const firstName = document.getElementById('firstNameInput').value;
+                    const lastName = document.getElementById('lastNameInput').value;
+                    const name = `${firstName} ${lastName}`.trim() || 'Admin User';
+                    
+                    const initials = firstName && lastName ? `${firstName[0]}${lastName[0]}`.toUpperCase() : name.substring(0, 2).toUpperCase();
+                    
+                    document.querySelectorAll('.profile-name-display').forEach(el => el.textContent = name);
+                    document.querySelectorAll('.profile-initials-display').forEach(el => el.textContent = initials);
+                    
+                    document.getElementById('overlayCollege').innerHTML = `<i class="fas fa-university"></i> ${user.collegeName || 'Not Assigned'}`;
+                    document.getElementById('overlayId').textContent = `Role: ${user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Admin'}`;
+                }
+            } catch (err) {
+                console.error("Error fetching settings:", err);
+            }
+        }
+
+        // --- EMAIL UPDATE & OTP LOGIC ---
+        const changeEmailBtn = document.getElementById('changeEmailBtn');
+        const emailOtpSection = document.getElementById('emailOtpSection');
+        const resendEmailOtpBtn = document.getElementById('resendEmailOtpBtn');
+        const verifyEmailBtn = document.getElementById('verifyEmailBtn');
+        const otpTargetEmail = document.getElementById('otpTargetEmail');
+
+        changeEmailBtn.addEventListener('click', async () => {
+            const newEmail = document.getElementById('emailInput').value;
+            if(!newEmail) return alert("Please enter a valid email.");
+
+            try {
+                changeEmailBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                const response = await fetch('/college/send-email-update-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: newEmail })
+                });
+                
+                const data = await response.json();
+                if(data.success || response.ok) { 
+                    otpTargetEmail.textContent = newEmail;
+                    emailOtpSection.classList.remove('hidden');
+                    emailTimerInterval = startOtpTimer(30, document.getElementById('emailOtpTimer'), resendEmailOtpBtn, emailTimerInterval);
+                } else {
+                    alert("Failed to send OTP.");
+                }
+            } catch(e) { console.error(e); alert("Network error. OTP assumed sent for demo."); 
+                otpTargetEmail.textContent = newEmail;
+                emailOtpSection.classList.remove('hidden');
+                emailTimerInterval = startOtpTimer(30, document.getElementById('emailOtpTimer'), resendEmailOtpBtn, emailTimerInterval);
+            } finally {
+                changeEmailBtn.innerHTML = 'Update';
+            }
+        });
+
+        resendEmailOtpBtn.addEventListener('click', () => changeEmailBtn.click());
+
+        verifyEmailBtn.addEventListener('click', async () => {
+            const otp = document.getElementById('emailOtpInput').value;
+            const newEmail = document.getElementById('emailInput').value;
+            
+            try {
+                const response = await fetch('/college/verify-email-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: newEmail, otp })
+                });
+                const data = await response.json();
+                
+                alert("Email updated successfully!");
+                emailOtpSection.classList.add('hidden');
+                document.getElementById('emailOtpInput').value = '';
+                clearInterval(emailTimerInterval);
+            } catch(e) {
+                console.error(e); alert("Failed to verify OTP.");
+            }
+        });
+
+        // --- FORGOT PASSWORD MODAL LOGIC ---
+        function toggleForgotPasswordModal() {
+            const modal = document.getElementById('forgotPasswordModal');
+            modal.classList.toggle('hidden');
+            document.getElementById('fpRequestSection').classList.remove('hidden');
+            document.getElementById('fpVerifySection').classList.add('hidden');
+            document.getElementById('fpOtpInput').value = '';
+            document.getElementById('fpNewPassword').value = '';
+            document.getElementById('fpSentEmailDisplay').textContent = '';
+            clearInterval(fpTimerInterval);
+        }
+
+        document.getElementById('fpSendOtpBtn').addEventListener('click', async () => {
+            const currentEmail = document.getElementById('emailInput').value;
+            if(!currentEmail) {
+                alert("No email address found. Please ensure your email is saved in your profile first.");
+                return;
+            }
+
+            const btn = document.getElementById('fpSendOtpBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            btn.disabled = true;
+            
+            try {
+                const response = await fetch('/college/forgot-password-otp', { method: 'POST' });
+                document.getElementById('fpRequestSection').classList.add('hidden');
+                document.getElementById('fpVerifySection').classList.remove('hidden');
+                
+                document.getElementById('fpSentEmailDisplay').textContent = currentEmail;
+                fpTimerInterval = startOtpTimer(30, document.getElementById('fpTimer'), document.getElementById('fpResendOtpBtn'), fpTimerInterval);
+            } catch(e) {
+                console.error(e); 
+                alert("Failed to trigger Forgot Password OTP.");
+            } finally {
+                btn.innerHTML = 'Send Verification OTP';
+                btn.disabled = false;
+            }
+        });
+
+        document.getElementById('fpResendOtpBtn').addEventListener('click', () => {
+            document.getElementById('fpSendOtpBtn').click(); 
+        });
+
+        document.getElementById('fpResetBtn').addEventListener('click', async () => {
+            const otp = document.getElementById('fpOtpInput').value;
+            const newPassword = document.getElementById('fpNewPassword').value;
+            
+            if(!otp || !newPassword) return alert("Please fill both OTP and New Password fields.");
+
+            try {
+                const response = await fetch('/college/reset-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ otp, newPassword })
+                });
+                alert("Password reset successfully!");
+                toggleForgotPasswordModal();
+            } catch(e) {
+                console.error(e); alert("Error resetting password.");
+            }
+        });
+
+        // --- CORE DATABASE CONNECTION: SAVE GENERAL SETTINGS ---
+        document.getElementById('saveChangesBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('saveChangesBtn');
+            
+            const firstName = document.getElementById('firstNameInput').value;
+            const lastName = document.getElementById('lastNameInput').value;
+            const fullName = `${firstName} ${lastName}`.trim(); 
+            
+            const email = document.getElementById('emailInput').value;
+            const designation = document.getElementById('designationInput').value;
+            const currPass = document.getElementById('currPassword').value;
+            const newPass = document.getElementById('newPassword').value;
+            const confPass = document.getElementById('confirmPassword').value;
+
+            if (newPass && newPass !== confPass) {
+                alert("New Passwords do not match!");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Saving...';
+
+            try {
+                const response = await fetch('/college/update-profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ firstName, lastName, fullName, email, designation, currPass, newPass })
+                });
+
+                const result = await response.json();
+                if (result.success || response.ok) {
+                    alert("Settings updated successfully!");
+                    document.getElementById('currPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                    fetchProfile(); 
+                } else {
+                    alert("Error: " + (result.message || "Failed to update profile."));
+                }
+            } catch (err) {
+                console.error("Save Error:", err);
+                alert("An error occurred while saving settings.");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Save Changes";
+            }
+        });
+
+        // --- UI FUNCTIONS ---
+        function toggleProfile() {
+            const overlay = document.getElementById('profileOverlay');
+            const card = overlay.querySelector('div');
+            
+            if (overlay.classList.contains('hidden')) {
+                overlay.classList.remove('hidden');
+                setTimeout(() => {
+                    card.classList.remove('scale-95', 'opacity-0');
+                    card.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            } else {
+                card.classList.remove('scale-100', 'opacity-100');
+                card.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 300); 
+            }
+        }
+
+        // Sidebar logic
+        const sidebar = document.getElementById('mainSidebar');
+        const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+        sidebarToggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            const icon = sidebarToggleBtn.querySelector('i');
+            icon.classList.toggle('fa-chevron-left');
+            icon.classList.toggle('fa-chevron-right');
+        });
+
+        // Theme Logic
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const html = document.documentElement;
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            html.classList.add('dark');
+            themeToggleBtn.querySelector('i').classList.replace('fa-moon', 'fa-sun');
+        }
+        themeToggleBtn.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            const icon = themeToggleBtn.querySelector('i');
+            if (html.classList.contains('dark')) {
+                localStorage.theme = 'dark';
+                icon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                localStorage.theme = 'light';
+                icon.classList.replace('fa-sun', 'fa-moon');
+            }
+        });
+
+        // --- ROBUST LOGOUT LOGIC ---
+        document.getElementById("logoutBtn").addEventListener("click", async () => {
+            try {
+                const response = await fetch('/college/logout', { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success || response.ok) {
+                    localStorage.removeItem("adminLogin");
+                    window.location.href = "/"; 
+                } else {
+                    alert("Logout failed. Please try again.");
+                }
+            } catch (error) {
+                console.error("Error logging out:", error);
+                localStorage.removeItem("adminLogin");
+                window.location.href = "/";
+            }
+        });
+    </script>
+</body>
+</html>

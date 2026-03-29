@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings - Faculty Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/shared.css">
+    <link rel="stylesheet" href="/css/faculty/style.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ["Poppins", "sans-serif"] },
+                    colors: {
+                        primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" },
+                        dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" }
+                    },
+                },
+            },
+        };
+    </script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200 text-gray-800 dark:text-gray-200">
+<div class="flex h-screen overflow-hidden">
+    <%- include('../partials/faculty_nav') %>
+
+    <div class="flex-1 overflow-y-auto">
+        <%- include('../partials/faculty_header') %>
+
+        <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+            <% if (typeof success !== 'undefined' && success) { %>
+            <div class="bg-green-50 dark:bg-green-900/30 border-l-4 border-green-500 p-4 rounded-r-lg">
+                <div class="flex">
+                    <div class="flex-shrink-0"><i class="fas fa-check-circle text-green-500"></i></div>
+                    <div class="ml-3">
+                        <p class="text-sm text-green-700 dark:text-green-300 font-medium">Settings updated successfully!</p>
+                    </div>
+                </div>
+            </div>
+            <% } %>
+
+            <!-- Profile Form -->
+            <form action="/faculty/settings/update" method="POST" class="space-y-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                    <h3 class="text-base font-semibold text-gray-800 dark:text-white mb-6">Profile Information (Editable)</h3>
+                    <div class="flex items-center gap-5 mb-6">
+                        <div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold flex-shrink-0">
+                            <%= user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2) %>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-gray-900 dark:text-white"><%= user.name %></h4>
+                            <p class="text-sm text-gray-500 dark:text-gray-400"><%= user.post %></p>
+                            <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5"><%= user.college %></p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Full Name</label>
+                            <input type="text" name="name" value="<%= user.name %>" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Email</label>
+                            <input type="email" name="email" value="<%= user.email || '' %>" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Gender</label>
+                            <select name="gender" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all">
+                                <option value="" <%= !user.gender ? 'selected' : '' %>>Select Gender</option>
+                                <option value="Male" <%= user.gender === 'Male' ? 'selected' : '' %>>Male</option>
+                                <option value="Female" <%= user.gender === 'Female' ? 'selected' : '' %>>Female</option>
+                                <option value="Other" <%= user.gender === 'Other' ? 'selected' : '' %>>Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Mobile Number</label>
+                            <input type="text" name="mobile" value="<%= user.mobile || '' %>" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all">
+                        </div>
+                    </div>
+                    <div class="flex justify-end mt-6">
+                        <button type="submit" class="bg-primary-500 hover:bg-primary-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm">Save Changes</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Non-Editable (System) Section -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h3 class="text-base font-semibold text-gray-800 dark:text-white mb-6 flex items-center gap-2"><i class="fas fa-shield-alt text-gray-400"></i> System Information (Read-Only)</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Role / Position</label>
+                        <div class="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-400 cursor-not-allowed flex items-center">
+                            <i class="fas fa-lock text-xs mr-2 opacity-50"></i><%= user.role || 'Faculty' %>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Department</label>
+                        <div class="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-400 cursor-not-allowed flex items-center">
+                            <i class="fas fa-lock text-xs mr-2 opacity-50"></i><%= user.department || 'Not Assigned' %>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Joining Date</label>
+                        <div class="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-400 cursor-not-allowed flex items-center">
+                            <i class="fas fa-lock text-xs mr-2 opacity-50"></i><%= user.joiningDate || 'Unknown' %>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Course</label>
+                        <div class="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-400 cursor-not-allowed flex items-center">
+                            <i class="fas fa-lock text-xs mr-2 opacity-50"></i><%= user.course || 'Not Specified' %>
+                        </div>
+                    </div>
+                </div>
+
+                <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-6 mb-3">Academic Assignments</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-2">Assigned Subjects</p>
+                        <div class="flex flex-wrap gap-2">
+                            <%  if (!user.assignedSubjects || user.assignedSubjects.length === 0) { %>
+                                <span class="bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 px-3 py-1 rounded-full text-xs font-medium border border-gray-200 dark:border-gray-700">None</span>
+                            <% } else { user.assignedSubjects.forEach(subject => { %>
+                                    <span class="bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 px-3 py-1 rounded-full text-xs font-medium border border-indigo-100 dark:border-indigo-800 flex items-center gap-1.5"><i class="fas fa-lock text-[10px] opacity-70"></i> <%= subject %></span>
+                            <% }); } %>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-2">Assigned Years</p>
+                        <div class="flex flex-wrap gap-2">
+                            <% 
+                            let parsedYears = [];
+                            try { parsedYears = user.assignedYears ? user.assignedYears.split(',') : []; } catch(e) {}
+                            if (parsedYears.length === 0) { %>
+                                <span class="bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 px-3 py-1 rounded-full text-xs font-medium border border-gray-200 dark:border-gray-700">None</span>
+                            <% } else {
+                                parsedYears.forEach(year => { 
+                                    if(year.trim()){ %>
+                                    <span class="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-3 py-1 rounded-full text-xs font-medium border border-blue-100 dark:border-blue-800 flex items-center gap-1.5"><i class="fas fa-lock text-[10px] opacity-70"></i> <%= year.trim() %></span>
+                            <% }}); } %>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-2">Assigned Sections</p>
+                        <div class="flex flex-wrap gap-2">
+                            <% 
+                            let parsedSections = [];
+                            try { parsedSections = user.assignedSections ? user.assignedSections.split(',') : []; } catch(e) {}
+                            if (parsedSections.length === 0) { %>
+                                <span class="bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 px-3 py-1 rounded-full text-xs font-medium border border-gray-200 dark:border-gray-700">None</span>
+                            <% } else {
+                                parsedSections.forEach(section => { 
+                                    if(section.trim()){ %>
+                                    <span class="bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 px-3 py-1 rounded-full text-xs font-medium border border-purple-100 dark:border-purple-800 flex items-center gap-1.5"><i class="fas fa-lock text-[10px] opacity-70"></i> <%= section.trim() %></span>
+                            <% }}); } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theme -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h3 class="text-base font-semibold text-gray-800 dark:text-white mb-4">Appearance</h3>
+                <div class="flex gap-3">
+                    <button id="themeLightBtn" class="flex-1 p-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-primary-500 transition-all flex flex-col items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        <i class="fas fa-sun text-orange-400 text-xl"></i> Light
+                    </button>
+                    <button id="themeDarkBtn" class="flex-1 p-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-primary-500 transition-all flex flex-col items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        <i class="fas fa-moon text-indigo-400 text-xl"></i> Dark
+                    </button>
+                    <button id="themeSystemBtn" class="flex-1 p-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-primary-500 transition-all flex flex-col items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        <i class="fas fa-desktop text-gray-400 text-xl"></i> System
+                    </button>
+                </div>
+            </div>
+
+            <!-- Logout -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-red-100 dark:border-red-900/30 p-6">
+                <h3 class="text-base font-semibold text-gray-800 dark:text-white mb-2">Danger Zone</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">End your session securely.</p>
+                <a href="/auth/logout" class="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors">
+                    <i class="fas fa-sign-out-alt"></i> Sign Out
+                </a>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- NOTIFICATION DROPDOWN -->
+<div id="notificationDropdown"
+    class="fixed top-16 right-6 z-50 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 hidden animate-[fadeIn_0.1s_ease-out]">
+    <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+        <h3 class="font-semibold text-gray-800 dark:text-white">Notifications</h3>
+        <span class="text-xs text-primary-500 cursor-pointer hover:underline">Mark all read</span>
+    </div>
+    <div class="p-2">
+        <div class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer">
+            <p class="text-sm text-gray-800 dark:text-gray-200 font-medium">System Update</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Server maintenance scheduled for tonight.</p>
+        </div>
+    </div>
+</div>
+
+<!-- SETTINGS MENU -->
+<div id="settingsMenu"
+    class="hidden fixed bottom-16 left-4 w-72 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-2xl rounded-2xl z-[9999] overflow-hidden transform transition-all duration-200 origin-bottom-left">
+    <div class="p-2 space-y-1">
+        <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Account</div>
+        <a href="/faculty/settings"
+            class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors cursor-pointer group">
+            <i class="fas fa-user-circle w-5 text-gray-400 group-hover:text-primary-500 transition-colors"></i>
+            Profile
+        </a>
+    </div>
+    <div class="h-px bg-gray-100 dark:bg-gray-700 mx-4"></div>
+    <div class="p-2 space-y-1">
+        <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Preferences</div>
+        <button id="themeAccordionBtn"
+            class="w-full flex justify-between items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors cursor-pointer group focus:outline-none">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-palette w-5 text-gray-400 group-hover:text-primary-500 transition-colors"></i>
+                <span>Theme</span>
+            </div>
+            <i id="themeChevron" class="fas fa-chevron-right text-xs text-gray-400 transition-transform duration-200"></i>
+        </button>
+        <div id="themeOptionsContainer" class="hidden pl-4 pr-1 space-y-1 pb-1">
+            <button data-value="light" class="theme-option w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
+                <span class="flex items-center gap-2"><i class="fas fa-sun text-orange-400 w-4"></i> Light</span>
+                <i class="fas fa-check text-primary-500 opacity-0 check-icon"></i>
+            </button>
+            <button data-value="dark" class="theme-option w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
+                <span class="flex items-center gap-2"><i class="fas fa-moon text-indigo-400 w-4"></i> Dark</span>
+                <i class="fas fa-check text-primary-500 opacity-0 check-icon"></i>
+            </button>
+            <button data-value="system" class="theme-option w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
+                <span class="flex items-center gap-2"><i class="fas fa-desktop text-gray-400 w-4"></i> System</span>
+                <i class="fas fa-check text-primary-500 opacity-0 check-icon"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- PROFILE OVERLAY -->
+<div id="profileOverlay" class="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+    <div class="w-[380px] bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden animate-[fadeIn_0.2s_ease-out]">
+        <div class="bg-gradient-to-br from-[#1E4A7A] to-[#153255] relative pt-12 pb-20 px-6 text-center">
+            <button id="closeProfileOverlay" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white/90 transition-all flex items-center justify-center backdrop-blur-sm">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+            <div class="absolute left-1/2 bottom-[-48px] -translate-x-1/2">
+                <div class="relative w-24 h-24 rounded-full p-1.5 bg-white dark:bg-gray-800 ring-4 ring-[#1E4A7A]/10 dark:ring-[#1E4A7A]/30">
+                    <div class="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold shadow-inner">
+                        <%= user.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2) %>
+                    </div>
+                    <div class="absolute bottom-0 right-0 w-6 h-6 bg-green-500 border-4 border-white dark:border-gray-800 rounded-full"></div>
+                </div>
+            </div>
+        </div>
+        <div class="pt-16 pb-8 px-6">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-1"><%= user.fullName %></h2>
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3"><%= user.post || 'Faculty Member' %></p>
+                <div class="flex items-center justify-center gap-2 flex-wrap">
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-100 dark:border-blue-800"><%= user.department || 'General' %> Dept</span>
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border border-purple-100 dark:border-purple-800"><%= user.role ? user.role.toUpperCase() : 'FACULTY' %></span>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="p-3 rounded-2xl bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700 text-center">
+                    <p class="text-xs text-gray-500 uppercase font-semibold">Faculty ID</p>
+                    <p class="text-sm font-bold text-gray-800 dark:text-gray-200">FAC-<%= user.id %></p>
+                </div>
+                <div class="p-3 rounded-2xl bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700 text-center">
+                    <p class="text-xs text-gray-500 uppercase font-semibold">Joined</p>
+                    <p class="text-sm font-bold text-gray-800 dark:text-gray-200"><%= user.joiningDate || 'Unknown' %></p>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <button id="logoutBtn" class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group transition-all duration-200 border border-transparent hover:border-red-100 dark:hover:border-red-800">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center justify-center"><i class="fas fa-sign-out-alt text-sm"></i></div>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-red-600 dark:group-hover:text-red-400">Logout</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-xs text-gray-400 group-hover:text-red-500 dark:group-hover:text-red-400"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/faculty/index1_logic.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Wire up the appearance buttons on the settings page directly
+        const html = document.documentElement;
+        function applyThemeLocal(t) {
+            if (t === 'dark') { html.classList.add('dark'); localStorage.theme = 'dark'; }
+            else if (t === 'light') { html.classList.remove('dark'); localStorage.theme = 'light'; }
+            else { localStorage.removeItem('theme'); if (window.matchMedia('(prefers-color-scheme: dark)').matches) html.classList.add('dark'); else html.classList.remove('dark'); }
+            const themeBtn = document.getElementById('themeToggleBtn');
+            const icon = themeBtn ? themeBtn.querySelector('i') : null;
+            if (icon) icon.className = html.classList.contains('dark') ? 'fas fa-sun text-xl' : 'fas fa-moon text-xl';
+        }
+        const lb = document.getElementById('themeLightBtn');
+        const db = document.getElementById('themeDarkBtn');
+        const sb = document.getElementById('themeSystemBtn');
+        if (lb) lb.addEventListener('click', () => applyThemeLocal('light'));
+        if (db) db.addEventListener('click', () => applyThemeLocal('dark'));
+        if (sb) sb.addEventListener('click', () => applyThemeLocal('system'));
+    });
+</script>
+</body>
+</html>

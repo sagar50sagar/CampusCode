@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>View Problem - <%= problem.title %></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="/js/faculty/tailwind-config.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    
+    <link rel="stylesheet" href="/css/faculty/style.css" />
+    <script src="/js/faculty/main.js"></script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200">
+<div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <%- include('../partials/faculty_nav') %>
+
+    <div class="flex-1 overflow-hidden flex flex-col relative w-full">
+        <!-- Header -->
+        <%- include('../partials/faculty_header') %>
+
+        <!-- Main Workspace: Split Pane (LeetCode style) -->
+        <main class="flex-1 w-full flex flex-col md:flex-row overflow-hidden p-2 gap-2 bg-gray-100 dark:bg-gray-900">
+            
+            <!-- LEFT PANE: Problem Description -->
+            <div class="w-full md:w-1/2 lg:w-[45%] bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden h-full">
+                <!-- Tabs -->
+                <div class="flex border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex-shrink-0">
+                    <button class="px-4 py-2 border-b-2 border-blue-500 text-blue-600 dark:text-blue-400 text-sm font-medium flex items-center gap-2">
+                        <i class="fas fa-file-alt"></i> Description
+                    </button>
+                    <button class="px-4 py-2 border-b-2 border-transparent text-gray-500 dark:text-gray-400 text-sm font-medium hover:text-gray-700 dark:hover:text-gray-300 ml-2">
+                        <i class="fas fa-flask"></i> Submissions
+                    </button>
+                </div>
+                
+                <!-- Description Content -->
+                <div class="p-5 overflow-y-auto problem-desc-scroll flex-1 text-gray-800 dark:text-gray-200 prose-custom w-full max-w-full">
+                    <div class="mb-6 flex flex-wrap gap-2 text-sm font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                        <span><%= problem.subject || 'General' %></span>
+                        <% if (problem.is_public) { %>
+                            <span class="text-blue-500 dark:text-blue-400">• Public</span>
+                        <% } else { %>
+                            <span class="text-yellow-600 dark:text-yellow-500">• Draft/Private</span>
+                        <% } %>
+                    </div>
+                    
+                    <div id="problemDescriptionHtml">
+                        <%- problem.description %>
+                    </div>
+                    
+                    <% if (problem.input_format || problem.output_format || problem.constraints) { %>
+                        <div class="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <% if (problem.input_format) { %>
+                                <h3 class="text-lg font-semibold mb-2 mt-4 text-gray-900 dark:text-white">Input Format</h3>
+                                <div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg font-mono text-sm whitespace-pre-wrap"><%= problem.input_format %></div>
+                            <% } %>
+                            
+                            <% if (problem.output_format) { %>
+                                <h3 class="text-lg font-semibold mb-2 mt-4 text-gray-900 dark:text-white">Output Format</h3>
+                                <div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg font-mono text-sm whitespace-pre-wrap"><%= problem.output_format %></div>
+                            <% } %>
+                            
+                            <% if (problem.constraints) { %>
+                                <h3 class="text-lg font-semibold mb-2 mt-4 text-gray-900 dark:text-white">Constraints</h3>
+                                <div class="bg-purple-50 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300 p-4 rounded-lg font-mono text-sm whitespace-pre-wrap"><%= problem.constraints %></div>
+                            <% } %>
+                        </div>
+                    <% } %>
+
+                    <% if (problem.sample_input || problem.sample_output) { %>
+                        <div class="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Sample Test Case</h3>
+                            <div class="grid grid-cols-1 gap-4">
+                                <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+                                    <div class="bg-gray-100 dark:bg-gray-800 px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-sm font-semibold flex justify-between items-center text-gray-700 dark:text-gray-300">
+                                        <span>Sample Input</span>
+                                        <button class="text-gray-500 hover:text-blue-500 transition-colors tooltip-btn" title="Copy to clipboard"><i class="fas fa-copy"></i></button>
+                                    </div>
+                                    <div class="p-4 bg-gray-50 dark:bg-gray-900/50 font-mono text-sm"><pre class="whitespace-pre-wrap bg-transparent text-gray-800 dark:text-gray-200 p-0 m-0"><%= problem.sample_input %></pre></div>
+                                </div>
+                                <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+                                    <div class="bg-gray-100 dark:bg-gray-800 px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-sm font-semibold flex justify-between items-center text-gray-700 dark:text-gray-300">
+                                        <span>Sample Output</span>
+                                        <button class="text-gray-500 hover:text-blue-500 transition-colors tooltip-btn" title="Copy to clipboard"><i class="fas fa-copy"></i></button>
+                                    </div>
+                                    <div class="p-4 bg-gray-50 dark:bg-gray-900/50 font-mono text-sm"><pre class="whitespace-pre-wrap bg-transparent text-gray-800 dark:text-gray-200 p-0 m-0"><%= problem.sample_output %></pre></div>
+                                </div>
+                            </div>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- RIGHT PANE: Code Editor Placeholder -->
+            <div class="w-full md:w-1/2 lg:w-[55%] flex flex-col h-full rounded-lg overflow-hidden border border-gray-200 dark:border-[#3E3E3E] bg-[#1E1E1E] shadow-sm relative">
+                <!-- Editor Toolbar Mockup -->
+                <div class="h-10 border-b border-gray-700 dark:border-[#3E3E3E] bg-[#2D2D2D] dark:bg-[#282828] flex items-center justify-between px-4 flex-shrink-0">
+                    <div class="flex gap-2 items-center">
+                        <div class="px-3 py-1 bg-[#3E3E3E] rounded flex items-center gap-2 cursor-pointer hover:bg-[#4E4E4E] transition-colors">
+                            <span class="text-white text-xs font-mono">C++</span>
+                            <i class="fas fa-chevron-down text-gray-400 text-[10px]"></i>
+                        </div>
+                        <div class="text-gray-400 cursor-pointer hover:text-white px-2 transition-colors"><i class="fas fa-cog text-sm"></i></div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button class="text-gray-400 cursor-pointer hover:text-white transition-colors"><i class="fas fa-undo text-sm"></i></button>
+                        <button class="text-gray-400 cursor-pointer hover:text-white transition-colors"><i class="fas fa-redo text-sm"></i></button>
+                        <button class="text-gray-400 cursor-pointer hover:text-white transition-colors"><i class="fas fa-expand text-sm"></i></button>
+                    </div>
+                </div>
+
+                <!-- Editor Body Mockup -->
+                <div class="flex-1 bg-[#1E1E1E] p-4 font-mono text-sm leading-relaxed overflow-hidden relative flex flex-col items-center justify-center">
+                    <!-- Placeholder Centered Text -->
+                    <div class="flex flex-col items-center justify-center text-center max-w-sm">
+                        <div class="w-20 h-20 rounded-full bg-[#2A2A2A] flex items-center justify-center mb-6 shadow-lg border border-[#3A3A3A]">
+                            <i class="fas fa-laptop-code text-4xl text-blue-500 opacity-80"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-200 mb-2 font-sans">Compiler Coming Soon</h3>
+                        <p class="text-gray-400 text-sm font-sans">
+                            The code execution environment is currently under development. Soon, students will be able to write, run, and test their code directly from here.
+                        </p>
+                    </div>
+
+                    <!-- Faint fake code in background -->
+                    <div class="absolute inset-0 pointer-events-none opacity-20 p-4 font-mono text-sm leading-relaxed text-[#569CD6]">
+<pre>
+<span class="text-[#C586C0]">#include</span> <span class="text-[#CE9178]">&lt;iostream&gt;</span>
+<span class="text-[#C586C0]">#include</span> <span class="text-[#CE9178]">&lt;vector&gt;</span>
+<span class="text-[#C586C0]">using</span> <span class="text-[#569CD6]">namespace</span> std;
+
+<span class="text-[#569CD6]">class</span> <span class="text-[#4EC9B0]">Solution</span> {
+<span class="text-[#569CD6]">public:</span>
+    <span class="text-[#569CD6]">void</span> <span class="text-[#DCDCAA]">solve</span>() {
+        <span class="text-[#6A9955]">// Write your code here</span>
+        
+    }
+};
+
+<span class="text-[#569CD6]">int</span> <span class="text-[#DCDCAA]">main</span>() {
+    <span class="text-[#4EC9B0]">Solution</span> sol;
+    sol.<span class="text-[#DCDCAA]">solve</span>();
+    <span class="text-[#C586C0]">return</span> <span class="text-[#B5CEA8]">0</span>;
+}
+</pre>
+                    </div>
+                </div>
+
+                <!-- Lower Output Pane Mockup -->
+                <div class="h-12 border-t border-gray-700 dark:border-[#3E3E3E] bg-[#2D2D2D] dark:bg-[#282828] flex items-center justify-between px-4 sm:px-6 flex-shrink-0">
+                    <button class="text-gray-300 font-medium text-sm flex items-center gap-2 hover:text-white transition-colors">
+                        <i class="fas fa-terminal opacity-70"></i> Console
+                    </button>
+                    <div class="flex gap-3">
+                        <button class="px-5 py-1.5 rounded bg-[#3A3A3A] hover:bg-[#4A4A4A] text-gray-300 text-sm font-medium transition-colors shadow-sm cursor-not-allowed opacity-70">Run</button>
+                        <button class="px-5 py-1.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors shadow-sm cursor-not-allowed opacity-70">Submit</button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        
+        applyTheme(localStorage.theme || 'system');
+    });
+</script>
+</body>
+</html>

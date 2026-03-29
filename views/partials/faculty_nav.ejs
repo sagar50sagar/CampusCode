@@ -1,0 +1,78 @@
+<%
+  // Helper: active-class logic
+  function navClass(page) {
+    return (typeof currentPage !== 'undefined' && currentPage === page)
+      ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-r-4 border-primary-600 dark:border-primary-400'
+      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border-r-4 border-transparent';
+  }
+  function btmClass(page) {
+    return (typeof currentPage !== 'undefined' && currentPage === page)
+      ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
+      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700';
+  }
+  // Safe user name initials
+  var _uname = (user && user.fullName) ? user.fullName : ((user && user.name) ? user.name : 'U');
+  var _initials = _uname.split(' ').map(function(n){ return n[0]; }).join('').toUpperCase().slice(0,2);
+  var _displayName = _uname;
+%>
+<!-- ===== FACULTY SIDEBAR ===== -->
+<aside id="mainSidebar"
+    class="sidebar w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen flex-shrink-0 transition-all duration-300 z-50">
+
+    <div id="sidebarHeader" class="p-6 flex-shrink-0 flex items-center justify-between h-[88px]">
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2 overflow-hidden whitespace-nowrap">
+            <i id="sidebarLogoIcon" class="fas fa-code text-primary-500 text-2xl flex-shrink-0"></i>
+            <span id="sidebarLogoText" class="transition-all duration-300 opacity-100">CampusCode</span>
+        </h1>
+        <button id="sidebarToggleBtn"
+            class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary-500 transition-colors focus:outline-none">
+            <i class="fas fa-chevron-left transition-transform duration-300"></i>
+        </button>
+    </div>
+
+    <nav class="flex-1 space-y-1 overflow-y-auto mt-2 font-sans">
+        <a href="/faculty/dashboard"
+            class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all <%- navClass('dashboard') %>">
+            <i class="fas fa-home w-5 text-center text-lg"></i>
+            <span class="whitespace-nowrap sidebar-hide">Dashboard</span>
+        </a>
+        <a href="/faculty/problem"
+            class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all <%- navClass('problem') %>">
+            <i class="fas fa-tasks w-5 text-center text-lg"></i>
+            <span class="whitespace-nowrap sidebar-hide">Problems</span>
+        </a>
+        <a href="/faculty/contest"
+            class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all <%- navClass('contest') %>">
+            <i class="fas fa-trophy w-5 text-center text-lg"></i>
+            <span class="whitespace-nowrap sidebar-hide">Contests</span>
+        </a>
+        <a href="/faculty/student"
+            class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all <%- navClass('student') %>">
+            <i class="fas fa-user-graduate w-5 text-center text-lg"></i>
+            <span class="whitespace-nowrap sidebar-hide">Students</span>
+        </a>
+        <a href="/faculty/community"
+            class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all <%- navClass('community') %>">
+            <i class="fas fa-comments w-5 text-center text-lg"></i>
+            <span class="whitespace-nowrap sidebar-hide">Community</span>
+        </a>
+        <a href="/faculty/report"
+            class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all <%- navClass('report') %>">
+            <i class="fas fa-chart-pie w-5 text-center text-lg"></i>
+            <span class="whitespace-nowrap sidebar-hide">Reports</span>
+        </a>
+    </nav>
+
+    <div class="p-4 space-y-1 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
+        <a href="/faculty/help"
+            class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all rounded-lg <%- btmClass('help') %>">
+            <i class="far fa-question-circle w-5 text-center text-lg group-hover:scale-110 transition-transform"></i>
+            <span class="whitespace-nowrap sidebar-hide">Help & Support</span>
+        </a>
+        <a href="/faculty/settings"
+            class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all rounded-lg <%- btmClass('settings') %>">
+            <i class="fas fa-cog w-5 text-center text-lg group-hover:scale-110 transition-transform"></i>
+            <span class="whitespace-nowrap sidebar-hide">Settings</span>
+        </a>
+    </div>
+</aside>

@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "fullName": "Platform Admin",
+    "role": "superadmin",
+    "collegeName": null,
+    "department": "",
+    "branch": ""
+  },
+  {
+    "id": 2,
+    "fullName": "Prashant",
+    "role": "admin",
+    "collegeName": "Meerut Institute of Technology",
+    "department": "",
+    "branch": ""
+  },
+  {
+    "id": 3,
+    "fullName": "Rupam",
+    "role": "faculty",
+    "collegeName": "Meerut Institute of Technology",
+    "department": "COMPUTER SCIIENCE",
+    "branch": "COMPUTER SCIIENCE"
+  },
+  {
+    "id": 4,
+    "fullName": "PRINCE",
+    "role": "hod",
+    "collegeName": "Meerut Institute of Technology",
+    "department": "COMPUTER SCIIENCE",
+    "branch": "COMPUTER SCIIENCE"
+  },
+  {
+    "id": 5,
+    "fullName": "rUPAM",
+    "role": "faculty",
+    "collegeName": "Meerut Institute of Technology",
+    "department": "COMPUTER SCIIENCE",
+    "branch": "COMPUTER SCIIENCE"
+  }
+]

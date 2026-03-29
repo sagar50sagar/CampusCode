@@ -72,10 +72,12 @@
                 
                 <div class="flex items-center gap-3 border-l border-gray-200 dark:border-gray-700 pl-6">
                     <div class="text-right hidden md:block">
-                        <p class="text-sm font-bold text-gray-800 dark:text-white leading-tight">Platform Admin</p>
-                        <p class="text-xs text-red-500 dark:text-red-400 font-bold">Superadmin</p>
+                        <p class="text-sm font-bold text-gray-800 dark:text-white leading-tight"><%= user.fullName %></p>
+                        <p class="text-xs text-red-500 dark:text-red-400 font-bold uppercase"><%= user.role %></p>
                     </div>
-                    <div class="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center text-white font-bold shadow-md">S</div>
+                    <div class="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center text-white font-bold shadow-md">
+                        <%= user.fullName[0].toUpperCase() %>
+                    </div>
                 </div>
             </div>
         </header>
@@ -301,8 +303,11 @@
                                     ${college.status || 'Active'}
                                 </span>
                             </td>
-                            <td class="py-4 px-6 text-center">
-                                <button onclick="deleteCollege(${college.id})" class="text-red-500 hover:text-red-700 transition bg-red-50 dark:bg-red-900/20 p-2 rounded-lg" title="Delete College">
+                            <td class="py-4 px-6 text-center flex items-center justify-center gap-2">
+                                <a href="/college/admin/dashboard?college=${encodeURIComponent(college.name)}" class="text-blue-500 hover:text-blue-700 transition bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg" title="Manage College Dashboard">
+                                    <i class="fas fa-external-link-alt"></i> Manage
+                                </a>
+                                <button onclick="deleteCollege(${college.id})" class="text-red-500 hover:text-red-700 transition bg-red-50 dark:bg-red-900/20 p-2 rounded-lg" title="Remove College">
                                     <i class="fas fa-trash-alt"></i> Remove
                                 </button>
                             </td>

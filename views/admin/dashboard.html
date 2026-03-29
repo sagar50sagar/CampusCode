@@ -1,423 +1,546 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>College Admin Dashboard - CampusCode</title>
-    <link rel="shortcut icon" href="/images/logo.png" type="image/x-icon">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CampusCode - Dashboard</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
+                    fontFamily: { sans: ["Poppins", "sans-serif"] },
                     colors: {
-                        primary: '#1E4A7A',
-                        darkBg: '#0f172a',
-                        darkCard: '#1e293b',
-                    }
-                }
-            }
-        }
+                        primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" },
+                        dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" }
+                    },
+                },
+            },
+        };
     </script>
 
-    <script>
-        // Check for dark mode preference
-        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
+    <style>
+        /* --- Scrollbar --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        .dark ::-webkit-scrollbar-track { background: #111827; }
+        ::-webkit-scrollbar-thumb { background: #7ba4d0; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #2e5e99; }
+
+        /* --- Sidebar Logic --- */
+        .sidebar { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
+        .sidebar.collapsed { width: 5rem; }
+        .sidebar.collapsed .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
+        .sidebar.collapsed .nav-item i { margin-right: 0; font-size: 1.25rem; }
+        .sidebar.collapsed .nav-item span,
+        .sidebar.collapsed .logo-text,
+        .sidebar.collapsed .bottom-menu span { display: none; }
+        .sidebar.collapsed .bottom-menu .nav-item { justify-content: center; }
+
+        /* --- Nav Item Styling --- */
+        .nav-item {
+            transition: all 0.2s ease; position: relative; display: flex; align-items: center;
+            padding: 0.75rem 1rem; margin-bottom: 0.25rem; color: #374151; border-radius: 0.5rem;
+            cursor: pointer; white-space: nowrap;
         }
-    </script>
+        .nav-item:hover { background-color: #f3f4f6; }
+        .dark .nav-item { color: #d1d5db; }
+        .dark .nav-item:hover { background-color: #374151; }
+        .nav-item.active { background-color: #d0e1f5; color: #1e4a7a; }
+        .dark .nav-item.active { background-color: #1e4a7a; color: #ffffff; }
+        .nav-item.active::before {
+            content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+            height: 60%; width: 4px; background-color: #2e5e99; border-radius: 0 4px 4px 0;
+        }
+        .dark .nav-item.active::before { background-color: #60a5fa; }
+        .nav-item i { width: 1.5rem; text-align: center; margin-right: 0.75rem; font-size: 1.1rem; flex-shrink: 0; }
+        .nav-item span { font-size: 0.875rem; font-weight: 500; }
+    </style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans transition-colors duration-300 dark:bg-darkBg dark:text-gray-200 flex h-screen overflow-hidden">
 
-    <aside class="w-64 bg-white dark:bg-darkCard border-r border-gray-200 dark:border-gray-800 flex-shrink-0 flex flex-col transition-colors duration-300">
-        <div class="h-16 flex items-center px-6 border-b border-gray-200 dark:border-gray-800">
-            <i class="fas fa-university text-[#1E4A7A] dark:text-blue-400 text-2xl mr-2"></i>
-            <span class="font-bold text-xl text-[#1E4A7A] dark:text-white">CampusCode</span>
-        </div>
-        
-        <div class="p-4 flex-1 overflow-y-auto">
-            <p class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4 mt-2">College Management</p>
-            <nav class="space-y-2">
-                <a href="#" class="flex items-center gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-900/30 text-[#1E4A7A] dark:text-blue-400 rounded-lg font-medium transition">
-                    <i class="fas fa-users w-5"></i> Manage Users
-                </a>
-            </nav>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200">
+    <div class="flex h-screen overflow-hidden">
 
-            <p class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4 mt-8">Settings</p>
-            <nav class="space-y-2">
-                <a href="/auth/logout" class="flex items-center gap-3 px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg font-medium transition mt-auto">
-                    <i class="fas fa-sign-out-alt w-5"></i> Logout
-                </a>
-            </nav>
-        </div>
-    </aside>
-
-    <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
-        
-        <header class="h-16 bg-white dark:bg-darkCard border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-8 flex-shrink-0 transition-colors duration-300">
-            <h1 class="text-xl font-bold text-gray-800 dark:text-white">College Administration</h1>
-            
-            <div class="flex items-center gap-6">
-                <button onclick="toggleTheme()" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg p-2 transition">
-                    <i id="theme-toggle-light-icon" class="fas fa-sun hidden"></i>
-                    <i id="theme-toggle-dark-icon" class="fas fa-moon hidden"></i>
+        <aside id="mainSidebar" class="sidebar w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen flex-shrink-0 transition-colors duration-200 z-50">
+            <div class="p-6 flex-shrink-0 flex items-center justify-between h-[88px]">
+                <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2 overflow-hidden whitespace-nowrap">
+                    <i class="fas fa-code text-primary-500 text-2xl flex-shrink-0"></i>
+                    <span class="logo-text transition-all duration-300 opacity-100 w-auto">CampusCode</span>
+                </h1>
+                <button id="sidebarToggleBtn" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary-500 transition-colors focus:outline-none">
+                    <i class="fas fa-chevron-left transition-transform duration-300"></i>
                 </button>
-                
-                <div class="flex items-center gap-3 border-l border-gray-200 dark:border-gray-700 pl-6">
-                    <div class="text-right hidden md:block">
-                        <p class="text-sm font-bold text-gray-800 dark:text-white leading-tight">Admin Portal</p>
-                        <p class="text-xs text-[#1E4A7A] dark:text-blue-400 font-bold">College Admin</p>
+            </div>
+<nav class="flex-1 px-4 space-y-1 overflow-y-auto mt-2">
+    <a href="/college/dashboard" class="nav-item active"><i class="fas fa-home"></i><span>Home</span></a>
+    
+    <a href="/college/program" class="nav-item"><i class="fa-solid fa-layer-group"></i><span>Programs</span></a>
+    
+    <a href="/college/contest" class="nav-item"><i class="fas fa-trophy"></i><span>Contests</span></a>
+    <a href="/college/manage_user" class="nav-item"><i class="fa-solid fa-users"></i><span>User</span></a>
+    <a href="/college/report" class="nav-item"><i class="fas fa-file-invoice"></i><span>Reports</span></a>
+       <a href="profile.html" class="nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+</nav>
+
+            <div class="p-4 space-y-1 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0 bottom-menu">
+                <a href="/college/help_support" class="nav-item"><i class="far fa-question-circle"></i><span>Help & Support</span></a>
+                <a href="/college/setting" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+            </div>
+        </aside>
+
+        <div class="flex-1 overflow-y-auto">
+            <header class="bg-white dark:bg-gray-800 shadow-sm transition-colors duration-200 sticky top-0 z-40">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+                    <div class="flex-1 max-w-2xl ml-4 flex items-center gap-4">
+                        <div class="relative flex items-center w-full">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                            <input type="text" class="block w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all" placeholder="Search students, courses..." />
+                        </div>
                     </div>
-                    <div class="w-9 h-9 rounded-full bg-[#1E4A7A] flex items-center justify-center text-white font-bold shadow-md">A</div>
+
+                    <div class="ml-4 flex items-center gap-3 relative">
+                        <button id="themeToggleBtn" class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none transition-transform active:scale-95">
+                            <i class="fas fa-moon text-xl"></i>
+                        </button>
+
+                        <div class="relative">
+                            <button id="notificationBtn" class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none">
+                                <i class="fas fa-bell text-xl"></i>
+                                <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-800 hidden" id="notifBadge"></span>
+                            </button>
+                        </div>
+
+                        <div class="relative">
+                            <button id="headerProfileBtn" onclick="toggleProfile()" class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                <div id="headerInitials" class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm">--</div>
+                                <span id="headerName" class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block">Loading...</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div class="mb-8">
+                    <h1 id="collegeTitle" class="text-2xl font-bold text-gray-800 dark:text-white">Loading College...</h1>
+                    <p class="text-gray-600 dark:text-gray-400">Overview of college statistics and activities</p>
+
+                    <div class="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 transition-colors group hover:border-primary-400 dark:hover:border-primary-400">
+                            <div class="flex items-center gap-4">
+                                <div class="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                                    <i class="fa-solid fa-graduation-cap text-2xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Students</p>
+                                    <p id="statStudents" class="text-2xl font-bold text-gray-800 dark:text-white">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 transition-colors group hover:border-primary-400 dark:hover:border-primary-400">
+                            <div class="flex items-center gap-4">
+                                <div class="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400">
+                                    <i class="fa-solid fa-chalkboard-user text-2xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Faculty</p>
+                                    <p id="statFaculty" class="text-2xl font-bold text-gray-800 dark:text-white">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 transition-colors group hover:border-primary-400 dark:hover:border-primary-400">
+                            <div class="flex items-center gap-4">
+                                <div class="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400">
+                                    <i class="fa-solid fa-layer-group text-2xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Programs</p>
+                                    <p id="statPrograms" class="text-2xl font-bold text-gray-800 dark:text-white">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 transition-colors group hover:border-primary-400 dark:hover:border-primary-400">
+                            <div class="flex items-center gap-4">
+                                <div class="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400">
+                                    <i class="fa-solid fa-trophy text-2xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Contests</p>
+                                    <p id="statContests" class="text-2xl font-bold text-gray-800 dark:text-white">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Platform Activity</h2>
+                        </div>
+                        <div class="h-[300px] w-full flex items-center justify-center text-gray-400" id="lineChartContainer">
+                            <canvas id="lineChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 flex flex-col">
+                        <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">User Distribution</h2>
+                        <div class="flex-1 flex items-center justify-center relative h-[250px]">
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+                        <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-6 flex items-center gap-2">
+                            <i class="fa-solid fa-bolt-lightning text-yellow-400"></i> Activity Feed
+                        </h2>
+                        <div id="activityFeed" class="relative space-y-8 pl-2 max-h-[300px] overflow-y-auto pr-2">
+                            <p class="text-sm text-gray-400">Fetching recent activity...</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-bell-concierge text-primary-500"></i> System Alerts
+                            </h2>
+                        </div>
+                        <div id="systemAlerts" class="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                            <p class="text-sm text-gray-400">Fetching alerts...</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="profileOverlay" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white dark:bg-gray-800 w-[320px] rounded-3xl overflow-hidden shadow-2xl transform transition-all">
+            <div class="bg-[#1e4a7a] p-6 text-center relative h-32">
+                <button onclick="toggleProfile()" class="absolute top-4 right-4 text-white/80 hover:text-white">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+                <div class="absolute -bottom-10 left-1/2 -translate-x-1/2">
+                    <div id="modalInitials" class="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 bg-[#1e4a7a] flex items-center justify-center text-white text-2xl font-bold">--</div>
                 </div>
             </div>
-        </header>
+            <div class="pt-12 pb-6 px-6 text-center">
+                <h3 id="modalName" class="text-xl font-bold text-gray-800 dark:text-white">--</h3>
+                <p id="modalCollege" class="text-xs text-gray-500 flex items-center justify-center gap-1"><i class="fas fa-university"></i> --</p>
+                <p id="modalRole" class="text-xs text-gray-500 mb-6 uppercase flex items-center justify-center gap-1">Admin</p>
 
-        <div class="flex-1 overflow-y-auto p-8 relative">
-            
-            <div class="bg-gradient-to-r from-blue-800 to-indigo-900 rounded-2xl p-6 md:p-8 text-white mb-8 shadow-lg relative overflow-hidden border border-blue-700">
-                <div class="relative z-10">
-                    <h2 class="text-2xl md:text-3xl font-bold mb-2">Institution Dashboard</h2>
-                    <p class="text-blue-100 max-w-2xl">Manage your faculty and students. Approve pending faculty registrations to grant them platform access.</p>
-                </div>
-                <i class="fas fa-chalkboard-teacher absolute right-12 top-1/2 transform -translate-y-1/2 text-8xl text-white opacity-10"></i>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div class="bg-white dark:bg-darkCard p-6 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4 transition-colors">
-                    <div class="w-12 h-12 rounded-full bg-yellow-100 dark:bg-yellow-900/40 flex items-center justify-center text-yellow-600 dark:text-yellow-400 text-xl">
-                        <i class="fas fa-user-clock"></i>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Pending Faculty</p>
-                        <h3 id="stat-pending" class="text-2xl font-bold text-gray-900 dark:text-white">
-                            <i class="fas fa-circle-notch fa-spin text-sm text-gray-400"></i>
-                        </h3>
-                    </div>
-                </div>
-                <div class="bg-white dark:bg-darkCard p-6 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4 transition-colors">
-                    <div class="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-green-600 dark:text-green-400 text-xl">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Active Users</p>
-                        <h3 id="stat-active" class="text-2xl font-bold text-gray-900 dark:text-white">
-                            <i class="fas fa-circle-notch fa-spin text-sm text-gray-400"></i>
-                        </h3>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white dark:bg-darkCard rounded-xl border border-yellow-200 dark:border-yellow-900/30 shadow-sm overflow-hidden transition-colors mb-8">
-                <div class="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-yellow-50/50 dark:bg-yellow-900/10">
-                    <h3 class="font-bold text-lg text-gray-800 dark:text-white"><i class="fas fa-exclamation-circle text-yellow-500 mr-2"></i> Pending Faculty Approvals</h3>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 text-sm">
-                                <th class="py-3 px-6 font-medium">Name</th>
-                                <th class="py-3 px-6 font-medium">Email</th>
-                                <th class="py-3 px-6 font-medium text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pending-table-body" class="text-sm divide-y divide-gray-100 dark:divide-gray-800">
-                            </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="bg-white dark:bg-darkCard rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden transition-colors">
-                <div class="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
-                    <h3 class="font-bold text-lg text-gray-800 dark:text-white">Active Members</h3>
-                    <button onclick="openUserModal()" class="bg-[#1E4A7A] hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
-                        <i class="fas fa-user-plus mr-1"></i> Add User
+                <div class="space-y-1">
+                    <a href="/college/profile" class="block">
+                        <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                            <div class="flex items-center gap-3"><i class="fas fa-user-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200"> Profile</span></div>
+                            <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </a>
+                    <button onclick="handleLogout()" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
+                        <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </div>
+                        <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
                     </button>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 text-sm">
-                                <th class="py-3 px-6 font-medium">Role</th>
-                                <th class="py-3 px-6 font-medium">Full Name</th>
-                                <th class="py-3 px-6 font-medium">Email</th>
-                                <th class="py-3 px-6 font-medium text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="users-table-body" class="text-sm divide-y divide-gray-100 dark:divide-gray-800">
-                            </tbody>
-                    </table>
-                </div>
             </div>
-
-        </div>
-    </main>
-
-    <div id="userModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity">
-        <div class="bg-white dark:bg-darkCard p-6 rounded-xl w-full max-w-md shadow-2xl border border-gray-200 dark:border-gray-700">
-            <h3 id="modalTitle" class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Add New User</h3>
-            
-            <form id="userForm" onsubmit="saveUser(event)">
-                <input type="hidden" id="userId">
-                
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
-                    <select id="userRole" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#1E4A7A] focus:outline-none transition" required>
-                        <option value="student">Student</option>
-                        <option value="faculty">Faculty</option>
-                    </select>
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
-                    <input type="text" id="userName" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#1E4A7A] focus:outline-none transition" required>
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
-                    <input type="email" id="userEmail" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#1E4A7A] focus:outline-none transition" required>
-                </div>
-
-                <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password <span class="text-xs text-gray-500 dark:text-gray-400 font-normal">(Leave blank to keep current if editing)</span></label>
-                    <input type="password" id="userPassword" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#1E4A7A] focus:outline-none transition">
-                </div>
-                
-                <div class="flex justify-end gap-3">
-                    <button type="button" onclick="closeUserModal()" class="px-5 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition">Cancel</button>
-                    <button type="submit" class="px-5 py-2.5 bg-[#1E4A7A] text-white rounded-lg font-medium hover:bg-blue-700 transition">Save User</button>
-                </div>
-            </form>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            loadPendingFaculty();
-            loadActiveUsers();
-        });
+        // --- Core UI Logic ---
+        const html = document.documentElement;
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const themeIcon = themeToggleBtn ? themeToggleBtn.querySelector('i') : null;
 
-        // ==========================================
-        // 1. FETCH DATA
-        // ==========================================
-        
-        async function loadPendingFaculty() {
-            const tableBody = document.getElementById('pending-table-body');
-            const statPending = document.getElementById('stat-pending');
+        function applyTheme(theme) {
+            if (!themeIcon) return;
+            if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                html.classList.add('dark');
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                html.classList.remove('dark');
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+            }
+        }
 
+        const savedTheme = localStorage.getItem('theme') || 'system';
+        applyTheme(savedTheme);
+
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', () => {
+                const newTheme = html.classList.contains('dark') ? 'light' : 'dark';
+                localStorage.setItem('theme', newTheme);
+                applyTheme(newTheme);
+            });
+        }
+
+        const sidebar = document.getElementById('mainSidebar');
+        const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+        if (sidebarToggleBtn && sidebar) {
+            sidebarToggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('collapsed');
+                sidebarToggleBtn.querySelector('i').classList.toggle('fa-chevron-right');
+                sidebarToggleBtn.querySelector('i').classList.toggle('fa-chevron-left');
+            });
+        }
+
+        // Dynamically set active nav-item based on current path
+        (function setActiveSidebarLink() {
             try {
-                const res = await fetch('/college/api/pending-faculty');
-                const data = await res.json();
+                const path = window.location.pathname || '/';
+                const navLinks = document.querySelectorAll('#mainSidebar nav a.nav-item');
+                if (!navLinks || !navLinks.length) return;
 
-                if (data.success) {
-                    const pending = data.pending || [];
-                    statPending.innerText = pending.length;
-                    tableBody.innerHTML = '';
-
-                    if (pending.length === 0) {
-                        tableBody.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-gray-500 italic">No pending approvals.</td></tr>`;
-                        return;
+                let bestMatch = null;
+                let bestLen = 0;
+                navLinks.forEach(a => {
+                    const linkPath = a.getAttribute('href');
+                    if (!linkPath) return;
+                    if (path === linkPath || path.startsWith(linkPath + '/') || path.startsWith(linkPath)) {
+                        if (linkPath.length > bestLen) {
+                            bestLen = linkPath.length;
+                            bestMatch = a;
+                        }
                     }
-
-                    pending.forEach(user => {
-                        const tr = document.createElement('tr');
-                        tr.className = 'hover:bg-gray-50 dark:hover:bg-gray-800/20 transition';
-                        tr.innerHTML = `
-                            <td class="py-4 px-6 font-medium text-gray-900 dark:text-white">${user.fullName}</td>
-                            <td class="py-4 px-6 text-gray-500 dark:text-gray-400">${user.email}</td>
-                            <td class="py-4 px-6 text-center">
-                                <button onclick="approveFaculty(${user.id})" class="text-green-600 hover:text-green-800 transition bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-lg font-medium text-xs">
-                                    <i class="fas fa-check-circle mr-1"></i> Approve
-                                </button>
-                            </td>
-                        `;
-                        tableBody.appendChild(tr);
-                    });
-                }
-            } catch (error) {
-                console.error("Error loading pending faculty:", error);
-                tableBody.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-red-500">Error loading data.</td></tr>`;
-            }
-        }
-
-        async function loadActiveUsers() {
-            const tableBody = document.getElementById('users-table-body');
-            const statActive = document.getElementById('stat-active');
-
-            try {
-                const res = await fetch('/college/api/users');
-                const data = await res.json();
-
-                if (data.success) {
-                    const users = data.users || [];
-                    statActive.innerText = users.length;
-                    tableBody.innerHTML = '';
-
-                    if (users.length === 0) {
-                        tableBody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-gray-500 italic">No active members yet.</td></tr>`;
-                        return;
-                    }
-
-                    users.forEach(user => {
-                        // Badge styling based on role
-                        const badgeColor = user.role === 'faculty' 
-                            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400' 
-                            : 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400';
-
-                        const tr = document.createElement('tr');
-                        tr.className = 'hover:bg-gray-50 dark:hover:bg-gray-800/20 transition';
-                        tr.innerHTML = `
-                            <td class="py-4 px-6">
-                                <span class="${badgeColor} px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                                    ${user.role}
-                                </span>
-                            </td>
-                            <td class="py-4 px-6 font-medium text-gray-900 dark:text-white">${user.fullName}</td>
-                            <td class="py-4 px-6 text-gray-500 dark:text-gray-400">${user.email}</td>
-                            <td class="py-4 px-6 text-center flex justify-center gap-2">
-                                <button onclick='openUserModal(${JSON.stringify(user).replace(/'/g, "&#39;")})' class="text-blue-500 hover:text-blue-700 transition bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button onclick="deleteUser(${user.id})" class="text-red-500 hover:text-red-700 transition bg-red-50 dark:bg-red-900/20 p-2 rounded-lg" title="Delete">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </td>
-                        `;
-                        tableBody.appendChild(tr);
-                    });
-                }
-            } catch (error) {
-                console.error("Error loading active users:", error);
-                tableBody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-red-500">Error loading data.</td></tr>`;
-            }
-        }
-
-        // ==========================================
-        // 2. ACTIONS (Approve, Save, Delete)
-        // ==========================================
-
-        async function approveFaculty(id) {
-            if (confirm("Approve this faculty member?")) {
-                try {
-                    const res = await fetch(`/college/api/approve-faculty/${id}`, { method: 'POST' });
-                    const result = await res.json();
-                    if (result.success) {
-                        loadPendingFaculty();
-                        loadActiveUsers();
-                    } else alert('Error: ' + result.error);
-                } catch (error) {
-                    console.error("Approve error:", error);
-                }
-            }
-        }
-
-        async function saveUser(e) {
-            e.preventDefault();
-            const id = document.getElementById('userId').value;
-            const role = document.getElementById('userRole').value;
-            const fullName = document.getElementById('userName').value.trim();
-            const email = document.getElementById('userEmail').value.trim();
-            const password = document.getElementById('userPassword').value;
-
-            // Determine if POST (add) or PUT (edit)
-            const method = id ? 'PUT' : 'POST';
-            const url = id ? `/college/api/users/${id}` : `/college/api/users`;
-
-            // Password is required on add, optional on edit
-            if (!id && !password) {
-                alert("Password is required for new users.");
-                return;
-            }
-
-            try {
-                const res = await fetch(url, {
-                    method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ role, fullName, email, password })
                 });
-                const result = await res.json();
-                
-                if (result.success) {
-                    closeUserModal();
-                    loadActiveUsers();
-                } else alert('Error saving user: ' + result.error);
-            } catch (error) {
-                console.error("Save error:", error);
-            }
+
+                navLinks.forEach(a => a.classList.remove('active'));
+                if (bestMatch) bestMatch.classList.add('active');
+            } catch (err) { console.error('Failed to set active sidebar link', err); }
+        })();
+
+        function toggleProfile() {
+            document.getElementById('profileOverlay').classList.toggle('hidden');
         }
 
-        async function deleteUser(id) {
-            if (confirm("Are you sure you want to delete this user?")) {
+        // --- Data Fetching & Injection ---
+        async function fetchDashboardData() {
+            try {
+                // 1. Fetch Profile Info (Assumes you have a /college/api/profile endpoint returning user info)
                 try {
-                    const res = await fetch(`/college/api/users/${id}`, { method: 'DELETE' });
-                    const result = await res.json();
-                    if (result.success) loadActiveUsers();
-                    else alert('Error deleting user: ' + result.error);
-                } catch (error) {
-                    console.error("Delete error:", error);
+                    const profileRes = await fetch('/college/api/profile');
+                    if (profileRes.ok) {
+                        const profileData = await profileRes.json();
+                        const user = profileData.user || profileData; 
+                        
+                        document.getElementById('collegeTitle').textContent = user.collegeName || "Admin Dashboard";
+                        document.getElementById('headerName').textContent = user.fullName || "Admin User";
+                        document.getElementById('modalName').textContent = user.fullName || "Admin User";
+                        document.getElementById('modalCollege').innerHTML = `<i class="fas fa-university"></i> ${user.collegeName || "N/A"}`;
+                        
+                        // Extract Initials 
+                        const nameParts = (user.fullName || "Admin User").split(' ');
+                        const initials = nameParts.length > 1 ? (nameParts[0][0] + nameParts[1][0]).toUpperCase() : nameParts[0].substring(0,2).toUpperCase();
+                        
+                        document.getElementById('headerInitials').textContent = initials;
+                        document.getElementById('modalInitials').textContent = initials;
+                    }
+                } catch(e) { console.warn("Failed to fetch profile info"); }
+
+                // 2. Fetch Users
+                let studentCount = 0, facultyCount = 0;
+                try {
+                    const userRes = await fetch('/college/api/users');
+                    const userContentType = userRes.headers.get("content-type");
+                    
+                    if (userContentType && userContentType.includes("application/json")) {
+                        const userData = await userRes.json();
+                        // Handle both {success: true, users: []} and standard array [] formats
+                        const usersList = userData.users || userData || []; 
+                        
+                        if (Array.isArray(usersList)) {
+                            studentCount = usersList.filter(u => u.role === 'student').length;
+                            facultyCount = usersList.filter(u => u.role === 'faculty').length;
+                        }
+                    } else if (userRes.status === 401 || userRes.redirected) {
+                        window.location.href = '/'; return;
+                    }
+                } catch(e) { console.warn("Failed to fetch users"); }
+
+                // 3. Fetch Programs
+                let programCount = 0;
+                try {
+                    const programRes = await fetch('/college/programs');
+                    if (programRes.ok) {
+                        const programData = await programRes.json();
+                        programCount = Array.isArray(programData) ? programData.length : (programData.data ? programData.data.length : 0);
+                    }
+                } catch(e) { console.warn("Failed to fetch programs"); }
+
+                // 4. Fetch Contests
+                let contestCount = 0;
+                try {
+                    const contestRes = await fetch('/college/api/contests');
+                    if (contestRes.ok) {
+                        const contestData = await contestRes.json();
+                        const list = Array.isArray(contestData) ? contestData : (contestData.data || contestData.contests || []);
+                        contestCount = list.length;
+                    }
+                } catch(e) { console.warn("Failed to fetch contests"); }
+
+                // Update Stat Widgets
+                document.getElementById('statStudents').textContent = studentCount;
+                document.getElementById('statFaculty').textContent = facultyCount;
+                document.getElementById('statPrograms').textContent = programCount;
+                document.getElementById('statContests').textContent = contestCount;
+
+                // Render Charts
+                fetchChartData(studentCount, facultyCount);
+                
+                // Fetch dynamic Feed & Alerts
+                fetchActivityFeed();
+                fetchSystemAlerts();
+
+            } catch (error) {
+                console.error("Dashboard Data Initialization Failed:", error);
+            }
+        }
+
+        // --- Render Dynamic Charts ---
+        async function fetchChartData(students, faculty) {
+            // PIE CHART
+            const ctxPie = document.getElementById('pieChart').getContext('2d');
+            new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Students', 'Faculty'],
+                    datasets: [{
+                        data: [students, faculty],
+                        backgroundColor: ['#3b82f6', '#10b981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: html.classList.contains('dark') ? '#fff' : '#333' } } }
                 }
+            });
+
+            // LINE CHART 
+            try {
+                const lineRes = await fetch('/college/api/activity-stats');
+                let labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+                let data = [0, 0, 0, 0, 0, 0];
+
+                if (lineRes.ok) {
+                    const stats = await lineRes.json();
+                    if(stats.labels && stats.data) {
+                        labels = stats.labels;
+                        data = stats.data;
+                    }
+                }
+
+                const ctxLine = document.getElementById('lineChart').getContext('2d');
+                new Chart(ctxLine, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{ label: 'Active Logins', data: data, borderColor: '#1E4A7A', tension: 0.4 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            } catch (error) {
+                console.warn("Failed to fetch line chart data");
             }
         }
 
-        // ==========================================
-        // 3. MODAL & THEME CONTROLS
-        // ==========================================
+        // --- Fetch Dynamic Activity Feed ---
+        async function fetchActivityFeed() {
+            const container = document.getElementById('activityFeed');
+            try {
+                const res = await fetch('/college/api/activity');
+                if (res.ok) {
+                    const activities = await res.json();
+                    
+                    if (activities.length === 0) {
+                        container.innerHTML = '<p class="text-sm text-gray-500">No recent activity found.</p>';
+                        return;
+                    }
 
-        function openUserModal(user = null) {
-            document.getElementById('userModal').classList.remove('hidden');
-            const form = document.getElementById('userForm');
-            const title = document.getElementById('modalTitle');
-            
-            form.reset();
-
-            if (user) {
-                title.innerText = "Edit User";
-                document.getElementById('userId').value = user.id;
-                document.getElementById('userRole').value = user.role;
-                document.getElementById('userName').value = user.fullName;
-                document.getElementById('userEmail').value = user.email;
-                document.getElementById('userPassword').required = false;
-            } else {
-                title.innerText = "Add New User";
-                document.getElementById('userId').value = "";
-                document.getElementById('userPassword').required = true;
-            }
-            setTimeout(() => document.getElementById('userName').focus(), 100);
-        }
-
-        function closeUserModal() {
-            document.getElementById('userModal').classList.add('hidden');
-        }
-
-        // Theme Toggle Logic
-        function toggleTheme() {
-            if (localStorage.theme === 'light') {
-                document.documentElement.classList.add('dark');
-                localStorage.theme = 'dark';
-            } else {
-                document.documentElement.classList.remove('dark');
-                localStorage.theme = 'light';
-            }
-            updateThemeIcons();
-        }
-
-        function updateThemeIcons() {
-            const darkIcon = document.getElementById('theme-toggle-dark-icon');
-            const lightIcon = document.getElementById('theme-toggle-light-icon');
-            if (document.documentElement.classList.contains('dark')) {
-                lightIcon.classList.remove('hidden');
-                darkIcon.classList.add('hidden');
-            } else {
-                lightIcon.classList.add('hidden');
-                darkIcon.classList.remove('hidden');
+                    let htmlContent = `<div class="absolute top-2 bottom-2 left-[19px] w-[2px] bg-gray-100 dark:bg-gray-700"></div>`;
+                    activities.forEach(item => {
+                        htmlContent += `
+                        <div class="relative flex items-start gap-4 group">
+                            <div class="z-10 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-500 ring-4 ring-white dark:ring-gray-800">
+                                <i class="${item.icon || 'fa-solid fa-users'} text-xs"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm text-gray-800 dark:text-gray-200 font-medium">${item.message || item.description}</p>
+                                <p class="text-xs text-gray-400 mt-1">${item.time || 'Recently'}</p>
+                            </div>
+                        </div>`;
+                    });
+                    container.innerHTML = htmlContent;
+                } else {
+                    container.innerHTML = '<p class="text-sm text-gray-500">No recent activity.</p>';
+                }
+            } catch (error) {
+                container.innerHTML = '<p class="text-sm text-gray-500">Failed to load activity feed.</p>';
             }
         }
-        updateThemeIcons();
+
+        // --- Fetch Dynamic Alerts ---
+        async function fetchSystemAlerts() {
+            const container = document.getElementById('systemAlerts');
+            try {
+                const res = await fetch('/college/api/alerts');
+                if (res.ok) {
+                    const alerts = await res.json();
+                    
+                    if (alerts.length === 0) {
+                        container.innerHTML = '<p class="text-sm text-gray-500">No new alerts at the moment.</p>';
+                        return;
+                    }
+
+                    // Show notification badge
+                    document.getElementById('notifBadge').classList.remove('hidden');
+
+                    let htmlContent = '';
+                    alerts.forEach(alert => {
+                        htmlContent += `
+                        <div class="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-100 dark:border-red-800 flex items-start gap-3">
+                            <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
+                            <p class="text-sm">${alert.message || alert.title}</p>
+                        </div>`;
+                    });
+                    container.innerHTML = htmlContent;
+                } else {
+                    container.innerHTML = '<p class="text-sm text-gray-500">No new alerts at the moment.</p>';
+                }
+            } catch (error) {
+                container.innerHTML = '<p class="text-sm text-gray-500">Unable to load alerts.</p>';
+            }
+        }
+
+        // Initialize fetching on page load
+        window.addEventListener('DOMContentLoaded', fetchDashboardData);
+
+        // --- CHANGED: Bulletproof Logout Logic ---
+        async function handleLogout() {
+            try {
+                // Attempt to log out on the backend
+                await fetch('/auth/logout', { method: 'POST' });
+            } catch (err) {
+                console.error("Backend logout request failed, forcing redirect.", err);
+            } finally {
+                // ALWAYS redirect to the home page, regardless of fetch success or failure
+                window.location.href = '/'; 
+            }
+        }
     </script>
 </body>
+
 </html>

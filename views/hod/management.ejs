@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Management - HOD Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/shared.css">
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ["Poppins", "sans-serif"] }, colors: { primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" }, dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" } } } } };
+    </script>
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200 text-gray-800 dark:text-gray-200">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar and Header (Omitted for brevity, keep consistent with faculty.ejs) -->
+        <aside id="mainSidebar" class="sidebar w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen flex-shrink-0 transition-all duration-300 z-50">
+            <div class="p-6 flex-shrink-0 flex items-center justify-between h-[88px]">
+                <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2 overflow-hidden whitespace-nowrap">
+                    <i class="fas fa-code text-primary-500 text-2xl flex-shrink-0"></i>
+                    <span id="sidebarLogoText">CampusCode</span>
+                </h1>
+            </div>
+            <nav class="flex-1 space-y-1 overflow-y-auto mt-2">
+                <a href="/college/hod/dashboard" class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <i class="fas fa-home w-5 text-center text-lg"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/college/hod/faculty" class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-r-4 border-primary-600 dark:border-primary-400">
+                    <i class="fas fa-users w-5 text-center text-lg"></i>
+                    <span>Faculty Management</span>
+                </a>
+            </nav>
+        </aside>
+
+        <div class="flex-1 overflow-y-auto">
+            <header class="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-20">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-white ml-2">Unified Assignment Control</h2>
+                    <div class="flex items-center gap-3">
+                        <div class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm">
+                            <%= user.fullName.split(' ').map(n => n[0]).join('') %>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-200"><%= user.fullName %></span>
+                    </div>
+                </div>
+            </header>
+
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <!-- Faculty Table -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-700/20">
+                        <h3 class="text-lg font-bold">Faculty Members</h3>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-gray-500">Department: <span class="font-bold text-primary-600 uppercase"><%= user.department %></span></span>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-gray-50/80 dark:bg-gray-700/50 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-semibold">
+                                <tr>
+                                    <th class="px-6 py-4">Faculty Member</th>
+                                    <th class="px-6 py-4">Current Role</th>
+                                    <th class="px-6 py-4">Active Assignments</th>
+                                    <th class="px-6 py-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                                <% departmentFaculty.forEach(f => { %>
+                                <tr class="group hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold text-sm">
+                                                <%= f.fullName.split(' ').map(n => n[0]).join('') %>
+                                            </div>
+                                            <div>
+                                                <span class="block text-sm font-semibold text-gray-900 dark:text-white"><%= f.fullName %></span>
+                                                <span class="text-xs text-gray-500 dark:text-gray-400"><%= f.email %></span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex flex-col gap-1">
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide inline-block border w-fit <%= f.role === 'hos' ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-blue-100 text-blue-700 border-blue-200' %>">
+                                                <%= f.role.toUpperCase() %>
+                                            </span>
+                                            <% if (f.role === 'hos' && f.hosSubject) { %>
+                                                <span class="text-[10px] text-purple-600 font-medium">Head of: <%= f.hosSubject %></span>
+                                            <% } %>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <% if (f.assignments) { %>
+                                            <div class="flex flex-wrap gap-1 max-w-xs">
+                                                <% f.assignments.split(',').forEach(a => { %>
+                                                    <span class="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-[10px] text-gray-600 dark:text-gray-300"><%= a %></span>
+                                                <% }) %>
+                                            </div>
+                                        <% } else { %>
+                                            <span class="text-xs text-gray-400 italic">No Assignments</span>
+                                        <% } %>
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <button onclick="openUnifiedModal('<%= f.id %>', '<%= f.fullName %>', '<%= f.role %>', '<%= f.hosSubject || '' %>')" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-sm">
+                                            Manage Assignments
+                                        </button>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Unified Assignment Modal -->
+    <div id="unifiedModal" class="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-[fadeIn_0.2s_ease-out]">
+            <div class="px-8 py-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-700/20">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 dark:text-white">Unified Assignment Console</h3>
+                    <p class="text-sm text-gray-500" id="modalTargetName"></p>
+                </div>
+                <button onclick="closeUnifiedModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-8">
+                <!-- Tab Headers -->
+                <div class="flex gap-4 mb-8 border-b border-gray-100 dark:border-gray-700 pb-px">
+                    <button id="tab-promote" onclick="showTab('promote')" class="pb-3 text-sm font-bold border-b-2 border-primary-500 text-primary-600 transition-all">Role & Promotion</button>
+                    <button id="tab-assign" onclick="showTab('assign')" class="pb-3 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 transition-all">Subject Assignment</button>
+                </div>
+
+                <!-- Tab content: Promote to HOS -->
+                <div id="content-promote" class="space-y-6">
+                    <form id="promoteForm" class="space-y-4">
+                        <input type="hidden" name="id" id="promoteUserId">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Designated Role</label>
+                            <select id="roleSelect" name="role" onchange="togglePromoSubject()" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm p-3 focus:ring-2 focus:ring-primary-500">
+                                <option value="faculty">Faculty Member</option>
+                                <option value="hos">Head of Studies (HOS)</option>
+                            </select>
+                        </div>
+                        <div id="promoSubjectContainer" class="hidden">
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Assign Master Subject</label>
+                            <select name="subject" id="promoSubject" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm p-3 focus:ring-2 focus:ring-primary-500">
+                                <option value="">Select a Subject...</option>
+                                <% dropdownData.subjects.forEach(s => { %>
+                                    <option value="<%= s %>"><%= s %></option>
+                                <% }) %>
+                            </select>
+                            <p class="mt-2 text-[10px] text-primary-500 font-medium italic"><i class="fas fa-magic mr-1"></i> Promotion to HOS triggers automated bulk-assignment for every section of this subject.</p>
+                        </div>
+                        <div class="pt-6">
+                            <button type="submit" class="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold shadow-lg transition-all active:scale-95">Update Primary Role</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Tab content: Assign Subject -->
+                <div id="content-assign" class="hidden space-y-6">
+                    <form id="assignForm" class="space-y-4">
+                        <input type="hidden" name="facultyId" id="assignUserId">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Select Subject</label>
+                            <select name="subjectName" id="mainSubjectSelect" onchange="handleSubjectChange()" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm p-3 focus:ring-2 focus:ring-primary-500">
+                                <option value="">Choose Subject</option>
+                                <% dropdownData.subjects.forEach(s => { %>
+                                    <option value="<%= s %>"><%= s %></option>
+                                <% }) %>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Year</label>
+                                <select name="assignedYears" id="yearSelect" onchange="handleYearChange()" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm p-3 focus:ring-2 focus:ring-primary-500" disabled>
+                                    <option value="">Select Year</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Section</label>
+                                <select name="assignedSections" id="sectionSelect" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm p-3 focus:ring-2 focus:ring-primary-500" disabled>
+                                    <option value="">Select Section</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="pt-6">
+                            <button type="submit" id="btnSubmitAssign" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">Assign Academic Load</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const subjectMapping = <%- JSON.stringify(dropdownData.subjectMapping) %>;
+
+        function openUnifiedModal(id, name, role, subject) {
+            document.getElementById('modalTargetName').textContent = `Configuring: ${name}`;
+            document.getElementById('promoteUserId').value = id;
+            document.getElementById('assignUserId').value = id;
+            document.getElementById('roleSelect').value = role;
+            document.getElementById('promoSubject').value = subject;
+            
+            togglePromoSubject();
+            document.getElementById('unifiedModal').classList.remove('hidden');
+        }
+
+        function closeUnifiedModal() {
+            document.getElementById('unifiedModal').classList.add('hidden');
+        }
+
+        function showTab(tab) {
+            const btnPromote = document.getElementById('tab-promote');
+            const btnAssign = document.getElementById('tab-assign');
+            const contentPromote = document.getElementById('content-promote');
+            const contentAssign = document.getElementById('content-assign');
+
+            if (tab === 'promote') {
+                btnPromote.classList.add('border-primary-500', 'text-primary-600');
+                btnPromote.classList.remove('text-gray-500', 'border-transparent');
+                btnPromote.classList.add('font-bold');
+                
+                btnAssign.classList.remove('border-primary-500', 'text-primary-600', 'font-bold');
+                btnAssign.classList.add('text-gray-500', 'border-transparent');
+
+                contentPromote.classList.remove('hidden');
+                contentAssign.classList.add('hidden');
+            } else {
+                btnAssign.classList.add('border-primary-500', 'text-primary-600');
+                btnAssign.classList.remove('text-gray-500', 'border-transparent');
+                btnAssign.classList.add('font-bold');
+                
+                btnPromote.classList.remove('border-primary-500', 'text-primary-600', 'font-bold');
+                btnPromote.classList.add('text-gray-500', 'border-transparent');
+
+                contentAssign.classList.remove('hidden');
+                contentPromote.classList.add('hidden');
+            }
+        }
+
+        function togglePromoSubject() {
+            const role = document.getElementById('roleSelect').value;
+            const container = document.getElementById('promoSubjectContainer');
+            if (role === 'hos') {
+                container.classList.remove('hidden');
+                document.getElementById('promoSubject').required = true;
+            } else {
+                container.classList.add('hidden');
+                document.getElementById('promoSubject').required = false;
+            }
+        }
+
+        function handleSubjectChange() {
+            const subject = document.getElementById('mainSubjectSelect').value;
+            const yearSelect = document.getElementById('yearSelect');
+            const sectionSelect = document.getElementById('sectionSelect');
+            const btn = document.getElementById('btnSubmitAssign');
+
+            // Reset
+            yearSelect.innerHTML = '<option value="">Select Year</option>';
+            sectionSelect.innerHTML = '<option value="">Select Section</option>';
+            yearSelect.disabled = true;
+            sectionSelect.disabled = true;
+            btn.disabled = true;
+
+            if (subject && subjectMapping[subject]) {
+                const uniqueYears = [...new Set(subjectMapping[subject].map(m => m.year))];
+                uniqueYears.sort().forEach(y => {
+                    const opt = document.createElement('option');
+                    opt.value = y;
+                    opt.textContent = y;
+                    yearSelect.appendChild(opt);
+                });
+                yearSelect.disabled = false;
+            }
+        }
+
+        function handleYearChange() {
+            const subject = document.getElementById('mainSubjectSelect').value;
+            const year = document.getElementById('yearSelect').value;
+            const sectionSelect = document.getElementById('sectionSelect');
+            const btn = document.getElementById('btnSubmitAssign');
+
+            sectionSelect.innerHTML = '<option value="">Select Section</option>';
+            sectionSelect.disabled = true;
+            btn.disabled = true;
+
+            if (subject && year && subjectMapping[subject]) {
+                const availableSections = subjectMapping[subject]
+                    .filter(m => m.year === year)
+                    .map(m => m.section);
+                
+                availableSections.sort().forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s;
+                    opt.textContent = s;
+                    sectionSelect.appendChild(opt);
+                });
+                sectionSelect.disabled = false;
+                btn.disabled = false;
+            }
+        }
+
+        // Form Submissions
+        document.getElementById('promoteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('promoteUserId').value;
+            const role = document.getElementById('roleSelect').value;
+            const subject = document.getElementById('promoSubject').value;
+
+            try {
+                const res = await fetch('/college/hod/api/assign-role', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, role, subject })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                alert('Connection error');
+            }
+        });
+
+        document.getElementById('assignForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const body = Object.fromEntries(formData.entries());
+
+            try {
+                const res = await fetch('/college/hod/api/assign-sections', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                alert('Connection error');
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -17,6 +17,10 @@ const PORT = process.env.PORT || 3000;
 // ==========================================
 // 2. MIDDLEWARE & SESSION SETUP
 // ==========================================
+// Set EJS as the view engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
 // Serve static files (CSS, JS, Images) from the 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -54,12 +58,16 @@ const adminRoutes = require('./routes/admin')(db);
 // Assuming you create these standard route files as well:
 const facultyRoutes = require('./routes/faculty')(db); 
 const studentRoutes = require('./routes/student')(db);
+const hodRoutes = require('./routes/hod')(db);
+const hosRoutes = require('./routes/hos')(db);
 
 // Mount the routers to specific URL paths (Namespacing)
 app.use('/', publicRoutes);                  // Handles public pages like Home
 app.use('/auth', authRoutes);                // Handles Login, Signup, OTPs, Logout
 app.use('/superadmin', superadminRoutes);    // Protected Superadmin routes
 app.use('/college', adminRoutes);            // Protected College Admin routes
+app.use('/college', hodRoutes);              // Protected HOD routes
+app.use('/', hosRoutes);                    // Protected HOS routes
 app.use('/faculty', facultyRoutes);          // Protected Faculty routes
 app.use('/student', studentRoutes);          // Protected Student routes
 

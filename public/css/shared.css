@@ -1,0 +1,176 @@
+/* --- Scrollbar --- */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.dark ::-webkit-scrollbar-track {
+    background: #111827;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #7ba4d0;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #2e5e99;
+}
+
+/* --- Sidebar Logic --- */
+.sidebar {
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.sidebar.collapsed .nav-item i {
+    margin-right: 0;
+    font-size: 1.25rem;
+}
+
+.sidebar.collapsed .nav-item span {
+    display: none;
+}
+
+.sidebar.collapsed .bottom-menu span {
+    display: none;
+}
+
+.sidebar.collapsed .bottom-menu .nav-item {
+    justify-content: center;
+}
+
+/* --- Nav Item Styling --- */
+.nav-item {
+    transition: all 0.2s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.25rem;
+    color: #374151;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.nav-item:hover {
+    background-color: #f3f4f6;
+}
+
+.dark .nav-item {
+    color: #d1d5db;
+}
+
+.dark .nav-item:hover {
+    background-color: #374151;
+}
+
+.nav-item.active {
+    background-color: #d0e1f5;
+    color: #1e4a7a;
+}
+
+.dark .nav-item.active {
+    background-color: #1e4a7a;
+    color: #ffffff;
+}
+
+.nav-item.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 60%;
+    width: 4px;
+    background-color: #2e5e99;
+    border-radius: 0 4px 4px 0;
+}
+
+.dark .nav-item.active::before {
+    background-color: #60a5fa;
+}
+
+.nav-item i {
+    width: 1.5rem;
+    text-align: center;
+    margin-right: 0.75rem;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.nav-item span {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Report Styles */
+.report-preview-container {
+    background: white;
+    width: 100%;
+    max-width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    padding: 20mm;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    position: relative;
+    font-family: 'Roboto', sans-serif;
+}
+
+.watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    font-size: 7rem;
+    font-weight: 800;
+    color: rgba(0, 0, 0, 0.02);
+    pointer-events: none;
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+    font-size: 0.8rem;
+}
+
+.report-table th,
+.report-table td {
+    border: 1px solid #e5e7eb;
+    padding: 0.75rem;
+    text-align: left;
+}
+
+.report-table th {
+    background: #f9fafb;
+    font-weight: 700;
+    color: #374151;
+}
+
+/* --- FAQ Accordion Styles --- */
+.faq-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, padding 0.3s ease;
+}
+
+.faq-item.active .faq-content {
+    max-height: 500px;
+    padding-bottom: 1.25rem;
+}
+
+.faq-item.active .faq-icon {
+    transform: rotate(180deg);
+}

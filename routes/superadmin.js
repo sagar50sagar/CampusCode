@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const { requireRole } = require('../middleware/auth');
+const { checkScope } = require('../middleware/authMiddleware');
 
 module.exports = (db) => {
     const router = express.Router();
@@ -8,8 +9,8 @@ module.exports = (db) => {
     // ==========================================
     // DASHBOARD VIEW
     // ==========================================
-    router.get('/dashboard', requireRole('superadmin'), (req, res) => {
-        res.sendFile(path.join(__dirname, '../views/superadmin/dashboard.html'));
+    router.get('/dashboard', requireRole('superadmin'), checkScope, (req, res) => {
+        res.render('superadmin/dashboard', { user: req.session.user, currentPage: 'dashboard' });
     });
 
     // ==========================================

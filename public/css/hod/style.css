@@ -1,0 +1,110 @@
+/* Shared CSS for all HTML pages */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.dark ::-webkit-scrollbar-track {
+    background: #111827 ;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #7ba4d0;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #2e5e99;
+}
+
+.nav-item {
+    cursor: pointer;
+    color: #4b5563;
+}
+
+.dark .nav-item {
+    color: #9ca3af;
+}
+
+.nav-item:hover {
+    background-color: #f3f4f6;
+}
+
+.dark .nav-item:hover {
+    background-color: #374151;
+    color: #e5e7eb;
+}
+
+.nav-item.active {
+    background-color: #d0e1f5;
+    color: #1e4a7a;
+}
+
+.dark .nav-item.active {
+    background-color: #1e4a7a;
+    color: #ffffff;
+}
+
+.nav-item.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 60%;
+    width: 4px;
+    background-color: #2e5e99;
+    border-radius: 0 4px 4px 0;
+}
+
+.dark .nav-item.active::before {
+    background-color: #60a5fa;
+}
+
+/* Reports Styles */
+.report-preview-container {
+    background: white;
+    width: 100%;
+    max-width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    padding: 20mm;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    position: relative;
+    font-family: 'Roboto', sans-serif;
+}
+
+.watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    font-size: 7rem;
+    font-weight: 800;
+    color: rgba(0, 0, 0, 0.02);
+    pointer-events: none;
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+    font-size: 0.8rem;
+}
+
+.report-table th,
+.report-table td {
+    border: 1px solid #e5e7eb;
+    padding: 0.75rem;
+    text-align: left;
+}
+
+.report-table th {
+    background: #f9fafb;
+    font-weight: 700;
+    color: #374151;
+}

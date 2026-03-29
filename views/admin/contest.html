@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusCode - Unified Contests</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ["Poppins", "sans-serif"] },
+                    colors: {
+                        primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" },
+                        dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" }
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .dark ::-webkit-scrollbar-track {
+            background: #111827;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #7ba4d0;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2e5e99;
+        }
+
+        .sidebar {
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .sidebar.collapsed {
+            width: 5rem;
+        }
+
+        .sidebar.collapsed .nav-item {
+            justify-content: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .sidebar.collapsed .nav-item i {
+            margin-right: 0;
+            font-size: 1.25rem;
+        }
+
+        .sidebar.collapsed .nav-item span {
+            display: none;
+        }
+
+        .sidebar.collapsed .logo-text {
+            display: none;
+        }
+
+        .sidebar.collapsed .bottom-menu span {
+            display: none;
+        }
+
+        .sidebar.collapsed .bottom-menu .nav-item {
+            justify-content: center;
+        }
+
+        .nav-item {
+            transition: all 0.2s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.25rem;
+            color: #374151;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .nav-item:hover {
+            background-color: #f3f4f6;
+        }
+
+        .dark .nav-item {
+            color: #d1d5db;
+        }
+
+        .dark .nav-item:hover {
+            background-color: #374151;
+        }
+
+        .nav-item.active {
+            background-color: #d0e1f5;
+            color: #1e4a7a;
+        }
+
+        .dark .nav-item.active {
+            background-color: #1e4a7a;
+            color: #ffffff;
+        }
+
+        .nav-item.active::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 60%;
+            width: 4px;
+            background-color: #2e5e99;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .dark .nav-item.active::before {
+            background-color: #60a5fa;
+        }
+
+        .nav-item i {
+            width: 1.5rem;
+            text-align: center;
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .nav-item span {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .tab-btn {
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            border-bottom: 2px solid #1e4a7a;
+            color: #1e4a7a;
+            font-weight: 600;
+        }
+
+        .dark .tab-btn.active {
+            border-bottom: 2px solid #7BA4D0;
+            color: #7BA4D0;
+        }
+
+        #shareToast {
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transform: translateX(-50%) translateY(100px);
+            opacity: 0;
+        }
+
+        #shareToast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .college-scroll::-webkit-scrollbar {
+            width: 5px;
+            display: block;
+        }
+
+        .college-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .dark .college-scroll::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+
+        .detail-section {
+            position: relative;
+            padding-left: 1.5rem;
+            border-left: 4px solid #1e4a7a;
+            margin-bottom: 2rem;
+        }
+
+        .line-clamp-1 {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Quill Editor Dark Mode */
+        .dark .ql-toolbar {
+            border-color: #374151;
+            background: #1F2937;
+        }
+
+        .dark .ql-container {
+            border-color: #374151;
+            color: white;
+        }
+
+        .dark .ql-editor.ql-blank::before {
+            color: #9CA3AF;
+        }
+
+        .dark .ql-stroke {
+            stroke: #D1D5DB;
+        }
+
+        .dark .ql-fill {
+            fill: #D1D5DB;
+        }
+
+        .dark .ql-picker {
+            color: #D1D5DB;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200">
+
+    <div id="shareToast"
+        class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[300] bg-primary-500 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Success!</span>
+    </div>
+
+    <div class="flex h-screen overflow-hidden">
+
+        <aside id="mainSidebar"
+            class="sidebar w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen flex-shrink-0 transition-colors duration-200 z-50">
+            <div class="p-6 flex-shrink-0 flex items-center justify-between h-[88px]">
+                <h1
+                    class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2 overflow-hidden whitespace-nowrap">
+                    <i class="fas fa-code text-primary-500 text-2xl flex-shrink-0"></i>
+                    <span class="logo-text transition-all duration-300 opacity-100 w-auto">CampusCode</span>
+                </h1>
+                <button id="sidebarToggleBtn"
+                    class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary-500 transition-colors focus:outline-none">
+                    <i class="fas fa-chevron-left transition-transform duration-300"></i>
+                </button>
+            </div>
+
+            <nav class="flex-1 px-4 space-y-1 overflow-y-auto mt-2">
+                <a href="/college/dashboard" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+                <a href="/college/program" class="nav-item"><i class="fa-solid fa-layer-group"></i><span>Programs</span></a>
+                <a href="/college/contest" class="nav-item active"><i class="fas fa-trophy"></i><span>Contests</span></a>
+                <a href="/college/manage_user" class="nav-item"><i class="fa-solid fa-users"></i><span>User</span></a>
+                <a href="/college/report" class="nav-item"><i class="fas fa-file-invoice"></i><span>Reports</span></a>
+                <a href="/college/profile" class="nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+            </nav>
+
+            <div
+                class="p-4 space-y-1 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0 bottom-menu">
+                <a href="/college/help_support" class="nav-item"><i class="far fa-question-circle"></i><span>Help &
+                        Support</span></a>
+                <a href="/college/setting" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+            </div>
+        </aside>
+
+        <div class="flex-1 overflow-y-auto">
+            <header class="bg-white dark:bg-gray-800 shadow-sm transition-colors duration-200 sticky top-0 z-40">
+                <div class="px-8 py-3 flex justify-between items-center">
+                    <div class="flex-1 max-w-2xl flex items-center gap-4">
+                        <div class="relative flex items-center w-full">
+                            <i class="fas fa-search text-gray-400 absolute left-3"></i>
+                            <input type="text"
+                                class="block w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm dark:text-gray-100"
+                                placeholder="Search contests..." />
+                        </div>
+                    </div>
+                    <div class="ml-4 flex items-center gap-3 relative">
+                        <button id="themeToggleBtn"
+                            class="p-2 rounded-full text-gray-500 dark:text-gray-400 focus:outline-none transition-transform active:scale-95">
+                            <i class="fas fa-moon text-xl"></i>
+                        </button>
+
+                        <div class="relative">
+                            <button id="notificationBtn"
+                                class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none">
+                                <i class="fas fa-bell text-xl"></i>
+                                <span
+                                    class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-800 hidden"
+                                    id="notifBadgeHeader"></span>
+                            </button>
+                            <div id="notifDropdown"
+                                class="hidden absolute right-0 mt-3 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 z-50">
+                                <div
+                                    class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                                    <h3 class="font-semibold text-gray-800 dark:text-white text-sm">Notifications</h3>
+                                    <button class="text-xs text-primary-500 font-medium hover:text-primary-600">Mark all
+                                        read</button>
+                                </div>
+                                <div class="max-h-64 overflow-y-auto p-3">
+                                    <p class="text-sm text-gray-500 text-center">No new notifications</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="toggleProfile()"
+                            class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <div class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm"
+                                id="headerInitials"></div>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block"
+                                id="headerName"></span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main class="p-8">
+                <div class="flex items-center gap-4 mb-8 bg-gray-200 dark:bg-gray-800 p-1.5 rounded-2xl w-fit">
+                    <button onclick="switchLevel('college')" id="collegeLevelBtn"
+                        class="px-6 py-2.5 rounded-xl font-bold transition-all bg-white dark:bg-gray-700 shadow-sm text-primary-500">College
+                        Level</button>
+                    <button onclick="switchLevel('global')" id="globalLevelBtn"
+                        class="px-6 py-2.5 rounded-xl font-bold transition-all text-gray-500 dark:text-gray-400">Global
+                        Level</button>
+                </div>
+
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-3xl font-bold text-gray-800 dark:text-white">Contests</h2>
+                    <button id="createContestBtn" onclick="openCreateModal()"
+                        class="bg-[#0D1B2A] text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-black transition-all shadow-md">
+                        <i class="fas fa-plus"></i> Create Contest
+                    </button>
+                </div>
+
+                <div class="flex gap-8 border-b border-gray-200 dark:border-gray-700 mb-6">
+                    <button onclick="switchTab('upcoming')" id="upcomingTab" class="tab-btn pb-3 active">Upcoming
+                        Events</button>
+                    <button onclick="switchTab('past')" id="pastTab" class="tab-btn pb-3 text-gray-400">Past
+                        Results</button>
+                </div>
+
+                <div id="contestContainer" class="space-y-6"></div>
+            </main>
+        </div>
+    </div>
+
+    <div id="profileOverlay"
+        class="fixed inset-0 z-[400] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div
+            class="bg-white dark:bg-gray-800 w-[320px] rounded-3xl overflow-hidden shadow-2xl transform transition-all">
+            <div class="bg-[#1e4a7a] p-6 text-center relative h-32">
+                <button onclick="toggleProfile()" class="absolute top-4 right-4 text-white/80 hover:text-white">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+                <div class="absolute -bottom-10 left-1/2 -translate-x-1/2">
+                    <div class="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 bg-[#1e4a7a] flex items-center justify-center text-white text-2xl font-bold"
+                        id="modalInitials"></div>
+                </div>
+            </div>
+            <div class="pt-12 pb-6 px-6 text-center">
+                <h3 class="text-xl font-bold text-gray-800 dark:text-white" id="modalName"></h3>
+                <p class="text-xs text-gray-500 flex items-center justify-center gap-1" id="modalCollege"></p>
+                <p class="text-xs text-gray-500 mb-3 flex items-center justify-center gap-1" id="modalRoleDisplay"></p>
+
+                <div class="space-y-1 mt-4">
+                    <a href="/college/profile">
+                        <button
+                            class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                            <div class="flex items-center gap-3"><i
+                                    class="fas fa-user-circle text-primary-400"></i><span
+                                    class="text-sm font-medium text-gray-700 dark:text-gray-200">My Profile</span></div>
+                            <i
+                                class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </a>
+                    <a href="/college/help_support">
+                        <button
+                            class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                            <div class="flex items-center gap-3"><i
+                                    class="fas fa-question-circle text-primary-400"></i><span
+                                    class="text-sm font-medium text-gray-700 dark:text-gray-200">Help & Support</span>
+                            </div>
+                            <i
+                                class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </a>
+                    <button id="logoutBtn" onclick="logoutAdmin()"
+                        class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
+                        <div
+                            class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </div>
+                        <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="createModal"
+        class="fixed inset-0 z-[110] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div
+            class="bg-white dark:bg-gray-800 w-full max-w-2xl rounded-3xl p-8 shadow-2xl max-h-[90vh] overflow-y-auto no-scrollbar">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modalTitle" class="text-2xl font-bold dark:text-white">Configure Contest</h3>
+                <button onclick="closeCreateModal()" class="text-gray-500 hover:text-gray-800 dark:hover:text-white"><i
+                        class="fas fa-times text-xl"></i></button>
+            </div>
+
+            <div class="space-y-5">
+                <input type="hidden" id="editContestId">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Scope</label>
+                    <div class="flex gap-4 mt-1">
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="scope" value="internal" checked onchange="toggleOpponentSelect()"
+                                class="hidden peer">
+                            <div
+                                class="p-3 text-center rounded-xl border-2 dark:border-gray-700 peer-checked:border-primary-500 peer-checked:bg-primary-50 dark:peer-checked:bg-primary-900/20 font-bold text-sm dark:text-gray-300">
+                                Internal</div>
+                        </label>
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="scope" value="inter" onchange="toggleOpponentSelect()"
+                                class="hidden peer">
+                            <div
+                                class="p-3 text-center rounded-xl border-2 dark:border-gray-700 peer-checked:border-purple-500 peer-checked:bg-purple-50 dark:peer-checked:bg-purple-900/20 font-bold text-sm dark:text-gray-300">
+                                Multi-College</div>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="opponentSection"
+                    class="hidden p-5 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border dark:border-gray-700 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase">Competitors</label>
+                        <button type="button" onclick="toggleSelectAll()"
+                            class="text-[10px] font-bold text-purple-600 uppercase">Select All</button>
+                    </div>
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                        <input type="text" id="collegeSearch" onkeyup="filterColleges()"
+                            placeholder="Search colleges..."
+                            class="w-full pl-9 pr-4 py-2 text-xs rounded-lg border dark:bg-gray-800 dark:border-gray-600 dark:text-white outline-none">
+                    </div>
+                    <div class="grid grid-cols-1 gap-1 max-h-32 overflow-y-auto pr-2 college-scroll"
+                        id="collegeCheckboxList"></div>
+                    <div class="flex gap-2 pt-2 border-t dark:border-gray-700">
+                        <input type="text" id="customCollegeInput" placeholder="Add college..."
+                            class="flex-1 p-2 text-sm rounded-lg border dark:bg-gray-700 dark:text-white outline-none">
+                        <button type="button" onclick="addNewCollege()"
+                            class="bg-purple-500 text-white px-4 py-2 rounded-lg text-sm font-bold">Add</button>
+                    </div>
+                </div>
+
+                <input type="text" id="newTitle" placeholder="Contest Title"
+                    class="w-full p-3 rounded-xl border dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="text-[10px] font-bold text-gray-400 uppercase">Event Date</label><input
+                            type="date" id="contestDate"
+                            class="w-full p-3 rounded-xl border dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">
+                    </div>
+                    <div><label class="text-[10px] font-bold text-gray-400 uppercase">Reg. Deadline</label><input
+                            type="datetime-local" id="contestDeadline"
+                            class="w-full p-3 rounded-xl border dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase mb-1">Duration</label>
+                        <input type="text" id="contestTime" placeholder="e.g. 120 mins or 2 Hours" required
+                            class="p-3 rounded-xl border dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase mb-1">Program & Year</label>
+                        <div class="flex gap-2">
+                            <select id="eligibilityProgram" onchange="updateYearDropdown()" required
+                                class="flex-1 p-3 rounded-xl border dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none text-sm">
+                                <option value="" disabled selected>Program</option>
+                            </select>
+                            <select id="eligibilityYear" required
+                                class="w-[40%] p-3 rounded-xl border dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none text-sm">
+                                <option value="" disabled selected>Year</option>
+                                <option value="All Year">All Year</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <textarea id="contestDesc" rows="3" placeholder="Short summary description..."
+                    class="w-full p-3 rounded-xl border dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none"></textarea>
+
+                <div>
+                    <h4 class="text-sm font-bold text-gray-800 dark:text-white mb-2">Rules & Guidelines</h4>
+                    <div id="editor-container"
+                        class="h-48 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-b-lg text-gray-900 dark:text-white">
+                    </div>
+                </div>
+
+                <div class="flex gap-4 pt-4 border-t dark:border-gray-700">
+                    <button onclick="saveContest()"
+                        class="flex-1 bg-primary-500 text-white py-4 rounded-xl font-bold hover:bg-primary-600">Save
+                        Contest</button>
+                    <button onclick="closeCreateModal()"
+                        class="flex-1 bg-gray-100 dark:bg-gray-700 dark:text-white py-4 rounded-xl font-bold">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="addProblemModal"
+        class="fixed inset-0 z-[120] hidden flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+        <div
+            class="bg-white dark:bg-gray-800 w-full max-w-4xl rounded-[2.5rem] shadow-2xl p-8 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center mb-6 shrink-0">
+                <h3 id="addProblemContestTitle" class="text-2xl font-bold dark:text-white">Manage Problems</h3>
+                <button onclick="closeAddProblemModal()"
+                    class="h-10 w-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center"><i
+                        class="fas fa-times text-gray-500 dark:text-gray-300"></i></button>
+            </div>
+
+            <div class="mb-4 relative shrink-0">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="text" id="problemSearch" onkeyup="renderAvailableProblemsTable()"
+                    placeholder="Search problems by title or difficulty..."
+                    class="w-full pl-11 pr-4 py-3 rounded-xl border dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm dark:text-white outline-none focus:ring-2 focus:ring-primary-500 transition-all">
+            </div>
+
+            <div
+                class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm flex-1 flex flex-col min-h-[300px]">
+                <div class="overflow-y-auto flex-1 p-0 college-scroll">
+                    <table class="w-full text-left relative">
+                        <thead
+                            class="bg-gray-100 dark:bg-gray-700/50 text-xs uppercase text-gray-500 dark:text-gray-400 sticky top-0 z-10">
+                            <tr>
+                                <th class="px-5 py-4 w-12 text-center border-b border-gray-200 dark:border-gray-600">
+                                    <input type="checkbox" id="selectAllProblems" onchange="toggleAllProblems(this)"
+                                        class="rounded border-gray-300 text-purple-600 cursor-pointer">
+                                </th>
+                                <th class="px-5 py-4 border-b border-gray-200 dark:border-gray-600">Problem Title & Desc
+                                </th>
+                                <th class="px-5 py-4 text-center border-b border-gray-200 dark:border-gray-600">
+                                    Difficulty</th>
+                                <th class="px-5 py-4 text-center border-b border-gray-200 dark:border-gray-600">Score
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="available-problems-list" class="divide-y divide-gray-100 dark:divide-gray-700">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="flex gap-4 pt-6 mt-4 border-t dark:border-gray-700 shrink-0 items-center">
+                <div class="flex-1 flex items-center text-sm font-bold text-gray-600 dark:text-gray-300">
+                    <span id="selectedProblemsCount" class="text-purple-600 dark:text-purple-400 text-lg mx-1">0</span>
+                    problems selected
+                </div>
+                <button onclick="saveContestProblems()"
+                    class="bg-purple-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-purple-700 shadow-sm transition-all">Save
+                    Assigned Problems</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="detailsModal"
+        class="fixed inset-0 z-[200] hidden flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+        <div
+            class="bg-white dark:bg-gray-800 w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div
+                class="p-6 border-b dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/30">
+                <h3 class="text-xl font-bold dark:text-white">Contest Details</h3>
+                <button onclick="closeDetailsModal()"
+                    class="h-10 w-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center"><i
+                        class="fas fa-times text-gray-500"></i></button>
+            </div>
+            <div class="p-8 max-h-[70vh] overflow-y-auto no-scrollbar space-y-8">
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="detail-section mb-0">
+                        <h4 class="text-sm font-bold dark:text-gray-300 mb-1">Eligibility</h4>
+                        <p id="detEligibility" class="text-primary-600 dark:text-primary-400 font-bold text-sm"></p>
+                    </div>
+                    <div class="detail-section mb-0">
+                        <h4 class="text-sm font-bold dark:text-gray-300 mb-1">Duration</h4>
+                        <p id="detDuration" class="text-gray-600 dark:text-gray-400 font-medium text-sm"></p>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h4 id="detFullTitle" class="text-lg font-bold dark:text-white mb-3 leading-tight"></h4>
+                    <p id="detDesc" class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed"></p>
+                </div>
+
+                <div class="detail-section">
+                    <h4 class="text-lg font-bold dark:text-white mb-2">Rules & Guidelines</h4>
+                    <div id="detRules"
+                        class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border dark:border-gray-700">
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h4 class="text-lg font-bold dark:text-white mb-4">Registration Deadline</h4>
+                    <div
+                        class="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-4 inline-flex items-center gap-4 border dark:border-gray-700">
+                        <div>
+                            <p id="detDeadlineFull" class="text-sm font-bold dark:text-white"></p>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Last date to apply
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="warningModal"
+        class="fixed inset-0 z-[300] hidden flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in zoom-in duration-200">
+        <div
+            class="bg-white dark:bg-gray-800 w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center border border-gray-100 dark:border-gray-700">
+            <div
+                class="w-16 h-16 rounded-full bg-red-50 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4 border border-red-100 dark:border-red-800">
+                <i class="fas fa-exclamation-triangle text-2xl text-red-500"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-2">Wait a moment!</h3>
+            <p id="warningMessage" class="text-sm text-gray-500 dark:text-gray-400 mb-6 font-medium leading-relaxed">
+            </p>
+            <button onclick="closeWarningModal()"
+                class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3.5 rounded-xl shadow-sm">Got
+                it</button>
+        </div>
+    </div>
+
+    <script>
+        // Data States
+        let currentLevel = 'college';
+        let activeTab = 'upcoming';
+        let contests = [];
+        let availableProblems = [];
+        let availablePrograms = [];
+        let selectedProblems = [];
+        let currentProblemContestId = null;
+        let quillEditor;
+        let collegesList = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            quillEditor = new Quill('#editor-container', {
+                theme: 'snow',
+                placeholder: 'Write contest rules and guidelines here...'
+            });
+
+            fetchProfile();
+            fetchProgramsFromDB();
+            fetchContestsFromDB();
+            fetchProblemsFromDB();
+            fetchCollegesFromDB();
+
+            document.getElementById('sidebarToggleBtn').addEventListener('click', () => {
+                document.getElementById('mainSidebar').classList.toggle('collapsed');
+            });
+
+            document.getElementById('themeToggleBtn').onclick = () => document.documentElement.classList.toggle('dark');
+
+            // Setup Notification Dropdown toggle
+            const notificationBtn = document.getElementById('notificationBtn');
+            const notifDropdown = document.getElementById('notifDropdown');
+            if (notificationBtn) {
+                notificationBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    notifDropdown.classList.toggle('hidden');
+                    // Hide profile dropdown if open
+                    document.getElementById('profileOverlay').classList.add('hidden');
+                });
+            }
+        });
+
+        // ==========================================
+        // PROFILE & LOGOUT LOGIC
+        // ==========================================
+        async function fetchProfile() {
+            try {
+                const profileRes = await fetch('/college/api/profile');
+                if (profileRes.ok) {
+                    const pData = await profileRes.json();
+                    const u = pData.user || pData;
+
+                    if (u.fullName) {
+                        document.getElementById('headerName').textContent = u.fullName;
+                        document.getElementById('modalName').textContent = u.fullName;
+                        const nameParts = u.fullName.split(' ');
+                        const initials = nameParts.length > 1 ? (nameParts[0][0] + nameParts[1][0]).toUpperCase() : nameParts[0].substring(0, 2).toUpperCase();
+                        document.getElementById('headerInitials').textContent = initials;
+                        document.getElementById('modalInitials').textContent = initials;
+                    }
+                    if (u.collegeName) {
+                        document.getElementById('modalCollege').innerHTML = `<i class="fas fa-university"></i> ${u.collegeName}`;
+                    }
+                    if (u.role) {
+                        document.getElementById('modalRoleDisplay').innerHTML = `Role: ${u.role.charAt(0).toUpperCase() + u.role.slice(1)}`;
+                    }
+                }
+            } catch (err) {
+                console.error("Error fetching profile:", err);
+            }
+        }
+
+        function toggleProfile() {
+            document.getElementById('profileOverlay').classList.toggle('hidden');
+            // Hide notification dropdown if open
+            document.getElementById('notifDropdown').classList.add('hidden');
+        }
+
+        document.addEventListener('click', (e) => {
+            if (e.target === document.getElementById('profileOverlay')) toggleProfile();
+
+            // Close notification dropdown when clicking outside
+            const notifBtn = document.getElementById('notificationBtn');
+            const notifDropdown = document.getElementById('notifDropdown');
+            if (notifDropdown && !notifDropdown.contains(e.target) && notifBtn && !notifBtn.contains(e.target)) {
+                notifDropdown.classList.add('hidden');
+            }
+        });
+
+        function logoutAdmin() {
+            localStorage.removeItem("adminLogin");
+            fetch('/auth/logout', { method: 'POST' })
+                .finally(() => {
+                    window.location.href = "/";
+                });
+        }
+
+        // ==========================================
+        // MULTI-COLLEGE LOGIC
+        // ==========================================
+        function toggleOpponentSelect() {
+            const scope = document.querySelector('input[name="scope"]:checked').value;
+            const opponentSection = document.getElementById('opponentSection');
+            if (scope === 'inter') {
+                opponentSection.classList.remove('hidden');
+            } else {
+                opponentSection.classList.add('hidden');
+            }
+        }
+
+        async function fetchCollegesFromDB() {
+            try {
+                const response = await fetch('/college/api/colleges');
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.data) collegesList = result.data;
+                }
+            } catch (e) { console.error(e); }
+            renderColleges();
+        }
+
+        function renderColleges(filterText = "") {
+            const list = document.getElementById('collegeCheckboxList');
+            list.innerHTML = "";
+            collegesList.filter(c => c.toLowerCase().includes(filterText.toLowerCase())).forEach(c => {
+                list.innerHTML += `
+                    <label class="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded cursor-pointer">
+                        <input type="checkbox" value="${c}" class="college-cb rounded border-gray-300 text-purple-600">
+                        <span class="text-sm dark:text-gray-300">${c}</span>
+                    </label>
+                `;
+            });
+        }
+
+        function filterColleges() { renderColleges(document.getElementById('collegeSearch').value); }
+
+        function toggleSelectAll() {
+            const checkboxes = document.querySelectorAll('.college-cb');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            checkboxes.forEach(cb => cb.checked = !allChecked);
+        }
+
+        function addNewCollege() {
+            const input = document.getElementById('customCollegeInput');
+            const val = input.value.trim();
+            if (val && !collegesList.includes(val)) {
+                collegesList.push(val);
+                input.value = "";
+                renderColleges();
+                showToast(val + " added to list!");
+            }
+        }
+
+        // ==========================================
+        // DB FETCH & RENDER LOGIC
+        // ==========================================
+        async function fetchProgramsFromDB() {
+            try {
+                const response = await fetch('/college/api/programs');
+                if (response.ok) {
+                    const result = await response.json();
+                    availablePrograms = result.data ? result.data : result;
+                }
+            } catch (error) { console.log("Failed fetching programs."); }
+
+            const select = document.getElementById('eligibilityProgram');
+            select.innerHTML = '<option value="" disabled selected>Program</option>';
+            if (availablePrograms && availablePrograms.length > 0) {
+                availablePrograms.forEach(p => {
+                    const extraDetails = p.type ? ` (${p.type})` : '';
+                    select.innerHTML += `<option value="${p.name}">${p.name}${extraDetails}</option>`;
+                });
+            }
+        }
+
+        function updateYearDropdown() {
+            const progSelect = document.getElementById('eligibilityProgram');
+            const yearSelect = document.getElementById('eligibilityYear');
+            const selectedProgName = progSelect.value;
+
+            yearSelect.innerHTML = '<option value="" disabled selected>Year</option><option value="All Year">All Year</option>';
+
+            const program = availablePrograms.find(p => p.name === selectedProgName);
+
+            if (program && program.duration) {
+                const duration = parseInt(program.duration);
+                for (let i = 1; i <= duration; i++) {
+                    let suffix = 'th';
+                    if (i === 1) suffix = 'st';
+                    else if (i === 2) suffix = 'nd';
+                    else if (i === 3) suffix = 'rd';
+                    yearSelect.innerHTML += `<option value="${i}${suffix} Year">${i}${suffix} Year</option>`;
+                }
+            } else {
+                yearSelect.innerHTML += `
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
+                `;
+            }
+        }
+
+        async function fetchContestsFromDB() {
+            try {
+                const response = await fetch('/college/api/contests');
+                if (response.ok) {
+                    let fetchedData = await response.json();
+                    contests = fetchedData.data || fetchedData;
+                    contests = contests.map(c => {
+                        c.duration = c.time || c.duration;
+                        if (typeof c.colleges === 'string') {
+                            try { c.colleges = JSON.parse(c.colleges); } catch (e) { c.colleges = []; }
+                        }
+                        return c;
+                    });
+                }
+            } catch (error) { console.error(error); }
+            renderContests();
+        }
+
+        async function fetchProblemsFromDB() {
+            try {
+                const response = await fetch('/college/api/problems');
+                if (response.ok) {
+                    const result = await response.json();
+                    availableProblems = result.data || [];
+                }
+            } catch (error) { console.error(error); }
+        }
+
+        function renderContests() {
+            const container = document.getElementById('contestContainer');
+            container.innerHTML = '';
+
+            const filtered = contests.filter(c => {
+                if (currentLevel === 'global' && c.scope !== 'inter') return false;
+                if (currentLevel === 'college' && c.scope === 'inter') return false;
+                if (activeTab === 'upcoming' && c.status !== 'upcoming' && c.status !== 'accepted') return false;
+                if (activeTab === 'past' && c.status !== 'past') return false;
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="p-12 text-center bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm"><i class="fas fa-box-open text-4xl text-gray-300 dark:text-gray-600 mb-3"></i><p class="text-gray-500 font-medium">No ${activeTab} contests found for ${currentLevel} level.</p></div>`;
+                return;
+            }
+
+            filtered.forEach(c => {
+                const isUpcoming = c.status === 'upcoming';
+                let actionBtn = isUpcoming
+                    ? `<button class="w-full bg-primary-500 hover:bg-primary-600 text-white font-bold py-3 rounded-xl shadow-md transition-all"> Start</button>`
+                    : `<button class="w-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:border-primary-400 text-gray-800 dark:text-white font-bold py-3 rounded-xl shadow-sm transition-all">View Results</button>`;
+
+                let extraBadges = '';
+                if (c.scope === 'inter') {
+                    extraBadges = `<span class="bg-purple-100 text-purple-700 text-[10px] px-2 py-1 rounded font-bold uppercase"><i class="fas fa-globe-americas mr-1"></i> Global</span>`;
+                }
+
+                container.innerHTML += `
+                    <div class="bg-white dark:bg-gray-800 rounded-[2rem] p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all group relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-primary-500/5 rounded-full -mr-10 -mt-10 blur-2xl"></div>
+                        <div class="flex flex-col md:flex-row gap-6 relative">
+                            <div class="w-full md:w-1/4">
+                                <div class="bg-gray-50 dark:bg-gray-900 rounded-2xl p-5 text-center h-full border border-gray-100 dark:border-gray-700 flex flex-col justify-center">
+                                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Event Date</p>
+                                    <p class="text-2xl font-black text-gray-800 dark:text-white mb-1">${c.date || 'TBD'}</p>
+                                    <p class="text-xs text-primary-500 font-bold bg-primary-50 dark:bg-primary-900/30 py-1 px-3 rounded-full mx-auto w-fit">${c.duration || 'N/A'}</p>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="bg-green-100 text-green-700 text-[10px] px-2 py-1 rounded font-bold uppercase"><i class="fas fa-circle text-[8px] mr-1"></i> ${c.status}</span>
+                                        ${extraBadges}
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button onclick="openDetailsModal(${c.id})" class="text-gray-400 hover:text-primary-500 transition-colors p-2"><i class="fas fa-eye"></i></button>
+                                        <button onclick="editContest(${c.id})" class="text-gray-400 hover:text-blue-500 transition-colors p-2"><i class="fas fa-pen"></i></button>
+                                        <button onclick="deleteContest(${c.id})" class="text-gray-400 hover:text-red-500 transition-colors p-2"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-2 leading-tight">${c.title}</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">${c.description || 'No description provided.'}</p>
+                                
+                                <div class="flex flex-wrap gap-4 text-xs font-medium text-gray-500 dark:text-gray-400">
+                                    <div class="flex items-center gap-1.5"><i class="fas fa-users text-gray-400"></i> ${c.eligibility || 'All Students'}</div>
+                                    <div class="flex items-center gap-1.5"><i class="fas fa-clock text-gray-400"></i> Deadline: ${c.deadline ? c.deadline.replace('T', ' ') : 'TBD'}</div>
+                                </div>
+                            </div>
+                            <div class="w-full md:w-1/4 flex flex-col justify-end gap-3 border-t md:border-t-0 md:border-l dark:border-gray-700 pt-4 md:pt-0 md:pl-6">
+                                <button onclick="openAddProblemModal(${c.id}, '${c.title.replace(/'/g, "\\'")}')" class="w-full bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 font-bold py-3 rounded-xl hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-all border border-purple-100 dark:border-purple-800/30">
+                                    <i class="fas fa-laptop-code mr-1"></i> Manage Problems
+                                </button>
+                                ${actionBtn}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // ==========================================
+        // CREATE / EDIT CONTEST
+        // ==========================================
+        // NEW HELPER FUNCTION: Restricts date pickers to present and future only
+        function restrictPastDates() {
+            const now = new Date();
+            // Format YYYY-MM-DD for the date input
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const dateMin = `${year}-${month}-${day}`;
+            // Format YYYY-MM-DDThh:mm for the datetime-local input
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const datetimeMin = `${dateMin}T${hours}:${minutes}`;
+
+            const dateEl = document.getElementById('contestDate');
+            const deadlineEl = document.getElementById('contestDeadline');
+            if (dateEl) dateEl.min = dateMin;
+            if (deadlineEl) deadlineEl.min = datetimeMin;
+        }
+        function openCreateModal() {
+            document.getElementById('editContestId').value = "";
+            document.getElementById('newTitle').value = "";
+            document.getElementById('contestDate').value = "";
+            document.getElementById('contestDeadline').value = "";
+            document.getElementById('contestTime').value = "";
+            document.getElementById('eligibilityProgram').value = "";
+            document.getElementById('eligibilityYear').value = "";
+            document.getElementById('contestDesc').value = "";
+            quillEditor.root.innerHTML = "";
+            document.getElementById('modalTitle').innerText = "Configure Contest";
+            document.querySelector('input[name="scope"][value="internal"]').checked = true;
+            toggleOpponentSelect();
+
+            // Restrict date inputs to present/future dates
+            restrictPastDates();
+
+            document.getElementById('createModal').classList.remove('hidden');
+            document.getElementById('createModal').classList.add('flex');
+        }
+
+        function editContest(id) {
+            const c = contests.find(x => x.id === id);
+            if (!c) return;
+
+            document.getElementById('editContestId').value = c.id;
+            document.getElementById('newTitle').value = c.title;
+            document.getElementById('contestDate').value = c.date || "";
+            document.getElementById('contestDeadline').value = c.deadline || "";
+            document.getElementById('contestTime').value = c.duration || "";
+            document.getElementById('contestDesc').value = c.description || "";
+            quillEditor.root.innerHTML = c.rulesAndDescription || "";
+
+            if (c.eligibility) {
+                const parts = c.eligibility.split(' - ');
+                document.getElementById('eligibilityProgram').value = parts[0] || "";
+                updateYearDropdown();
+                setTimeout(() => document.getElementById('eligibilityYear').value = parts[1] || "", 50);
+            }
+
+            if (c.scope === 'inter') {
+                document.querySelector('input[name="scope"][value="inter"]').checked = true;
+                toggleOpponentSelect();
+                const checkboxes = document.querySelectorAll('.college-cb');
+                checkboxes.forEach(cb => { cb.checked = (c.colleges && c.colleges.includes(cb.value)); });
+            } else {
+                document.querySelector('input[name="scope"][value="internal"]').checked = true;
+                toggleOpponentSelect();
+            }
+
+            document.getElementById('modalTitle').innerText = "Edit Contest";
+            // Ensure date restrictions are applied when editing as well
+            restrictPastDates();
+            document.getElementById('createModal').classList.remove('hidden');
+            document.getElementById('createModal').classList.add('flex');
+        }
+
+        function closeCreateModal() {
+            document.getElementById('createModal').classList.add('hidden');
+            document.getElementById('createModal').classList.remove('flex');
+        }
+
+        async function saveContest() {
+            const id = document.getElementById('editContestId').value;
+            const scope = document.querySelector('input[name="scope"]:checked').value;
+
+            let selectedColleges = [];
+            if (scope === 'inter') {
+                document.querySelectorAll('.college-cb:checked').forEach(cb => selectedColleges.push(cb.value));
+            }
+
+            const title = document.getElementById('newTitle').value;
+            const date = document.getElementById('contestDate').value;
+            const deadline = document.getElementById('contestDeadline').value;
+            const duration = document.getElementById('contestTime').value;
+            const desc = document.getElementById('contestDesc').value;
+            const rules = quillEditor.root.innerHTML;
+
+            const prog = document.getElementById('eligibilityProgram').value;
+            const yr = document.getElementById('eligibilityYear').value;
+            const elig = (prog && yr) ? `${prog} - ${yr}` : 'All Students';
+
+            if (!title) return showWarningModal("Title is required!");
+
+            const payload = {
+                title, scope, level: currentLevel, date, deadline, duration,
+                eligibility: elig, description: desc, rulesAndDescription: rules,
+                status: 'upcoming', colleges: selectedColleges
+            };
+
+            const method = id ? 'PUT' : 'POST';
+            const endpoint = id ? `/college/api/contests/${id}` : '/college/api/contests';
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showToast(id ? "Contest updated!" : "Contest Created!");
+                    closeCreateModal();
+                    fetchContestsFromDB();
+                } else {
+                    showWarningModal(result.error || "Failed to save contest");
+                }
+            } catch (e) {
+                console.error(e);
+                showWarningModal("Database error");
+            }
+        }
+
+        async function deleteContest(id) {
+            if (!confirm("Are you sure you want to delete this contest?")) return;
+            try {
+                await fetch(`/college/api/contests/${id}`, { method: 'DELETE' });
+                showToast("Contest deleted.");
+                fetchContestsFromDB();
+            } catch (e) { console.error(e); }
+        }
+
+        // ==========================================
+        // MULTI-SELECT PROBLEM LOGIC
+        // ==========================================
+        async function openAddProblemModal(contestId, title) {
+            currentProblemContestId = contestId;
+            document.getElementById('addProblemContestTitle').innerText = `Manage Problems: ${title}`;
+            document.getElementById('problemSearch').value = '';
+
+            selectedProblems = [];
+
+            // Fetch currently assigned problems for this specific contest from DB
+            try {
+                const response = await fetch(`/college/api/contests/${contestId}/problems`);
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        selectedProblems = result.data.map(p => p.id);
+                    }
+                }
+            } catch (e) {
+                console.error("Using local data fallback for problems");
+                const contest = contests.find(c => c.id === contestId);
+                if (contest && contest.problems) {
+                    selectedProblems = contest.problems.map(p => p.id || p);
+                }
+            }
+
+            renderAvailableProblemsTable();
+            updateSelectedProblemsCount();
+
+            document.getElementById('addProblemModal').classList.remove('hidden');
+            document.getElementById('addProblemModal').classList.add('flex');
+        }
+
+        function closeAddProblemModal() {
+            document.getElementById('addProblemModal').classList.add('hidden');
+            document.getElementById('addProblemModal').classList.remove('flex');
+        }
+
+        function renderAvailableProblemsTable() {
+            const search = document.getElementById('problemSearch').value.toLowerCase();
+            const tbody = document.getElementById('available-problems-list');
+            tbody.innerHTML = '';
+
+            const filtered = availableProblems.filter(p =>
+                p.title.toLowerCase().includes(search) ||
+                p.difficulty.toLowerCase().includes(search)
+            );
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-10 text-gray-500 dark:text-gray-400 font-medium">No problems found matching your search.</td></tr>`;
+                return;
+            }
+
+            let allChecked = true;
+
+            filtered.forEach(p => {
+                const isChecked = selectedProblems.includes(p.id);
+                if (!isChecked) allChecked = false;
+
+                let diffColor = 'text-green-600 bg-green-50 dark:bg-green-500/10 dark:text-green-400';
+                if (p.difficulty === 'Medium') diffColor = 'text-yellow-600 bg-yellow-50 dark:bg-yellow-500/10 dark:text-yellow-400';
+                else if (p.difficulty === 'Hard') diffColor = 'text-red-600 bg-red-50 dark:bg-red-500/10 dark:text-red-400';
+
+                // Strip HTML tags from description for preview
+                let cleanDesc = (p.description || '').replace(/<[^>]*>?/gm, '');
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer group" onclick="toggleProblemSelection(${p.id})">
+                        <td class="px-5 py-4 text-center border-b border-gray-100 dark:border-gray-700" onclick="event.stopPropagation()">
+                            <input type="checkbox" class="problem-cb rounded border-gray-300 text-purple-600 w-4 h-4 cursor-pointer" value="${p.id}" ${isChecked ? 'checked' : ''} onchange="toggleProblemSelection(${p.id})">
+                        </td>
+                        <td class="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+                            <p class="font-bold text-gray-800 dark:text-white text-sm group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">${p.title}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1 max-w-lg">${cleanDesc || 'No description available'}</p>
+                        </td>
+                        <td class="px-5 py-4 text-center border-b border-gray-100 dark:border-gray-700">
+                            <span class="px-3 py-1 rounded-md text-[10px] font-bold ${diffColor} uppercase tracking-wider border border-current/20">${p.difficulty}</span>
+                        </td>
+                        <td class="px-5 py-4 text-center text-sm font-bold text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-gray-700">
+                            ${p.score} pts
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('selectAllProblems').checked = filtered.length > 0 && allChecked;
+        }
+
+        function toggleProblemSelection(id) {
+            const idx = selectedProblems.indexOf(id);
+            if (idx > -1) {
+                selectedProblems.splice(idx, 1);
+            } else {
+                selectedProblems.push(id);
+            }
+            renderAvailableProblemsTable();
+            updateSelectedProblemsCount();
+        }
+
+        function toggleAllProblems(checkbox) {
+            const search = document.getElementById('problemSearch').value.toLowerCase();
+            const filtered = availableProblems.filter(p =>
+                p.title.toLowerCase().includes(search) ||
+                p.difficulty.toLowerCase().includes(search)
+            );
+
+            if (checkbox.checked) {
+                filtered.forEach(p => {
+                    if (!selectedProblems.includes(p.id)) selectedProblems.push(p.id);
+                });
+            } else {
+                filtered.forEach(p => {
+                    const idx = selectedProblems.indexOf(p.id);
+                    if (idx > -1) selectedProblems.splice(idx, 1);
+                });
+            }
+            renderAvailableProblemsTable();
+            updateSelectedProblemsCount();
+        }
+
+        function updateSelectedProblemsCount() {
+            const countEl = document.getElementById('selectedProblemsCount');
+            countEl.innerText = selectedProblems.length;
+
+            // Add a little pop animation
+            countEl.classList.remove('scale-125');
+            void countEl.offsetWidth; // trigger reflow
+            countEl.classList.add('scale-125', 'transition-transform');
+            setTimeout(() => countEl.classList.remove('scale-125'), 200);
+        }
+
+        async function saveContestProblems() {
+            try {
+                const response = await fetch(`/college/api/contests/${currentProblemContestId}/problems`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ problemIds: selectedProblems })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showToast(result.message || 'Problems assigned successfully!');
+                    closeAddProblemModal();
+                    fetchContestsFromDB(); // refresh the contests
+                } else {
+                    showWarningModal(result.error || 'Failed to update problems.');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Problems assigned successfully!');
+                closeAddProblemModal();
+            }
+        }
+
+        // ==========================================
+        // UTILS & MODALS
+        // ==========================================
+        function switchLevel(level) {
+            currentLevel = level;
+            const cb = document.getElementById('collegeLevelBtn');
+            const gb = document.getElementById('globalLevelBtn');
+            const createBtn = document.getElementById('createContestBtn');
+
+            if (level === 'college') {
+                cb.className = "px-6 py-2.5 rounded-xl font-bold transition-all bg-white dark:bg-gray-700 shadow-sm text-primary-500";
+                gb.className = "px-6 py-2.5 rounded-xl font-bold transition-all text-gray-500 dark:text-gray-400";
+                createBtn.classList.remove('hidden'); // Show button for college level
+            } else {
+                gb.className = "px-6 py-2.5 rounded-xl font-bold transition-all bg-white dark:bg-gray-700 shadow-sm text-purple-600";
+                cb.className = "px-6 py-2.5 rounded-xl font-bold transition-all text-gray-500 dark:text-gray-400";
+                createBtn.classList.add('hidden'); // Hide button for global level
+            }
+            renderContests();
+        }
+
+        function switchTab(tab) {
+            activeTab = tab;
+            const upcomingTab = document.getElementById('upcomingTab');
+            const pastTab = document.getElementById('pastTab');
+            if (tab === 'upcoming') {
+                upcomingTab.className = "tab-btn pb-3 active";
+                pastTab.className = "tab-btn pb-3 text-gray-400";
+            } else {
+                pastTab.className = "tab-btn pb-3 active";
+                upcomingTab.className = "tab-btn pb-3 text-gray-400";
+            }
+            renderContests();
+        }
+
+        function openDetailsModal(id) {
+            const contest = contests.find(c => c.id === id);
+            if (!contest) return;
+
+            document.getElementById('detFullTitle').innerText = contest.title;
+            document.getElementById('detDesc').innerText = contest.description || 'No summary available.';
+            document.getElementById('detRules').innerHTML = contest.rulesAndDescription || '<p>No rules specified.</p>';
+            document.getElementById('detEligibility').innerText = contest.eligibility || 'All Students';
+            document.getElementById('detDuration').innerText = contest.duration || 'Not specified';
+            document.getElementById('detDeadlineFull').innerText = contest.deadline ? contest.deadline.replace('T', ' ') : 'No deadline';
+
+            document.getElementById('detailsModal').classList.remove('hidden');
+        }
+
+        function closeDetailsModal() { document.getElementById('detailsModal').classList.add('hidden'); }
+
+        function showWarningModal(msg) {
+            document.getElementById('warningMessage').innerText = msg;
+            document.getElementById('warningModal').classList.remove('hidden');
+        }
+
+        function closeWarningModal() { document.getElementById('warningModal').classList.add('hidden'); }
+
+        function showToast(msg) {
+            const toast = document.getElementById('shareToast');
+            document.getElementById('toastMessage').innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+    </script>
+</body>
+
+</html>

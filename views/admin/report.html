@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CampusCode - Admin Master Report</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <script>
+      (function() {
+        if (localStorage.getItem('theme') === 'dark') {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            fontFamily: { sans: ["Poppins", "sans-serif"], report: ["Roboto", "sans-serif"] },
+            colors: {
+              primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" },
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .report-preview-container { background: white; width: 297mm; min-height: 210mm; padding: 15mm; box-shadow: 0 10px 25px rgba(0,0,0,0.1); font-family: 'Roboto', sans-serif; display: flex; flex-direction: column; position: relative; overflow-x: auto;}
+      .dark .report-preview-container { background: #1f2937; color: #e5e7eb; }
+      .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 120px; font-weight: 900; color: rgba(0, 0, 0, 0.03); pointer-events: none; z-index: 0; white-space: nowrap; }
+      
+      /* Standard Report Tables */
+      .report-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 0.65rem; position: relative; z-index: 10;}
+      .report-table th, .report-table td { border: 1px solid #e5e7eb; padding: 0.4rem; text-align: left; }
+      .dark .report-table th, .dark .report-table td { border-color: #374151; }
+      .report-table th { background-color: #f8fafc; font-weight: 700; white-space: nowrap; }
+      .dark .report-table th { background-color: #111827; }
+
+      /* Profile Style Table (College Overview) */
+      .profile-table { width: 100%; border: 1px solid #e5e7eb; border-collapse: collapse; font-size: 0.75rem; margin-bottom: 1.5rem; }
+      .dark .profile-table { border-color: #374151; }
+      .profile-table td { border: 1px solid #e5e7eb; padding: 0.75rem 1rem; }
+      .dark .profile-table td { border-color: #374151; }
+      .profile-table td:first-child { background-color: #f8fafc; font-weight: 700; color: #4b5563; width: 30%; text-transform: uppercase; letter-spacing: 0.025em; }
+      .dark .profile-table td:first-child { background-color: #111827; color: #9ca3af; }
+      .profile-table td:last-child { font-weight: 600; color: #1f2937; }
+      .dark .profile-table td:last-child { color: #f3f4f6; }
+
+      .section-hidden, .col-hidden { display: none !important; }
+      @media print { .config-panel, header, .no-print { display: none !important; } .report-preview-container { margin: 0; border: none; box-shadow: none; width: 100%; } body { background: white; } }
+    </style>
+</head>
+<body class="bg-primary-50 dark:bg-gray-900 min-h-screen font-sans">
+    <div class="flex flex-col h-screen overflow-hidden">
+        
+        <header class="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50 px-8 py-3 flex justify-between items-center no-print">
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                <i class="fas fa-code text-primary-500"></i><span>CampusCode</span>
+            </h1>
+            
+            <div class="flex items-center gap-2">
+                <button onclick="toggleTheme()" id="themeBtn" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors">
+                    <i class="fas fa-moon"></i>
+                </button>
+
+                <div class="relative">
+                    <button onclick="toggleNotifications()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors relative">
+                        <i class="fas fa-bell"></i>
+                        <span class="absolute top-1.5 right-2 h-2 w-2 bg-red-500 rounded-full border border-white dark:border-gray-800"></span>
+                    </button>
+                    <div id="notificationDropdown" class="hidden absolute right-0 mt-3 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden z-[60]">
+                        <div class="p-3 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                            <h3 class="font-semibold text-gray-800 dark:text-white text-sm">Notifications</h3>
+                        </div>
+                        <div class="max-h-60 overflow-y-auto p-3 text-center text-xs text-gray-500">
+                            No new notifications
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative ml-2 border-l border-gray-200 dark:border-gray-700 pl-4">
+                    <button id="headerProfileBtn" onclick="toggleProfile()" class="flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        <div id="headerInitials" class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm">--</div>
+                        <span id="headerName" class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block">Loading...</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto">
+            <main class="p-8 flex flex-col lg:flex-row gap-8">
+                
+                <div class="lg:w-80 flex-shrink-0 no-print">
+                    <a href="/college/dashboard" class="text-gray-500 text-sm mb-4 flex items-center gap-2 hover:text-primary-500 transition-colors font-medium">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                    
+                    <div id="profileOverlay" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                        <div class="bg-white dark:bg-gray-800 w-[320px] rounded-3xl overflow-hidden shadow-2xl transform transition-all">
+                            <div class="bg-[#1e4a7a] p-6 text-center relative h-32">
+                                <button onclick="toggleProfile()" class="absolute top-4 right-4 text-white/80 hover:text-white">
+                                    <i class="fas fa-times text-lg"></i>
+                                </button>
+                                <div class="absolute -bottom-10 left-1/2 -translate-x-1/2">
+                                    <div id="modalInitials" class="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 bg-[#1e4a7a] flex items-center justify-center text-white text-2xl font-bold">--</div>
+                                </div>
+                            </div>
+                            <div class="pt-12 pb-6 px-6 text-center">
+                                <h3 id="modalName" class="text-xl font-bold text-gray-800 dark:text-white">Loading...</h3>
+                                <p id="modalCollege" class="text-xs text-gray-500 flex items-center justify-center gap-1"><i class="fas fa-university"></i> Loading...</p>
+
+                                <div class="space-y-1 mt-6">
+                                    <a href="/college/profile"><button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                                        <div class="flex items-center gap-3"><i class="fas fa-user-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200"> Profile</span></div>
+                                        <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                                    </button></a>
+                                    
+                                    <a href="/college/help_support"><button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                                        <div class="flex items-center gap-3"><i class="fas fa-question-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">Help & Support</span></div>
+                                        <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                                    </button></a>
+
+                                    <button id="logoutBtn" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
+                                        <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center">
+                                            <i class="fas fa-sign-out-alt"></i>
+                                        </div>
+                                        <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
+                                    </button>
+                                </div>
+                                <button onclick="toggleProfile()" class="mt-4 text-[10px] font-bold text-gray-400 uppercase hover:text-gray-600 transition-colors">Close</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm space-y-6 max-h-[85vh] overflow-y-auto">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-bold dark:text-white flex items-center gap-2"><i class="fas fa-filter text-primary-500"></i> Filters</h3>
+                            <button onclick="resetAllFilters()" class="text-[10px] bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-primary-600 font-bold hover:bg-primary-50">RESET</button>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-wider">Search</label>
+                            <div class="relative">
+                                <input type="text" id="searchInput" onkeyup="applyGlobalFilters()" placeholder="Name, Email..." class="w-full border border-gray-200 dark:border-gray-600 rounded-lg pl-9 pr-3 py-2 text-sm dark:bg-gray-700 dark:text-white outline-none">
+                                <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-xs"></i>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-3 tracking-wider">Show/Hide Sections</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked id="check-sec-depts" onclick="toggleSection('sec-depts')" class="w-4 h-4 rounded text-primary-600"><span class="text-sm dark:text-gray-300">College Overview</span></label>
+                                <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked id="check-sec-students" onclick="toggleSection('sec-students')" class="w-4 h-4 rounded text-primary-600"><span class="text-sm dark:text-gray-300">Students</span></label>
+                                <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked id="check-sec-faculty" onclick="toggleSection('sec-faculty')" class="w-4 h-4 rounded text-primary-600"><span class="text-sm dark:text-gray-300">Faculty</span></label>
+                                <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked id="check-sec-contests" onclick="toggleSection('sec-contests')" class="w-4 h-4 rounded text-primary-600"><span class="text-sm dark:text-gray-300">Contests</span></label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-3 tracking-wider">Horizontal Column Filters</label>
+                            <div class="space-y-4">
+                                <div class="border-l-2 border-primary-500 pl-2">
+                                    <span class="text-[9px] font-black text-gray-500 block mb-1">STUDENT TABLE</span>
+                                    <div class="grid grid-cols-1 gap-1">
+                                        <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input type="checkbox" checked class="col-cb" data-table="studentTable" data-col="0" onclick="toggleColumn('studentTable', 0)"> ID</label>
+                                        <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input type="checkbox" checked class="col-cb" data-table="studentTable" data-col="1" onclick="toggleColumn('studentTable', 1)"> Name</label>
+                                        <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input type="checkbox" checked class="col-cb" data-table="studentTable" data-col="2" onclick="toggleColumn('studentTable', 2)"> Email</label>
+                                        <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input type="checkbox" checked class="col-cb" data-table="studentTable" data-col="3" onclick="toggleColumn('studentTable', 3)"> Program</label>
+                                        <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input type="checkbox" checked class="col-cb" data-table="studentTable" data-col="4" onclick="toggleColumn('studentTable', 4)"> Year</label>
+                                        <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input type="checkbox" checked class="col-cb" data-table="studentTable" data-col="5" onclick="toggleColumn('studentTable', 5)"> Branch</label>
+                                    </div>
+                                </div>
+                                <div class="border-l-2 border-green-500 pl-2">
+                                    <span class="text-[9px] font-black text-gray-500 block mb-1">FACULTY TABLE</span>
+                                    <div class="grid grid-cols-1 gap-1">
+                                        <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input type="checkbox" checked class="col-cb" data-table="facultyTable" data-col="0" onclick="toggleColumn('facultyTable', 0)"> ID</label>
+                                        <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input type="checkbox" checked class="col-cb" data-table="facultyTable" data-col="1" onclick="toggleColumn('facultyTable', 1)"> Name</label>
+                                        <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input type="checkbox" checked class="col-cb" data-table="facultyTable" data-col="2" onclick="toggleColumn('facultyTable', 2)"> Email</label>
+                                        <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input type="checkbox" checked class="col-cb" data-table="facultyTable" data-col="3" onclick="toggleColumn('facultyTable', 3)"> Dept</label>
+                                    </div>
+                                </div>
+                                <div class="border-l-2 border-orange-500 pl-2">
+                                    <span class="text-[9px] font-black text-gray-500 block mb-1">CONTEST TABLE</span>
+                                    <div class="grid grid-cols-1 gap-1">
+                                        <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input type="checkbox" checked class="col-cb" data-table="contestTable" data-col="0" onclick="toggleColumn('contestTable', 0)"> C-ID</label>
+                                        <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input type="checkbox" checked class="col-cb" data-table="contestTable" data-col="1" onclick="toggleColumn('contestTable', 1)"> Title</label>
+                                        <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input type="checkbox" checked class="col-cb" data-table="contestTable" data-col="2" onclick="toggleColumn('contestTable', 2)"> Date</label>
+                                        <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input type="checkbox" checked class="col-cb" data-table="contestTable" data-col="4" onclick="toggleColumn('contestTable', 4)"> Created By</label>
+                                        <label class="flex items-center gap-2 text-[11px] dark:text-gray-300"><input type="checkbox" checked class="col-cb" data-table="contestTable" data-col="5" onclick="toggleColumn('contestTable', 5)"> Program</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 border-t border-gray-100 dark:border-gray-700 space-y-3">
+                            <button onclick="directDownloadPDF()" class="w-full bg-red-500 text-white py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2"><i class="fas fa-file-pdf"></i> PDF</button>
+                            <button onclick="downloadExcel()" class="w-full bg-green-600 text-white py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2"><i class="fas fa-file-excel"></i> Excel</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-x-auto">
+                    <div id="report-content" class="report-preview-container mx-auto">
+                        <div class="watermark">CampusCode</div>
+                        
+                        <div class="flex justify-between items-start border-b-4 border-primary-600 pb-6 mb-8 relative z-10">
+                            <div class="flex gap-4">
+                                <div class="w-16 h-16 bg-primary-600 text-white flex items-center justify-center rounded-lg text-2xl font-black">CC</div>
+                                <div>
+                                    <h1 id="displayCollegeName" class="text-2xl font-black text-gray-800 dark:text-white uppercase tracking-tight">Loading College Data...</h1>
+                                    <p class="text-sm font-bold text-primary-600 tracking-widest uppercase">Master Performance Report</p>
+                                </div>
+                            </div>
+                            <div class="text-right text-xs"><p class="font-bold uppercase text-gray-400">Date: <span id="curDate"></span></p></div>
+                        </div>
+
+                        <section id="sec-depts" class="mb-10 relative z-10">
+                            <h3 class="text-md font-bold mb-4 uppercase flex items-center gap-2">
+                                 <span class="w-1.5 h-6 bg-primary-500 block"></span> 1. COLLEGE OVERVIEW
+                            </h3>
+                            <table class="profile-table" id="deptTable">
+                                <tbody id="overviewTableBody">
+                                    <tr><td>Total Faculty</td><td id="ovFaculty">Loading...</td></tr>
+                                    <tr><td>Total Students</td><td id="ovStudents">Loading...</td></tr>
+                                    <tr><td>Total Contests</td><td id="ovContests">Loading...</td></tr>
+                                    <tr><td>Total Programs</td><td id="ovPrograms">Loading...</td></tr>
+                                    <tr><td>Report Date</td><td id="ovDate">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </section>
+
+                        <section id="sec-students" class="mb-10 relative z-10">
+                            <h3 class="text-md font-bold mb-4 uppercase border-l-4 border-primary-500 pl-3"> 2. Students</h3>
+                            <table class="report-table" id="studentTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th><th>Name</th><th>Email</th><th>Program</th><th>Year</th><th>Branch</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentTableBody">
+                                    <tr><td colspan="6" class="text-center py-4">Loading students...</td></tr>
+                                </tbody>
+                            </table>
+                        </section>
+
+                        <section id="sec-faculty" class="mb-10 relative z-10">
+                            <h3 class="text-md font-bold mb-4 uppercase border-l-4 border-green-500 pl-3"> 3. Faculty</h3>
+                            <table class="report-table" id="facultyTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th><th>Name</th><th>Email</th><th>Department</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="facultyTableBody">
+                                    <tr><td colspan="4" class="text-center py-4">Loading faculty...</td></tr>
+                                </tbody>
+                            </table>
+                        </section>
+
+                        <section id="sec-contests" class="mb-10 relative z-10">
+                            <h3 class="text-md font-bold mb-4 uppercase border-l-4 border-orange-500 pl-3"> 4. Contests</h3>
+                            <table class="report-table" id="contestTable">
+                                <thead>
+                                    <tr>
+                                        <th>C-ID</th><th>Title</th><th>Date</th><th>Created By</th><th>Program</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="contestTableBody">
+                                    <tr><td colspan="5" class="text-center py-4">Loading contests...</td></tr>
+                                </tbody>
+                            </table>
+                        </section>
+
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Set Current Date
+        const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+        const today = new Date().toLocaleDateString('en-US', dateOptions);
+        document.getElementById('curDate').textContent = today;
+        document.getElementById('ovDate').textContent = today;
+
+        // --- Theme & UI Toggles ---
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            const newTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+            localStorage.setItem('theme', newTheme);
+        }
+
+        function toggleProfile() {
+            document.getElementById('profileOverlay').classList.toggle('hidden');
+        }
+
+        function toggleNotifications() {
+            document.getElementById('notificationDropdown').classList.toggle('hidden');
+        }
+
+        // --- Data Fetching & Rendering ---
+        async function fetchReportData() {
+            try {
+                // 1. Fetch Profile Data
+                try {
+                    const profileRes = await fetch('/college/api/profile');
+                    if(profileRes.ok) {
+                        const { user } = await profileRes.json();
+                        document.getElementById('displayCollegeName').textContent = user.collegeName || "Admin Dashboard";
+                        document.getElementById('headerName').textContent = user.fullName || "Admin User";
+                        document.getElementById('modalName').textContent = user.fullName || "Admin User";
+                        document.getElementById('modalCollege').innerHTML = `<i class="fas fa-university"></i> ${user.collegeName || "N/A"}`;
+                        
+                        const initials = (user.fullName || "AU").substring(0, 2).toUpperCase();
+                        document.getElementById('headerInitials').textContent = initials;
+                        document.getElementById('modalInitials').textContent = initials;
+                    }
+                } catch (e) { console.warn("Could not fetch profile", e); }
+
+                // 2. Fetch Users Data (Students & Faculty)
+                let students = [], faculty = [];
+                try {
+                    const usersRes = await fetch('/college/api/users');
+                    if(usersRes.ok) {
+                        const userData = await usersRes.json();
+                        const allUsers = userData.users || userData || [];
+                        students = allUsers.filter(u => u.role === 'student');
+                        faculty = allUsers.filter(u => u.role === 'faculty');
+                    } else if (usersRes.status === 401 || usersRes.redirected) {
+                        window.location.href = '/'; return;
+                    }
+                } catch(e) { console.warn("Could not fetch users", e); }
+
+                // 3. Fetch Contests Data
+                let contests = [];
+                try {
+                    const contestsRes = await fetch('/college/api/contests');
+                    if(contestsRes.ok) {
+                        const contestData = await contestsRes.json();
+                        contests = contestData.data || contestData || [];
+                    }
+                } catch(e) { console.warn("Could not fetch contests", e); }
+
+                // 4. Fetch Programs Data (Just for count)
+                let programs = [];
+                try {
+                    const progRes = await fetch('/college/api/programs');
+                    if(progRes.ok) {
+                        const progData = await progRes.json();
+                        programs = progData.data || progData || [];
+                    }
+                } catch(e) { console.warn("Could not fetch programs", e); }
+
+                // --- Render Data to Tables ---
+                document.getElementById('ovFaculty').textContent = `${faculty.length} Members`;
+                document.getElementById('ovStudents').textContent = `${students.length} Active Students`;
+                document.getElementById('ovContests').textContent = `${contests.length} Total Contests`;
+                document.getElementById('ovPrograms').textContent = `${programs.length} Specialized Programs`;
+
+                // Render Students
+                const studentBody = document.getElementById('studentTableBody');
+                if (students.length === 0) {
+                    studentBody.innerHTML = `<tr><td colspan="6" class="text-center py-4">No students found.</td></tr>`;
+                } else {
+                    studentBody.innerHTML = students.map((s, index) => `
+                        <tr class="data-row">
+                            <td>${s._id ? s._id.substring(s._id.length - 6).toUpperCase() : `ST-${index+1}`}</td>
+                            <td class="font-semibold">${s.fullName || 'N/A'}</td>
+                            <td>${s.email || 'N/A'}</td>
+                            <td>${s.program || 'N/A'}</td>
+                            <td>${s.year || 'N/A'}</td>
+                            <td>${s.department || 'N/A'}</td>
+                        </tr>
+                    `).join('');
+                }
+
+                // Render Faculty
+                const facultyBody = document.getElementById('facultyTableBody');
+                if (faculty.length === 0) {
+                    facultyBody.innerHTML = `<tr><td colspan="4" class="text-center py-4">No faculty found.</td></tr>`;
+                } else {
+                    facultyBody.innerHTML = faculty.map((f, index) => `
+                        <tr class="data-row">
+                            <td>${f._id ? f._id.substring(f._id.length - 6).toUpperCase() : `FC-${index+1}`}</td>
+                            <td class="font-semibold">${f.fullName || 'N/A'}</td>
+                            <td>${f.email || 'N/A'}</td>
+                            <td>${f.department || 'N/A'}</td>
+                        </tr>
+                    `).join('');
+                }
+
+                // Render Contests
+                const contestBody = document.getElementById('contestTableBody');
+                if (contests.length === 0) {
+                    contestBody.innerHTML = `<tr><td colspan="5" class="text-center py-4">No contests found.</td></tr>`;
+                } else {
+                    contestBody.innerHTML = contests.map((c, index) => `
+                        <tr class="data-row">
+                            <td>${c._id ? c._id.substring(c._id.length - 6).toUpperCase() : `C-${index+1}`}</td>
+                            <td class="font-semibold">${c.title || 'N/A'}</td>
+                            <td>${c.deadline ? new Date(c.deadline).toLocaleDateString() : 'N/A'}</td>
+                            <td>${c.createdBy ? c.createdBy.fullName || c.createdBy : 'Admin'}</td>
+                            <td>${c.program || 'All'}</td>
+                        </tr>
+                    `).join('');
+                }
+
+            } catch (error) {
+                console.error("Failed to initialize report data:", error);
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', fetchReportData);
+
+        // --- Bulletproof Logout Logic ---
+        function logoutAdmin() {
+            localStorage.removeItem("adminLogin"); 
+            fetch('/auth/logout', { method: 'POST' })
+                .finally(() => { 
+                    window.location.href = "/"; 
+                });
+        }
+        document.getElementById("logoutBtn").addEventListener("click", logoutAdmin);
+
+        // --- Filtering Logic ---
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) section.classList.toggle('section-hidden');
+        }
+
+        function toggleColumn(tableId, colIndex) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+            const rows = table.querySelectorAll('tr');
+            rows.forEach(row => {
+                const cells = row.children;
+                if (cells.length > colIndex) {
+                    cells[colIndex].classList.toggle('col-hidden');
+                }
+            });
+        }
+
+        function applyGlobalFilters() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const rows = document.querySelectorAll('.data-row');
+            
+            rows.forEach(row => {
+                const textContent = row.textContent.toLowerCase();
+                if (textContent.includes(searchText)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        function resetAllFilters() {
+            document.getElementById('searchInput').value = '';
+            
+            // Show all sections
+            document.querySelectorAll('section').forEach(s => s.classList.remove('section-hidden'));
+            document.querySelectorAll('input[type="checkbox"][id^="check-sec"]').forEach(cb => cb.checked = true);
+            
+            // Show all columns
+            document.querySelectorAll('.col-hidden').forEach(col => col.classList.remove('col-hidden'));
+            document.querySelectorAll('.col-cb').forEach(cb => cb.checked = true);
+            
+            // Reset global search
+            applyGlobalFilters();
+        }
+
+        // --- Export Logic ---
+        function directDownloadPDF() {
+            const element = document.getElementById('report-content');
+            const opt = {
+                margin: 0,
+                filename: 'CampusCode_Master_Report.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        function downloadExcel() {
+            try {
+                const wb = XLSX.utils.book_new();
+                
+                const addTableToSheet = (tableId, sheetName) => {
+                    const table = document.getElementById(tableId);
+                    if (table && !document.getElementById('sec-' + sheetName.toLowerCase().replace(' ', '')).classList.contains('section-hidden')) {
+                        // Create a clone to remove hidden columns before export
+                        const clone = table.cloneNode(true);
+                        clone.querySelectorAll('.col-hidden').forEach(el => el.remove());
+                        const ws = XLSX.utils.table_to_sheet(clone);
+                        XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                    }
+                };
+
+                addTableToSheet('studentTable', 'Students');
+                addTableToSheet('facultyTable', 'Faculty');
+                addTableToSheet('contestTable', 'Contests');
+
+                XLSX.writeFile(wb, 'CampusCode_Report.xlsx');
+            } catch (err) {
+                console.error('Excel Export failed:', err);
+                alert("Failed to export Excel. Please ensure SheetJS is loaded.");
+            }
+        }
+    </script>
+</body>
+</html>

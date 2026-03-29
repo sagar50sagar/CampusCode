@@ -1,0 +1,24 @@
+
+.nav-item.active { background-color: #E7F0FA; color: #1E4A7A; border-right: 4px solid #1E4A7A; }
+.dark .nav-item.active { background-color: #1F2937; color: #60A5FA; border-right: 4px solid #60A5FA; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Scrollbar styles */
+.problem-desc-scroll::-webkit-scrollbar { width: 8px; }
+.problem-desc-scroll::-webkit-scrollbar-track { background: transparent; }
+.problem-desc-scroll::-webkit-scrollbar-thumb { background-color: #CBD5E1; border-radius: 20px; }
+.dark .problem-desc-scroll::-webkit-scrollbar-thumb { background-color: #4B5563; }
+
+/* Typography for HTML blocks */
+.prose-custom h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5em; margin-top: 1em; }
+.prose-custom h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5em; margin-top: 1em; }
+.prose-custom h3 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5em; margin-top: 1em; }
+.prose-custom p { margin-bottom: 1em; line-height: 1.6; }
+.prose-custom ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
+.prose-custom ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 1em; }
+.prose-custom pre { background: #1f2937; color: #f3f4f6; padding: 1em; border-radius: 0.5rem; overflow-x: auto; margin-bottom: 1em; }
+.dark .prose-custom pre { background: #111827; }
+.prose-custom code { font-family: monospace; background: #e5e7eb; padding: 0.2em 0.4em; border-radius: 0.25rem; font-size: 0.875em; }
+.dark .prose-custom code { background: #374151; color: #e5e7eb; }
+.prose-custom pre code { background: transparent; padding: 0; }

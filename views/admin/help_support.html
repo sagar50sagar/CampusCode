@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Support - CampusCode</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ["Poppins", "sans-serif"] },
+                    colors: {
+                        primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" },
+                        dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" }
+                    },
+                },
+            },
+        };
+    </script>
+
+    <style>
+        /* --- Scrollbar --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        .dark ::-webkit-scrollbar-track { background: #111827; }
+        ::-webkit-scrollbar-thumb { background: #7ba4d0; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #2e5e99; }
+
+        /* --- Sidebar Logic --- */
+        .sidebar { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
+        .sidebar.collapsed .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
+        .sidebar.collapsed .nav-item i { margin-right: 0; font-size: 1.25rem; }
+        .sidebar.collapsed .nav-item span { display: none; }
+        
+        /* --- Nav Item Styling --- */
+        .nav-item { transition: all 0.2s ease; position: relative; display: flex; align-items: center; padding: 0.75rem 1rem; margin-bottom: 0.25rem; color: #374151; border-radius: 0.5rem; cursor: pointer; white-space: nowrap; }
+        .nav-item:hover { background-color: #f3f4f6; }
+        .dark .nav-item { color: #d1d5db; }
+        .dark .nav-item:hover { background-color: #374151; }
+        .nav-item.active { background-color: #d0e1f5; color: #1e4a7a; }
+        .dark .nav-item.active { background-color: #1e4a7a; color: #ffffff; }
+        .nav-item.active::before { content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 60%; width: 4px; background-color: #2e5e99; border-radius: 0 4px 4px 0; }
+        .dark .nav-item.active::before { background-color: #60a5fa; }
+        .nav-item i { width: 1.5rem; text-align: center; margin-right: 0.75rem; font-size: 1.1rem; flex-shrink: 0; }
+        .nav-item span { font-size: 0.875rem; font-weight: 500; }
+
+        /* --- FAQ Accordion Styles --- */
+        .faq-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out, padding 0.3s ease; }
+        .faq-item.active .faq-content { max-height: 500px; padding-bottom: 1.25rem; }
+        .faq-item.active .faq-icon { transform: rotate(180deg); }
+    </style>
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200">
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside id="mainSidebar" class="sidebar w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 flex-shrink-0 transition-all duration-300 flex flex-col z-20">
+            <div class="p-6 flex items-center justify-between">
+                <h1 id="sidebarLogoText" class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2 overflow-hidden whitespace-nowrap">
+                    <i class="fas fa-code text-primary-500"></i>
+                    <span>CampusCode</span>
+                </h1>
+                <button id="sidebarToggleBtn" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none transition-colors">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+
+            <nav class="px-4 space-y-1 flex-1 overflow-y-auto">
+                <a href="/college/dashboard" class="nav-item"><i class="fas fa-home mr-3 w-5"></i><span>Home</span></a>
+                <a href="/college/program" class="nav-item"><i class="fa-solid fa-layer-group mr-3 w-5"></i><span>Programs</span></a>
+                <a href="/college/contest" class="nav-item"><i class="fas fa-trophy mr-3 w-5"></i><span>Contests</span></a>
+                <a href="/college/manage_user" class="nav-item"><i class="fa-solid fa-users mr-3 w-5"></i><span>User</span></a>
+                <a href="/college/report" class="nav-item"><i class="fas fa-file-invoice mr-3 w-5"></i><span>Reports</span></a>
+                <a href="/college/profile" class="nav-item"><i class="fas fa-user mr-3 w-5"></i><span>Profile</span></a>
+            </nav>
+
+            <nav class="px-4 py-4 border-t border-gray-100 dark:border-gray-700 space-y-1 mt-auto">
+                <a href="/college/help_support" class="nav-item active">
+                    <i class="fas fa-question-circle mr-3 w-5 text-gray-400"></i>
+                    <span>Help &amp; Support</span>
+                </a>
+                <a href="/college/setting" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+            </nav>
+        </aside>
+
+        <div class="flex-1 overflow-y-auto">
+            <header class="bg-white dark:bg-gray-800 shadow-sm transition-colors duration-200 sticky top-0 z-10">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+
+                    <div class="flex-1 max-w-2xl ml-4 flex items-center gap-4">
+                        <h1 id="headerLogoText" class="text-xl font-bold text-gray-800 dark:text-white hidden transition-all duration-300 opacity-0 transform -translate-x-2 whitespace-nowrap">
+                            CampusCode
+                        </h1>
+
+                        <div class="relative flex items-center w-full">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                            <input type="text"
+                                class="block w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
+                                placeholder="Search..." />
+                        </div>
+                    </div>
+
+                    <div class="ml-4 flex items-center gap-3">
+                        <button id="themeToggleBtn" class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none transition-transform active:scale-95">
+                            <i class="fas fa-moon text-xl"></i>
+                        </button>
+                        <div class="relative">
+                            <button id="notificationBtn" class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none">
+                                <i class="fas fa-bell text-xl"></i>
+                                <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-800"></span>
+                            </button>
+                        </div>
+                        <button id="headerProfileBtn" class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <div id="headerProfileInitials" class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm">--</div>
+                            <span id="headerProfileName" class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block">Loading...</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+            
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                
+                <div class="mb-8 text-center md:text-left">
+                    <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Help Center</h1>
+                    <p class="text-gray-600 dark:text-gray-400 mt-1">Search for documentation, troubleshooting, or contact us directly.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    
+                    <div class="lg:col-span-7 space-y-6">
+                        
+                        <div class="relative">
+                            <input type="text" id="faqSearch" placeholder="Search FAQs (e.g., 'Contest', 'Login', 'IDE')..." 
+                                class="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition bg-white dark:bg-gray-800 text-gray-800 dark:text-white">
+                            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+                        </div>
+
+                        <div class="space-y-4" id="faqContainer">
+                            <div class="flex items-center justify-between mb-2">
+                                <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Frequently Asked Questions</h2>
+                            </div>
+
+                            <div class="faq-item bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm transition-all hover:border-primary-300 dark:hover:border-primary-700">
+                                <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left focus:outline-none">
+                                    <span class="font-semibold text-gray-800 dark:text-gray-200">How to add a new faculty member?</span>
+                                    <i class="fas fa-chevron-down faq-icon text-gray-400 transition-transform"></i>
+                                </button>
+                                <div class="faq-content px-5 text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                                    Go to the <span class="font-semibold text-primary-500">Users</span> page via the sidebar. Click on "Add New" and select "Faculty". Fill in the required details and choose the role for the faculty member.
+                                </div>
+                            </div>
+
+                            <div class="faq-item bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm transition-all hover:border-primary-300 dark:hover:border-primary-700">
+                                <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left focus:outline-none">
+                                    <span class="font-semibold text-gray-800 dark:text-gray-200">How to assign a HOD role to a faculty member?</span>
+                                    <i class="fas fa-chevron-down faq-icon text-gray-400 transition-transform"></i>
+                                </button>
+                                <div class="faq-content px-5 text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                                    Go to the <span class="font-semibold text-primary-500">Users</span> page via the sidebar. Select the faculty member and click on the "Edit" button. Check the "Head of Department" checkbox to assign the role.
+                                </div>
+                            </div>
+
+                            <div class="faq-item bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm transition-all hover:border-primary-300 dark:hover:border-primary-700">
+                                <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left focus:outline-none">
+                                    <span class="font-semibold text-gray-800 dark:text-gray-200">How to create a new contest?</span>
+                                    <i class="fas fa-chevron-down faq-icon text-gray-400 transition-transform"></i>
+                                </button>
+                                <div class="faq-content px-5 text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                                    Go to the <span class="font-semibold text-primary-500">Contests</span> page via the sidebar. Click on "Add New" and select "Contest". Fill in the required details and choose the participants for the contest.
+                                </div>
+                            </div>
+                            
+                            <div class="faq-item bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm transition-all hover:border-primary-300 dark:hover:border-primary-700">
+                                <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left focus:outline-none">
+                                    <span class="font-semibold text-gray-800 dark:text-gray-200">I found a bug in the platform handling user accounts.</span>
+                                    <i class="fas fa-chevron-down faq-icon text-gray-400 transition-transform"></i>
+                                </button>
+                                <div class="faq-content px-5 text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                                    Please use the contact form on the right side of this page. Select "Report Bug" as the category to ensure our engineering team sees it immediately.
+                                </div>
+                            </div>
+                        </div>
+
+                         <div class="grid grid-cols-2 gap-4 mt-8">
+                            <a href="#" class="p-4 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl flex flex-col items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 transition group shadow-sm">
+                                <i class="fab fa-discord text-2xl text-[#5865F2] mb-2"></i>
+                                <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">Join Discord</span>
+                            </a>
+                            <a href="#" class="p-4 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl flex flex-col items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 transition group shadow-sm">
+                                <i class="fab fa-twitter text-2xl text-[#1DA1F2] mb-2"></i>
+                                <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">Follow Updates</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <aside class="lg:col-span-5">
+                        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-6 md:p-8 rounded-xl shadow-sm relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-primary-50 dark:bg-primary-900/20 rounded-full -mr-16 -mt-16 z-0"></div>
+                            
+                            <div class="relative z-10">
+                                <h3 class="text-xl font-bold mb-2 text-gray-800 dark:text-white">Open a Ticket</h3>
+                                <p id="supportSubtext" class="text-sm text-gray-500 dark:text-gray-400 mb-6">Our team typically responds in under 4 hours.</p>
+                                
+                                <form id="supportForm" class="space-y-4">
+                                    <div class="grid grid-cols-1 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-bold uppercase tracking-wider mb-1 text-gray-500 dark:text-gray-400">Subject</label>
+                                            <input type="text" id="ticketSubject" required placeholder="Brief summary..." class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition text-sm">
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-bold uppercase tracking-wider mb-1 text-gray-500 dark:text-gray-400">Category</label>
+                                        <select id="ticketCategory" class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-400 outline-none transition text-sm">
+                                            <option value="General Question">General Question</option>
+                                            <option value="Contest Issue">Contest Issue</option>
+                                            <option value="Billing / Account">Billing / Account</option>
+                                            <option value="Report Bug" class="text-red-500 font-bold">Report Bug</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-bold uppercase tracking-wider mb-1 text-gray-500 dark:text-gray-400">Details</label>
+                                        <textarea id="ticketDetails" rows="5" required placeholder="Describe your issue..." class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition text-sm font-sans"></textarea>
+                                    </div>
+
+                                    <button type="submit" id="submitTicketBtn" class="w-full bg-primary-500 hover:bg-primary-600 text-white font-bold py-3 rounded-xl shadow-md hover:shadow-lg transform active:scale-[0.98] transition-all flex justify-center items-center gap-2">
+                                        <span>Submit Ticket</span>
+                                    </button>
+                                </form>
+
+                                <div id="successState" class="hidden text-center py-12">
+                                    <div class="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                                        <i class="fas fa-check text-2xl"></i>
+                                    </div>
+                                    <h4 class="text-xl font-bold mb-2 text-gray-800 dark:text-white">Ticket Received!</h4>
+                                    <p class="text-gray-500 dark:text-gray-400 mb-6 text-sm">Check your email for confirmation.<br>Ref ID: <span class="font-mono text-primary-500">#TKT-4920</span></p>
+                                    <button onclick="window.location.reload()" class="text-primary-500 font-bold hover:underline text-sm">Send another message</button>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="notificationDropdown" class="fixed top-16 right-6 z-50 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 hidden animate-[fadeIn_0.1s_ease-out]">
+        <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+            <h3 class="font-semibold text-gray-800 dark:text-white">Notifications</h3>
+            <span class="text-xs text-primary-500 cursor-pointer hover:underline">Mark all read</span>
+        </div>
+        <div class="p-2">
+            <div class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer">
+                <p class="text-sm text-gray-800 dark:text-gray-200 font-medium">Contest Reminder</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Weekly contest starts in 1 hour.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="profileOverlay" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white dark:bg-gray-800 w-[320px] rounded-3xl overflow-hidden shadow-2xl transform transition-all duration-300 scale-95 opacity-0">
+            <div class="bg-[#1e4a7a] p-6 text-center relative h-32">
+                <button onclick="toggleProfile()" class="absolute top-4 right-4 text-white/80 hover:text-white">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+                <div class="absolute -bottom-10 left-1/2 -translate-x-1/2">
+                    <div id="profileOverlayInitials" class="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 bg-[#1e4a7a] flex items-center justify-center text-white text-2xl font-bold">--</div>
+                </div>
+            </div>
+            <div class="pt-12 pb-6 px-6 text-center">
+                <h3 id="profileOverlayName" class="text-xl font-bold text-gray-800 dark:text-white">Loading...</h3>
+                <p id="profileOverlayCollege" class="text-xs text-gray-500 flex items-center justify-center gap-1 mt-1"><i class="fas fa-university"></i> Loading...</p>
+                <p id="profileOverlayRole" class="text-xs text-gray-500 mb-3 flex items-center justify-center gap-1">Role: Loading...</p>
+
+                <div class="flex justify-between border-y border-gray-100 dark:border-gray-700 py-4 mb-6">
+                    <div><p class="text-[10px] font-bold text-primary-400 uppercase">Contest</p><p id="statContests" class="text-lg font-bold dark:text-white">0</p></div>
+                    <div class="border-x border-gray-100 dark:border-gray-700 px-6"><p class="text-[10px] font-bold text-primary-400 uppercase">Users</p><p id="statUsers" class="text-lg font-bold dark:text-white">0</p></div>
+                    <div><p class="text-[10px] font-bold text-primary-400 uppercase">Programs</p><p id="statPrograms" class="text-lg font-bold dark:text-white">0</p></div>
+                </div>
+                
+                <div class="space-y-1">
+                    <a href="profile.html" class="block">
+                        <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                            <div class="flex items-center gap-3"><i class="fas fa-user-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200"> Profile</span></div>
+                            <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </a>
+                    
+                    <a href="help_support.html" class="block">
+                        <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                            <div class="flex items-center gap-3"><i class="fas fa-question-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">Help & Support</span></div>
+                            <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </a>
+
+                    <button id="logoutBtn" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
+                        <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </div>
+                        <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
+                    </button>
+                </div>
+                <button onclick="toggleProfile()" class="mt-4 text-[10px] font-bold text-gray-400 uppercase hover:text-gray-600 transition-colors">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Define global functions for HTML onclick attributes
+        function toggleProfile() {
+            const overlay = document.getElementById('profileOverlay');
+            const card = overlay.querySelector('div');
+            
+            if (overlay.classList.contains('hidden')) {
+                overlay.classList.remove('hidden');
+                setTimeout(() => {
+                    card.classList.remove('scale-95', 'opacity-0');
+                    card.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            } else {
+                card.classList.remove('scale-100', 'opacity-100');
+                card.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 300); 
+            }
+        }
+
+        function toggleFaq(button) {
+            const item = button.parentElement;
+            const isActive = item.classList.contains('active');
+            
+            document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+            if (!isActive) item.classList.add('active');
+        }
+
+        // --- FETCH DYNAMIC DATA ---
+        async function fetchUserData() {
+            try {
+                const profileRes = await fetch('/college/api/profile');
+                const profileData = await profileRes.json();
+
+                if (profileData.success && profileData.user) {
+                    const user = profileData.user;
+                    const name = user.fullName || 'Admin User';
+                    const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'AD';
+                    const college = user.collegeName || 'Unknown Institute';
+                    const role = user.role ? (user.role.charAt(0).toUpperCase() + user.role.slice(1)) : 'Admin';
+
+                    document.getElementById('headerProfileName').textContent = name;
+                    document.getElementById('headerProfileInitials').textContent = initials;
+                    document.getElementById('profileOverlayName').textContent = name;
+                    document.getElementById('profileOverlayInitials').textContent = initials;
+                    document.getElementById('profileOverlayCollege').innerHTML = `<i class="fas fa-university"></i> ${college}`;
+                    document.getElementById('profileOverlayRole').textContent = `Role: ${role}`;
+                }
+
+                // Fetch Stats for the modal 
+                const [contestsRes, usersRes, programsRes] = await Promise.all([
+                    fetch('/college/api/contests'),
+                    fetch('/college/api/users'),
+                    fetch('/college/api/programs')
+                ]);
+
+                const contestsData = await contestsRes.json();
+                const usersData = await usersRes.json();
+                const programsData = await programsRes.json();
+
+                if (contestsData.success) document.getElementById('statContests').textContent = contestsData.data.length || 0;
+                if (usersData.success) document.getElementById('statUsers').textContent = usersData.users.length || 0;
+                if (programsData.success) document.getElementById('statPrograms').textContent = programsData.data.length || 0;
+
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            
+            // Load Dynamic Data 
+            fetchUserData();
+
+            // --- 1. SIDEBAR TOGGLE LOGIC ---
+            const sidebar = document.getElementById('mainSidebar');
+            const toggleBtn = document.getElementById('sidebarToggleBtn');
+            const sidebarLogoText = document.getElementById('sidebarLogoText');
+            const headerLogoText = document.getElementById('headerLogoText');
+
+            if (toggleBtn && sidebar) {
+                toggleBtn.addEventListener('click', () => {
+                    sidebar.classList.toggle('collapsed');
+                    
+                    if (sidebar.classList.contains('w-64')) {
+                        sidebar.classList.replace('w-64', 'w-20');
+                        sidebarLogoText.style.display = 'none'; 
+                        
+                        if(headerLogoText) {
+                            headerLogoText.classList.remove('hidden');
+                            setTimeout(() => headerLogoText.classList.remove('opacity-0', '-translate-x-2'), 50);
+                        }
+                    } else {
+                        sidebar.classList.replace('w-20', 'w-64');
+                        sidebarLogoText.style.display = 'flex'; 
+                        
+                        if(headerLogoText) {
+                            headerLogoText.classList.add('opacity-0', '-translate-x-2');
+                            setTimeout(() => headerLogoText.classList.add('hidden'), 300);
+                        }
+                    }
+                });
+            }
+
+            // --- 2. Theme Toggle ---
+            const themeBtn = document.getElementById('themeToggleBtn');
+            const html = document.documentElement;
+
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                html.classList.add('dark');
+                if(themeBtn) themeBtn.querySelector('i').classList.replace('fa-moon', 'fa-sun');
+            }
+
+            if(themeBtn) {
+                themeBtn.addEventListener('click', () => {
+                    html.classList.toggle('dark');
+                    const icon = themeBtn.querySelector('i');
+                    if (html.classList.contains('dark')) {
+                        localStorage.theme = 'dark';
+                        icon.classList.replace('fa-moon', 'fa-sun');
+                    } else {
+                        localStorage.theme = 'light';
+                        icon.classList.replace('fa-sun', 'fa-moon');
+                    }
+                });
+            }
+
+            // --- 3. Notifications ---
+            const notifBtn = document.getElementById('notificationBtn');
+            const notifDropdown = document.getElementById('notificationDropdown');
+            
+            if(notifBtn && notifDropdown) {
+                notifBtn.addEventListener('click', (e) => { 
+                    e.stopPropagation(); 
+                    notifDropdown.classList.toggle('hidden'); 
+                });
+                document.addEventListener('click', (e) => {
+                    if(!notifDropdown.contains(e.target) && !notifBtn.contains(e.target)) notifDropdown.classList.add('hidden');
+                });
+            }
+
+            // --- 4. Connect Header Profile Button ---
+            const headerProfileBtn = document.getElementById('headerProfileBtn');
+            if(headerProfileBtn) {
+                headerProfileBtn.addEventListener('click', toggleProfile);
+            }
+
+            // --- 5. Logout Logic (Bonus: Finished the block for you!) ---
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async () => {
+                    try {
+                        const res = await fetch('/auth/logout', { method: 'POST' });
+                        if (res.ok) window.location.href = '/';
+                    } catch (err) {
+                        console.error('Logout error:', err);
+                    }
+                });
+            }
+
+            // --- 6. FAQ Live Search ---
+            const faqSearch = document.getElementById('faqSearch');
+            if (faqSearch) {
+                faqSearch.addEventListener('input', (e) => {
+                    const term = e.target.value.toLowerCase();
+                    document.querySelectorAll('.faq-item').forEach(item => {
+                        const text = item.innerText.toLowerCase();
+                        item.style.display = text.includes(term) ? 'block' : 'none';
+                    });
+                });
+            }
+
+            // --- 7. Support Ticket Form Submission (The new backend hookup) ---
+            const supportForm = document.getElementById('supportForm');
+            const successState = document.getElementById('successState');
+            const supportSubtext = document.getElementById('supportSubtext');
+            const submitTicketBtn = document.getElementById('submitTicketBtn');
+
+            if(supportForm) {
+                supportForm.addEventListener('submit', async (e) => {
+                    e.preventDefault(); 
+                    
+                    // Visual feedback while sending
+                    const originalBtnText = submitTicketBtn.innerHTML;
+                    submitTicketBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                    submitTicketBtn.disabled = true;
+
+                    // Grab values from the form using the new IDs
+                    const subject = document.getElementById('ticketSubject').value;
+                    const category = document.getElementById('ticketCategory').value;
+                    const details = document.getElementById('ticketDetails').value;
+
+                    try {
+                        // Send to backend API we created in app.js
+                        const response = await fetch('/api/support', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ subject, category, details })
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success || response.ok) {
+                            // Hide form and show success animation
+                            supportForm.style.display = 'none';
+                            if(supportSubtext) supportSubtext.style.display = 'none';
+                            if(successState) successState.classList.remove('hidden');
+                        } else {
+                            alert('Failed to send ticket: ' + (data.message || 'Unknown error'));
+                            submitTicketBtn.innerHTML = originalBtnText;
+                            submitTicketBtn.disabled = false;
+                        }
+                    } catch (error) {
+                        console.error('Error submitting ticket:', error);
+                        alert('A network error occurred. Please try again later.');
+                        submitTicketBtn.innerHTML = originalBtnText;
+                        submitTicketBtn.disabled = false;
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

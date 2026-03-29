@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "title": "Python",
+    "status": "accepted",
+    "visibility_scope": "global",
+    "scope": "internal",
+    "department": "",
+    "level": "college",
+    "createdBy": 2,
+    "collegeName": "Meerut Institute of Technology",
+    "hos_verified": 1
+  },
+  {
+    "id": 2,
+    "title": "sagar singh is grewat",
+    "status": "upcoming",
+    "visibility_scope": "global",
+    "scope": "internal",
+    "department": "COMPUTER SCIIENCE",
+    "level": "college",
+    "createdBy": 4,
+    "collegeName": "",
+    "hos_verified": 0
+  }
+]

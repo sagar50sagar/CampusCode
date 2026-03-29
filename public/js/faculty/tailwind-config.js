@@ -1,0 +1,1 @@
+tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ["Poppins", "sans-serif"] }, colors: { primary: { 50: "#E7F0FA", 500: "#1E4A7A", 600: "#0D2440" }, leetcode: { bg: '#1A1A1A', surface: '#282828', border: '#3E3E3E', text: '#EFF1F6', textMuted: '#8A8A8A' } } } } };

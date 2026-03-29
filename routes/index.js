@@ -12,6 +12,8 @@ module.exports = (db) => {
         if (req.session.user) {
             if (req.session.user.role === 'superadmin') return res.redirect('/superadmin/dashboard');
             if (req.session.user.role === 'admin') return res.redirect('/college/dashboard');
+            if (req.session.user.role === 'hod') return res.redirect('/college/hod/dashboard');
+            if (req.session.user.role === 'hos') return res.redirect('/faculty/dashboard'); // HOS shares faculty view for now
             if (req.session.user.role === 'faculty') return res.redirect('/faculty/dashboard');
             if (req.session.user.role === 'student') return res.redirect('/student/dashboard');
         }

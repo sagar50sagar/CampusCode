@@ -124,7 +124,7 @@
                 <div class="auth-container" id="authContainer">
                     
                     <div class="form-container sign-up-container bg-white dark:bg-darkCard">
-                        <form id="signupForm" action="/auth/signup" method="POST" class="flex flex-col items-center justify-center h-full px-8 md:px-12 text-center w-full">
+                        <form id="signupForm" class="flex flex-col items-center justify-center h-full px-8 md:px-12 text-center w-full">
                             
                             <div id="signup-step-1" class="w-full">
                                 <h2 class="font-bold text-3xl mb-4 text-gray-900 dark:text-white">Create Account</h2>
@@ -155,6 +155,7 @@
                                 
                                 <input type="text" name="otp" id="su_otp" placeholder="Enter OTP" maxlength="6" required class="w-full bg-gray-100 dark:bg-gray-700 border-none p-3.5 rounded-lg text-gray-900 dark:text-white text-center font-bold tracking-[0.5em] focus:ring-2 focus:ring-primary focus:outline-none transition mb-4">
                                 
+                                <p id="su_verify_error" class="text-red-500 text-xs mb-3 hidden"></p>
                                 <button type="submit" id="btnCompleteRegistration" class="rounded-lg border border-green-600 bg-green-600 text-white text-sm font-bold py-3.5 px-12 uppercase tracking-wider transition-transform transform hover:scale-105 shadow-md w-full">Complete Registration</button>
                             </div>
 
@@ -233,6 +234,7 @@
         const step1 = document.getElementById('signup-step-1');
         const step2 = document.getElementById('signup-step-2');
         const errorText = document.getElementById('su_error');
+        const verifyErrorText = document.getElementById('su_verify_error');
 
         async function triggerSignupOTP() {
             const name = document.getElementById('su_name').value;
@@ -281,13 +283,64 @@
             step2.classList.add('step-hidden');
             step1.classList.remove('step-hidden');
             document.getElementById('su_otp').value = '';
+            verifyErrorText.classList.add('hidden');
         }
 
-        // Disable completion button immediately upon click to prevent double submission
-        document.getElementById('signupForm').addEventListener('submit', function() {
+        // FIXED SIGNUP SUBMISSION: Capture all data from step 1 and step 2
+        document.getElementById('signupForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); // Stop standard form submission
+            
             const btn = document.getElementById('btnCompleteRegistration');
+            const originalText = btn.innerText;
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Registering...';
             btn.disabled = true;
+            verifyErrorText.classList.add('hidden');
+
+            const payload = {
+                name: document.getElementById('su_name').value,
+                email: document.getElementById('su_email').value,
+                password: document.getElementById('su_password').value,
+                role: document.getElementById('su_role').value,
+                collegeName: document.getElementById('su_college').value,
+                otp: document.getElementById('su_otp').value
+            };
+
+            try {
+                const response = await fetch('/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                // If it's a redirect to login, it worked!
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
+                
+                // Handle JSON errors
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    const result = await response.json();
+                    if (!result.success) {
+                        verifyErrorText.innerText = result.message || "Invalid OTP or Registration Failed.";
+                        verifyErrorText.classList.remove('hidden');
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        return;
+                    }
+                }
+                
+                // Fallback success
+                alert("Registration successful! Please sign in.");
+                window.location.reload();
+                
+            } catch (err) {
+                verifyErrorText.innerText = "Network error. Please try again.";
+                verifyErrorText.classList.remove('hidden');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         });
 
         // --- Fetch Colleges ---

@@ -554,17 +554,21 @@
 
         document.getElementById("contestForm").addEventListener("submit", async (e) => {
             e.preventDefault();
+            const fieldValue = (id, fallback = "") => {
+                const el = document.getElementById(id);
+                return el ? el.value : fallback;
+            };
             const payload = {
-                title: document.getElementById("title").value,
-                description: document.getElementById("description").value,
-                contest_class: document.getElementById("contestClass").value,
-                duration: document.getElementById("duration").value,
-                startDate: document.getElementById("startDate").value || null,
-                endDate: document.getElementById("endDate").value || null,
-                registrationEndDate: document.getElementById("registrationEndDate").value || null,
-                prize: document.getElementById("prize").value,
-                eligibility: document.getElementById("eligibility").value,
-                guidelines: document.getElementById("guidelines").value,
+                title: fieldValue("title"),
+                description: fieldValue("description"),
+                contest_class: fieldValue("contestClass", "E"),
+                duration: fieldValue("duration"),
+                startDate: fieldValue("startDate") || null,
+                endDate: fieldValue("endDate") || null,
+                registrationEndDate: fieldValue("registrationEndDate") || null,
+                prize: fieldValue("prize"),
+                eligibility: fieldValue("eligibility"),
+                guidelines: fieldValue("guidelines"),
                 problems: []
             };
             const btn = e.target.querySelector('button[type="submit"]');

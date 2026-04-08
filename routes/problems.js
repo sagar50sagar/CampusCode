@@ -210,11 +210,24 @@ module.exports = (db) => {
             return res.status(400).json({ success: false, message: 'Title and description are required' });
         }
 
+        // Set universal XP points based on difficulty
+        const getPointsFromDifficulty = (diff) => {
+            const normalizedDiff = String(diff || 'easy').toLowerCase();
+            switch (normalizedDiff) {
+                case 'easy': return 5;
+                case 'medium': return 10;
+                case 'hard': return 15;
+                default: return 5; // default to easy
+            }
+        };
+
+        const calculatedPoints = points ? parseInt(points) : getPointsFromDifficulty(difficulty);
+
         db.run(`
             INSERT INTO problems (title, difficulty, points, tags, description, input_format, output_format, 
                                   constraints, sample_input, sample_output, status, scope, created_by)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', 'global', ?)
-        `, [title, difficulty || 'Easy', points || 50, tags || '', description, input_format || '', output_format || '', constraints || '', sample_input || '', sample_output || '', created_by],
+        `, [title, difficulty || 'Easy', calculatedPoints, tags || '', description, input_format || '', output_format || '', constraints || '', sample_input || '', sample_output || '', created_by],
             function (err) {
                 if (err) return res.status(500).json({ success: false, error: err.message });
                 res.json({ success: true, message: 'Problem created', problem_id: this.lastID });
@@ -228,11 +241,24 @@ module.exports = (db) => {
         const payload = req.body || {};
         const { title, difficulty, points, tags, description, input_format, output_format, constraints, sample_input, sample_output } = payload;
 
+        // Set universal XP points based on difficulty
+        const getPointsFromDifficulty = (diff) => {
+            const normalizedDiff = String(diff || 'easy').toLowerCase();
+            switch (normalizedDiff) {
+                case 'easy': return 5;
+                case 'medium': return 10;
+                case 'hard': return 15;
+                default: return 5; // default to easy
+            }
+        };
+
+        const calculatedPoints = points ? parseInt(points) : getPointsFromDifficulty(difficulty);
+
         db.run(`
             UPDATE problems SET title=?, difficulty=?, points=?, tags=?, description=?, 
             input_format=?, output_format=?, constraints=?, sample_input=?, sample_output=?
             WHERE id=?
-        `, [title, difficulty, points, tags || '', description, input_format, output_format, constraints, sample_input, sample_output, req.params.id],
+        `, [title, difficulty, calculatedPoints, tags || '', description, input_format, output_format, constraints, sample_input, sample_output, req.params.id],
             function (err) {
                 if (err) return res.status(500).json({ success: false, error: err.message });
                 if (this.changes === 0) return res.status(404).json({ success: false, message: 'Problem not found' });

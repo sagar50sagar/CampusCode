@@ -980,11 +980,23 @@ module.exports = (db) => {
             sample_input, sample_output, hidden_test_cases, tags
         } = req.body;
         
+        // Set universal XP points based on difficulty
+        const getPointsFromDifficulty = (diff) => {
+            const normalizedDiff = String(diff || 'easy').toLowerCase();
+            switch (normalizedDiff) {
+                case 'easy': return 5;
+                case 'medium': return 10;
+                case 'hard': return 15;
+                default: return 5; // default to easy
+            }
+        };
+        const calculatedPoints = getPointsFromDifficulty(difficulty);
+        
         db.run(
-            `INSERT INTO problems (title, subject, difficulty, description, input_format, output_format, constraints, sample_input, sample_output, hidden_test_cases, tags, faculty_id, created_by, department, status, visibility_scope, is_public, hos_verified, approved_by, approved_at) 
+            `INSERT INTO problems (title, subject, difficulty, points, description, input_format, output_format, constraints, sample_input, sample_output, hidden_test_cases, tags, faculty_id, created_by, department, status, visibility_scope, is_public, hos_verified, approved_by, approved_at) 
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'accepted', 'global', 1, 1, ?, ?)`,
             [
-                title, subject, difficulty, description, 
+                title, subject, difficulty, calculatedPoints, description, 
                 input_format || '', output_format || '', constraints || '', 
                 sample_input || '', sample_output || '', hidden_test_cases || '', 
                 tags || '', user.id, user.id, user.department, user.id, new Date().toISOString()
@@ -1009,14 +1021,26 @@ module.exports = (db) => {
         } = req.body;
         const problemId = req.params.id;
 
+        // Set universal XP points based on difficulty
+        const getPointsFromDifficulty = (diff) => {
+            const normalizedDiff = String(diff || 'easy').toLowerCase();
+            switch (normalizedDiff) {
+                case 'easy': return 5;
+                case 'medium': return 10;
+                case 'hard': return 15;
+                default: return 5; // default to easy
+            }
+        };
+        const calculatedPoints = getPointsFromDifficulty(difficulty);
+
         db.run(
             `UPDATE problems SET 
-                title = ?, subject = ?, difficulty = ?, description = ?, 
+                title = ?, subject = ?, difficulty = ?, points = ?, description = ?, 
                 input_format = ?, output_format = ?, constraints = ?, 
                 sample_input = ?, sample_output = ?, hidden_test_cases = ?, tags = ?
              WHERE id = ? AND faculty_id = ?`,
             [
-                title, subject, difficulty, description, 
+                title, subject, difficulty, calculatedPoints, description, 
                 input_format || '', output_format || '', constraints || '', 
                 sample_input || '', sample_output || '', hidden_test_cases || '', tags || '',
                 problemId, user.id

@@ -736,10 +736,23 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 user_id INTEGER NOT NULL,
                 collegeName TEXT DEFAULT '',
                 views INTEGER DEFAULT 0,
+                upvotes INTEGER DEFAULT 0,
+                downvotes INTEGER DEFAULT 0,
                 createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
             )`, (err) => {
                 if (err) console.error("Error creating forum_threads table:", err.message);
+            });
+
+            db.all(`PRAGMA table_info(forum_threads)`, (err, columns) => {
+                if (err) return;
+                const columnNames = columns.map(col => col.name);
+                if (!columnNames.includes('upvotes')) {
+                    db.run(`ALTER TABLE forum_threads ADD COLUMN upvotes INTEGER DEFAULT 0`);
+                }
+                if (!columnNames.includes('downvotes')) {
+                    db.run(`ALTER TABLE forum_threads ADD COLUMN downvotes INTEGER DEFAULT 0`);
+                }
             });
 
             db.run(`CREATE TABLE IF NOT EXISTS forum_replies (
@@ -767,6 +780,19 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 UNIQUE(reply_id, user_id)
             )`, (err) => {
                 if (err) console.error("Error creating forum_votes table:", err.message);
+            });
+
+            db.run(`CREATE TABLE IF NOT EXISTS forum_thread_votes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                thread_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                vote_type INTEGER NOT NULL,
+                createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(thread_id) REFERENCES forum_threads(id) ON DELETE CASCADE,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+                UNIQUE(thread_id, user_id)
+            )`, (err) => {
+                if (err) console.error("Error creating forum_thread_votes table:", err.message);
             });
 
             // ==========================================

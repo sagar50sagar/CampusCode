@@ -135,11 +135,12 @@ module.exports = (db) => {
         // Get Thread info
         db.get(`
             SELECT t.*, u.fullName as author_name, u.role as author_role, u.collegeName as author_college,
-            (SELECT COUNT(*) FROM forum_replies r WHERE r.thread_id = t.id) as reply_count
+                   (SELECT vote_type FROM forum_thread_votes WHERE thread_id = t.id AND user_id = ?) as user_vote,
+                   (SELECT COUNT(*) FROM forum_replies r WHERE r.thread_id = t.id) as reply_count
             FROM forum_threads t
             JOIN account_users u ON t.user_id = u.id
             WHERE t.id = ?
-        `, [threadId], (err, thread) => {
+        `, [userId, threadId], (err, thread) => {
             if (err || !thread) return res.status(404).json({ success: false, message: 'Thread not found' });
 
             // Get Replies
@@ -155,6 +156,106 @@ module.exports = (db) => {
                 if (err) return res.status(500).json({ success: false, message: 'Database error' });
                 res.json({ success: true, thread, replies });
             });
+        });
+    });
+
+    // ==========================================
+    // 5a. THREAD UPVOTE
+    // ==========================================
+    router.post('/threads/:id/upvote', requireAuth, (req, res) => {
+        const threadId = req.params.id;
+        const userId = req.session.user.id;
+        const numericVote = 1;
+
+        db.get(`SELECT vote_type FROM forum_thread_votes WHERE thread_id = ? AND user_id = ?`, [threadId, userId], (err, row) => {
+            if (err) return res.status(500).json({ success: false, message: 'Database error' });
+
+            if (row) {
+                if (row.vote_type === numericVote) {
+                    db.run(`DELETE FROM forum_thread_votes WHERE thread_id = ? AND user_id = ?`, [threadId, userId], (err) => {
+                        if (err) return res.status(500).json({ success: false, message: 'Database error' });
+                        db.run(`UPDATE forum_threads SET upvotes = upvotes - 1 WHERE id = ? AND upvotes > 0`, [threadId], (err) => {
+                            if (err) return res.status(500).json({ success: false, message: 'Database error' });
+                            db.get(`SELECT upvotes, downvotes FROM forum_threads WHERE id = ?`, [threadId], (err, row) => {
+                                if (err || !row) return res.status(500).json({ success: false, message: 'Database error' });
+                                res.json({ success: true, upvotes: row.upvotes, downvotes: row.downvotes, currentVote: 0 });
+                            });
+                        });
+                    });
+                } else {
+                    db.run(`UPDATE forum_thread_votes SET vote_type = ? WHERE thread_id = ? AND user_id = ?`, [numericVote, threadId, userId], (err) => {
+                        if (err) return res.status(500).json({ success: false, message: 'Database error' });
+                        db.run(`UPDATE forum_threads SET upvotes = upvotes + 1, downvotes = downvotes - 1 WHERE id = ? AND downvotes > 0`, [threadId], (err) => {
+                            if (err) return res.status(500).json({ success: false, message: 'Database error' });
+                            db.get(`SELECT upvotes, downvotes FROM forum_threads WHERE id = ?`, [threadId], (err, row) => {
+                                if (err || !row) return res.status(500).json({ success: false, message: 'Database error' });
+                                res.json({ success: true, upvotes: row.upvotes, downvotes: row.downvotes, currentVote: 1 });
+                            });
+                        });
+                    });
+                }
+            } else {
+                db.run(`INSERT INTO forum_thread_votes (thread_id, user_id, vote_type) VALUES (?, ?, ?)`, [threadId, userId, numericVote], (err) => {
+                    if (err) return res.status(500).json({ success: false, message: 'Database error' });
+                    db.run(`UPDATE forum_threads SET upvotes = upvotes + 1 WHERE id = ?`, [threadId], (err) => {
+                        if (err) return res.status(500).json({ success: false, message: 'Database error' });
+                        db.get(`SELECT upvotes, downvotes FROM forum_threads WHERE id = ?`, [threadId], (err, row) => {
+                            if (err || !row) return res.status(500).json({ success: false, message: 'Database error' });
+                            res.json({ success: true, upvotes: row.upvotes, downvotes: row.downvotes, currentVote: 1 });
+                        });
+                    });
+                });
+            }
+        });
+    });
+
+    // ==========================================
+    // 5b. THREAD DOWNVOTE
+    // ==========================================
+    router.post('/threads/:id/downvote', requireAuth, (req, res) => {
+        const threadId = req.params.id;
+        const userId = req.session.user.id;
+        const numericVote = -1;
+
+        db.get(`SELECT vote_type FROM forum_thread_votes WHERE thread_id = ? AND user_id = ?`, [threadId, userId], (err, row) => {
+            if (err) return res.status(500).json({ success: false, message: 'Database error' });
+
+            if (row) {
+                if (row.vote_type === numericVote) {
+                    db.run(`DELETE FROM forum_thread_votes WHERE thread_id = ? AND user_id = ?`, [threadId, userId], (err) => {
+                        if (err) return res.status(500).json({ success: false, message: 'Database error' });
+                        db.run(`UPDATE forum_threads SET downvotes = downvotes - 1 WHERE id = ? AND downvotes > 0`, [threadId], (err) => {
+                            if (err) return res.status(500).json({ success: false, message: 'Database error' });
+                            db.get(`SELECT upvotes, downvotes FROM forum_threads WHERE id = ?`, [threadId], (err, row) => {
+                                if (err || !row) return res.status(500).json({ success: false, message: 'Database error' });
+                                res.json({ success: true, upvotes: row.upvotes, downvotes: row.downvotes, currentVote: 0 });
+                            });
+                        });
+                    });
+                } else {
+                    db.run(`UPDATE forum_thread_votes SET vote_type = ? WHERE thread_id = ? AND user_id = ?`, [numericVote, threadId, userId], (err) => {
+                        if (err) return res.status(500).json({ success: false, message: 'Database error' });
+                        db.run(`UPDATE forum_threads SET downvotes = downvotes + 1, upvotes = upvotes - 1 WHERE id = ? AND upvotes > 0`, [threadId], (err) => {
+                            if (err) return res.status(500).json({ success: false, message: 'Database error' });
+                            db.get(`SELECT upvotes, downvotes FROM forum_threads WHERE id = ?`, [threadId], (err, row) => {
+                                if (err || !row) return res.status(500).json({ success: false, message: 'Database error' });
+                                res.json({ success: true, upvotes: row.upvotes, downvotes: row.downvotes, currentVote: -1 });
+                            });
+                        });
+                    });
+                }
+            } else {
+                db.run(`INSERT INTO forum_thread_votes (thread_id, user_id, vote_type) VALUES (?, ?, ?)`, [threadId, userId, numericVote], (err) => {
+                    if (err) return res.status(500).json({ success: false, message: 'Database error' });
+                    db.run(`UPDATE forum_threads SET downvotes = downvotes + 1 WHERE id = ?`, [threadId], (err) => {
+                        if (err) return res.status(500).json({ success: false, message: 'Database error' });
+                        db.get(`SELECT upvotes, downvotes FROM forum_threads WHERE id = ?`, [threadId], (err, row) => {
+                            if (err || !row) return res.status(500).json({ success: false, message: 'Database error' });
+                            res.json({ success: true, upvotes: row.upvotes, downvotes: row.downvotes, currentVote: -1 });
+                        });
+                    });
+                });
+            }
         });
     });
 

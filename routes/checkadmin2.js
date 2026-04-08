@@ -927,9 +927,21 @@ module.exports = (db, transporter) => {
     router.post('/api/problems', requireRole('admin'), (req, res) => {
         const { title, difficulty, score, constraints, description } = req.body;
         
-        db.run(`INSERT INTO problems (title, difficulty, score, constraints, description) 
+        // Set universal XP points based on difficulty (ignore custom score)
+        const getPointsFromDifficulty = (diff) => {
+            const normalizedDiff = String(diff || 'easy').toLowerCase();
+            switch (normalizedDiff) {
+                case 'easy': return 5;
+                case 'medium': return 10;
+                case 'hard': return 15;
+                default: return 5; // default to easy
+            }
+        };
+        const calculatedPoints = getPointsFromDifficulty(difficulty);
+        
+        db.run(`INSERT INTO problems (title, difficulty, points, constraints, description) 
                 VALUES (?, ?, ?, ?, ?)`, 
-            [title, difficulty, score, constraints, description], function(err) {
+            [title, difficulty, calculatedPoints, constraints, description], function(err) {
                 if (err) return res.status(500).json({ success: false, message: err.message });
                 res.json({ success: true, id: this.lastID, message: "Problem created successfully!" });
             });

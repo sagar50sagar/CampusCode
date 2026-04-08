@@ -231,11 +231,23 @@ module.exports = (db) => {
             const approvedBy = autoApproved ? user.id : null;
             const approvedAt = autoApproved ? new Date().toISOString() : null;
 
+            // Set universal XP points based on difficulty
+            const getPointsFromDifficulty = (diff) => {
+                const normalizedDiff = String(diff || 'easy').toLowerCase();
+                switch (normalizedDiff) {
+                    case 'easy': return 5;
+                    case 'medium': return 10;
+                    case 'hard': return 15;
+                    default: return 5; // default to easy
+                }
+            };
+            const calculatedPoints = getPointsFromDifficulty(difficulty);
+
             console.log("[Create Problem] created_by:", user.id, "| title:", title, "| status:", status, "| scope:", scope);
 
-            db.run(`INSERT INTO problems (title, description, subject, difficulty, input_format, output_format, constraints, sample_input, sample_output, hidden_test_cases, faculty_id, is_public, department, visibility_scope, status, tags, created_by, hos_verified, hod_verified, approved_by, approved_at) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [title, description, subject, difficulty, input_format || '', output_format || '', constraints || '', sample_input || '', sample_output || '', hidden_test_cases || '', user.id, isPublicVal, user.department, scope, status, tags || '', user.id, hosVerified, hodVerified, approvedBy, approvedAt],
+            db.run(`INSERT INTO problems (title, description, subject, difficulty, points, input_format, output_format, constraints, sample_input, sample_output, hidden_test_cases, faculty_id, is_public, department, visibility_scope, status, tags, created_by, hos_verified, hod_verified, approved_by, approved_at) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [title, description, subject, difficulty, calculatedPoints, input_format || '', output_format || '', constraints || '', sample_input || '', sample_output || '', hidden_test_cases || '', user.id, isPublicVal, user.department, scope, status, tags || '', user.id, hosVerified, hodVerified, approvedBy, approvedAt],
                 function(err) {
                     if (err) {
                         console.error("[Create Problem] DB Error:", err.message);
@@ -305,8 +317,20 @@ module.exports = (db) => {
         let isPublicVal = (is_public === 'on' || is_public === 'true' || is_public === '1') ? 1 : 0;
         if (!user.isVerified) { isPublicVal = 0; }
 
-        db.run(`UPDATE problems SET title = ?, description = ?, subject = ?, difficulty = ?, input_format = ?, output_format = ?, constraints = ?, sample_input = ?, sample_output = ?, hidden_test_cases = ?, tags = ?, is_public = ? WHERE id = ? AND faculty_id = ?`,
-            [title, description, subject, difficulty, input_format, output_format, constraints, sample_input, sample_output, hidden_test_cases, tags || '', isPublicVal, problemId, user.id],
+        // Set universal XP points based on difficulty
+        const getPointsFromDifficulty = (diff) => {
+            const normalizedDiff = String(diff || 'easy').toLowerCase();
+            switch (normalizedDiff) {
+                case 'easy': return 5;
+                case 'medium': return 10;
+                case 'hard': return 15;
+                default: return 5; // default to easy
+            }
+        };
+        const calculatedPoints = getPointsFromDifficulty(difficulty);
+
+        db.run(`UPDATE problems SET title = ?, description = ?, subject = ?, difficulty = ?, points = ?, input_format = ?, output_format = ?, constraints = ?, sample_input = ?, sample_output = ?, hidden_test_cases = ?, tags = ?, is_public = ? WHERE id = ? AND faculty_id = ?`,
+            [title, description, subject, difficulty, calculatedPoints, input_format, output_format, constraints, sample_input, sample_output, hidden_test_cases, tags || '', isPublicVal, problemId, user.id],
             function(err) {
                 if (err) {
                     console.error("[Edit Problem] DB Error:", err.message);

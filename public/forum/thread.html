@@ -196,7 +196,7 @@
                             <i class="fa-solid fa-arrow-up"></i>
                             <span id="upvoteCount">0</span>
                         </button>
-                        <button id="upvoteBtn" class="flex items-center gap-2 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors font-semibold text-sm bg-gray-50 dark:bg-gray-700/50 hover:bg-primary-50 dark:hover:bg-gray-700 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600">
+                        <button id="downvoteBtn" class="flex items-center gap-2 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors font-semibold text-sm bg-gray-50 dark:bg-gray-700/50 hover:bg-primary-50 dark:hover:bg-gray-700 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600">
                             <i class="fa-solid fa-arrow-down"></i>
                             <span id="downvoteCount">0</span>
                         </button>
@@ -334,6 +334,8 @@
             document.getElementById('threadTitle').textContent = escapeHTML(thread.title);
             document.getElementById('threadBody').innerHTML = renderMarkdown(thread.content);
             document.getElementById('upvoteCount').textContent = thread.upvotes || 0;
+            document.getElementById('downvoteCount').textContent = thread.downvotes || 0;
+            setThreadVoteActiveState(thread.user_vote || 0);
             
             const topicEl = document.getElementById('opTopic');
             topicEl.textContent = escapeHTML(thread.topic || 'General').toUpperCase();
@@ -345,8 +347,9 @@
                 delBtn.onclick = () => deleteThread(thread.id);
             }
 
-            // Upvote event
-            document.getElementById('upvoteBtn').onclick = () => handleUpvote(thread.id);
+            // Upvote and downvote events
+            document.getElementById('upvoteBtn').onclick = () => handleThreadVote(thread.id, 'upvote');
+            document.getElementById('downvoteBtn').onclick = () => handleThreadVote(thread.id, 'downvote');
 
             // Populate Replies
             renderReplies(thread.replies || []);
@@ -414,15 +417,45 @@
         }).join('');
     }
 
-    async function handleUpvote(id) {
+    function setThreadVoteActiveState(vote) {
+        const upvoteBtn = document.getElementById('upvoteBtn');
+        const downvoteBtn = document.getElementById('downvoteBtn');
+
+        if (!upvoteBtn || !downvoteBtn) return;
+
+        upvoteBtn.classList.toggle('bg-primary-100', vote === 1);
+        upvoteBtn.classList.toggle('text-primary-600', vote === 1);
+        upvoteBtn.classList.toggle('dark:bg-primary-900/30', vote === 1);
+        upvoteBtn.classList.toggle('dark:text-primary-400', vote === 1);
+
+        downvoteBtn.classList.toggle('bg-primary-100', vote === -1);
+        downvoteBtn.classList.toggle('text-primary-600', vote === -1);
+        downvoteBtn.classList.toggle('dark:bg-primary-900/30', vote === -1);
+        downvoteBtn.classList.toggle('dark:text-primary-400', vote === -1);
+    }
+
+    async function handleThreadVote(id, type) {
         try {
-            const res = await fetch(`/api/forum/threads/${id}/upvote`, { method: 'POST' });
+            const res = await fetch(`/api/forum/threads/${id}/${type}`, { method: 'POST' });
             const data = await res.json();
             if (data.success) {
-                document.getElementById('upvoteCount').textContent = data.upvotes;
+                if (typeof data.upvotes !== 'undefined') {
+                    document.getElementById('upvoteCount').textContent = data.upvotes;
+                }
+                if (typeof data.downvotes !== 'undefined') {
+                    document.getElementById('downvoteCount').textContent = data.downvotes;
+                }
+                if (typeof data.currentVote !== 'undefined') {
+                    setThreadVoteActiveState(data.currentVote);
+                }
+                if (typeof data.currentVote !== 'undefined') {
+                    setThreadVoteActiveState(data.currentVote);
+                }
+            } else {
+                console.error('Vote failed', data.message || 'Unknown error');
             }
         } catch (error) {
-            console.error('Upvote failed', error);
+            console.error('Vote failed', error);
         }
     }
 

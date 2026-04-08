@@ -34,12 +34,68 @@ module.exports = (db, transporter) => {
                 (err) => {
                     if (err) return res.status(500).json({ success: false, message: 'Database error saving OTP.' });
 
-                    // Send the email
+                    // Send the email with a beautiful responsive HTML template
                     const mailOptions = {
                         from: process.env.EMAIL_USER,
                         to: email,
-                        subject: 'Your CampusCode Registration OTP',
-                        text: `Your OTP for CampusCode registration is: ${otp}\nThis OTP is valid for 10 minutes.`
+                        subject: 'Verify Your Email - CampusCode',
+                        html: `
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <meta charset="utf-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <title>CampusCode OTP</title>
+                        </head>
+                        <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; -webkit-font-smoothing: antialiased;">
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f3f4f6; padding: 40px 20px;">
+                                <tr>
+                                    <td align="center">
+                                        <table width="100%" max-width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.05);">
+                                            
+                                            <tr>
+                                                <td align="center" style="background: linear-gradient(135deg, #1E4A7A 0%, #2E5E99 100%); padding: 35px 20px;">
+                                                    <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 1px;">CampusCode</h1>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td align="center" style="padding: 40px 30px;">
+                                                    <h2 style="color: #1f2937; font-size: 24px; font-weight: 600; margin-top: 0; margin-bottom: 15px;">Verify Your Email</h2>
+                                                    <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin-top: 0; margin-bottom: 30px; max-width: 450px;">
+                                                        Welcome to CampusCode! Please use the verification code below to complete your registration. This code is valid for the next <strong>10 minutes</strong>.
+                                                    </p>
+                                                    
+                                                    <table border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
+                                                        <tr>
+                                                            <td align="center" style="background-color: #E7F0FA; border: 2px dashed #7BA4D0; border-radius: 12px; padding: 20px 40px;">
+                                                                <span style="font-family: monospace; font-size: 38px; font-weight: bold; color: #1E4A7A; letter-spacing: 8px;">${otp}</span>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+
+                                                    <p style="color: #6b7280; font-size: 14px; margin-top: 35px; margin-bottom: 0; line-height: 1.5;">
+                                                        If you did not request this code, please safely ignore this email.
+                                                    </p>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td align="center" style="background-color: #f9fafb; border-top: 1px solid #e5e7eb; padding: 20px;">
+                                                    <p style="color: #9ca3af; font-size: 12px; margin: 0; line-height: 1.5;">
+                                                        &copy; ${new Date().getFullYear()} CampusCode. All rights reserved.<br>
+                                                        Transforming Campus Coding
+                                                    </p>
+                                                </td>
+                                            </tr>
+
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </body>
+                        </html>
+                        `
                     };
 
                     transporter.sendMail(mailOptions, (error, info) => {

@@ -143,7 +143,7 @@ module.exports = (db) => {
         try {
             const {
                 title, description, discription, guidelines, prize, contest_class, class: contestClassInput,
-                problems, startDate, endDate, duration, eligibility, publishNow
+                problems, startDate, endDate, registrationEndDate, duration, eligibility, publishNow
             } = req.body;
             if (!title || !String(title).trim()) {
                 return res.status(400).json({ success: false, error: 'Title is required' });
@@ -174,13 +174,13 @@ module.exports = (db) => {
             const result = await dbRun(`
                 INSERT INTO contests (
                     title, description, guidelines, rulesAndDescription, contest_class, prize, problems,
-                    startDate, endDate, date, deadline, duration, eligibility,
+                    startDate, endDate, registrationEndDate, date, deadline, duration, eligibility,
                     status, visibility_scope, scope, level, createdBy, collegeName, isVerified, approved_by, approved_at, createdAt
                 )
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'global', 'global', 'global', ?, '', ?, ?, ?, CURRENT_TIMESTAMP)
             `, [
                 title.trim(), finalDescription, finalGuidelines, finalGuidelines, normalizedClass, finalPrize, problemPayload,
-                startDate || null, endDate || null, startDate || null, endDate || null, duration || null, eligibility || null,
+                startDate || null, endDate || null, registrationEndDate || null, startDate || null, endDate || null, duration || null, eligibility || null,
                 status, req.session.user.id, publishNow ? 1 : 0, approvedBy, approvedAt
             ]);
 

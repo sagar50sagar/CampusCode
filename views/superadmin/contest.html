@@ -192,6 +192,10 @@
                                     <input id="endDate" type="datetime-local" class="w-full px-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition-all">
                                 </div>
                             </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Registration Deadline</label>
+                                <input id="registrationEndDate" type="datetime-local" class="w-full px-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition-all">
+                            </div>
                             
                             <!-- <div>
                                 <label for="eligibility" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Eligibility</label>
@@ -557,12 +561,12 @@
                 duration: document.getElementById("duration").value,
                 startDate: document.getElementById("startDate").value || null,
                 endDate: document.getElementById("endDate").value || null,
+                registrationEndDate: document.getElementById("registrationEndDate").value || null,
                 prize: document.getElementById("prize").value,
                 eligibility: document.getElementById("eligibility").value,
                 guidelines: document.getElementById("guidelines").value,
                 problems: []
             };
-            
             const btn = e.target.querySelector('button[type="submit"]');
             const originalContent = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Creating...';

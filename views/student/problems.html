@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Problems - CampusCode</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Poppins', 'sans-serif'] },
+          colors: {
+            primary: { 50: '#E7F0FA', 100: '#D0E1F5', 500: '#1E4A7A', 600: '#0D2440' }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    .dark ::-webkit-scrollbar-track { background: #111827; }
+    ::-webkit-scrollbar-thumb { background: #7ba4d0; border-radius: 3px; }
+    .sidebar { transition: width .3s cubic-bezier(.4,0,.2,1); overflow: hidden; }
+    .sidebar.collapsed .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
+    .sidebar.collapsed .nav-item i { margin-right: 0; font-size: 1.25rem; }
+    .sidebar.collapsed .nav-item span, .sidebar.collapsed .bottom-menu span { display: none; }
+    .sidebar.collapsed .bottom-menu .nav-item { justify-content: center; }
+    .nav-item {
+      transition: all .2s ease;
+      position: relative;
+      display: flex;
+      align-items: center;
+      padding: .75rem 1rem;
+      margin-bottom: .25rem;
+      color: #374151;
+      border-radius: .5rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .nav-item:hover { background-color: #f3f4f6; }
+    .dark .nav-item { color: #d1d5db; }
+    .dark .nav-item:hover { background-color: #374151; }
+    .nav-item.active { background-color: #d0e1f5; color: #1e4a7a; }
+    .dark .nav-item.active { background-color: #1e4a7a; color: #fff; }
+    .nav-item.active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 60%;
+      width: 4px;
+      background-color: #2e5e99;
+      border-radius: 0 4px 4px 0;
+    }
+    .dark .nav-item.active::before { background-color: #60a5fa; }
+    .nav-item i { width: 1.5rem; text-align: center; margin-right: .75rem; font-size: 1.1rem; flex-shrink: 0; }
+    .nav-item span { font-size: .875rem; font-weight: 500; }
+    .diff-easy { background: #dcfce7; color: #166534; }
+    .diff-medium { background: #fef9c3; color: #854d0e; }
+    .diff-hard { background: #fee2e2; color: #991b1b; }
+    .dark .diff-easy { background: #14532d; color: #86efac; }
+    .dark .diff-medium { background: #78350f; color: #fde68a; }
+    .dark .diff-hard { background: #7f1d1d; color: #fca5a5; }
+    .tag-badge { background: #e0e7ff; color: #3730a3; font-size: 10px; padding: 2px 7px; border-radius: 9999px; }
+    .dark .tag-badge { background: #1e1b4b; color: #a5b4fc; }
+    .level-badge { font-size: 10px; padding: 2px 8px; border-radius: 9999px; font-weight: 600; letter-spacing: .02em; }
+    .level-global { background: #dbeafe; color: #1e40af; }
+    .level-college { background: #dcfce7; color: #166534; }
+    .dark .level-global { background: #1e3a8a; color: #bfdbfe; }
+    .dark .level-college { background: #14532d; color: #86efac; }
+    .solved-row { border-left: 3px solid #22c55e; }
+    .filter-check { accent-color: #2e5e99; width: 15px; height: 15px; }
+    .problem-row {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr) 120px 120px;
+      gap: 16px;
+      align-items: center;
+      padding: 18px 24px;
+      border-bottom: 1px solid rgba(123, 164, 208, 0.18);
+      transition: background-color .18s ease;
+    }
+    .problem-row:hover { background: #f8fbff; }
+    .dark .problem-row:hover { background: rgba(55,65,81,.55); }
+    .status-dot { width: 12px; height: 12px; border-radius: 9999px; }
+    .status-dot.solved { background: #22c55e; }
+    .status-dot.attempted { background: #f59e0b; }
+    .status-dot.todo { background: #cbd5e1; }
+    .dark .status-dot.todo { background: #4b5563; }
+    @media (max-width: 900px) {
+      .problem-row { grid-template-columns: 24px minmax(0, 1fr); gap: 12px; }
+      .problem-meta { grid-column: 2 / 3; display: flex; justify-content: space-between; gap: 12px; margin-top: 8px; }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans">
+<div class="flex h-screen overflow-hidden">
+  <aside id="mainSidebar" class="sidebar w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen flex-shrink-0 transition-colors duration-200 z-50">
+    <div class="p-6 flex-shrink-0 flex items-center justify-between h-[88px]">
+      <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2 overflow-hidden whitespace-nowrap">
+        <i class="fas fa-code text-primary-500 text-2xl flex-shrink-0"></i>
+        <span id="sidebarLogoText" class="transition-all duration-300 opacity-100 w-auto">CampusCode</span>
+      </h1>
+      <button id="sidebarToggleBtn" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary-500 transition-colors focus:outline-none">
+        <i class="fas fa-chevron-left transition-transform duration-300"></i>
+      </button>
+    </div>
+    <nav class="flex-1 px-4 space-y-1 overflow-y-auto mt-2">
+      <a href="/student/dashboard" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+      <a href="/student/problems" class="nav-item active"><i class="fas fa-tasks"></i><span>Problems</span></a>
+      <a href="/student/contests" class="nav-item"><i class="fas fa-trophy"></i><span>Contests</span></a>
+      <a href="/forum/forum.html" class="nav-item"><i class="fas fa-comments"></i><span>Community</span></a>
+      <a href="/student/stats" class="nav-item"><i class="fas fa-list"></i><span>Stats</span></a>
+      <a href="/student/report" class="nav-item"><i class="fas fa-chart-pie"></i><span>Report</span></a>
+      <a href="/student/profile" class="nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+    </nav>
+    <div class="p-4 space-y-1 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0 bottom-menu">
+                <a href="/student/support" class="nav-item"><i class="far fa-question-circle"></i><span>Help & Support</span></a>
+                <a href="/student/settings" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+            </div>
+  </aside>
+
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <header class="bg-white dark:bg-gray-800 shadow-sm transition-colors duration-200 sticky top-0 z-40">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+        <div class="flex-1 max-w-2xl ml-4 flex items-center gap-4">
+          <h1 id="headerLogoText" class="text-xl font-bold text-gray-800 dark:text-white hidden transition-all duration-300 opacity-0 transform -translate-x-2 whitespace-nowrap">CampusCode</h1>
+          <div class="relative flex items-center w-full">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fas fa-search text-gray-400"></i></div>
+            <input id="searchInput" type="text" placeholder="Search by title or tag..." class="block w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-primary-400 focus:outline-none transition"/>
+          </div>
+        </div>
+        <div class="ml-4 flex items-center gap-3">
+          <span id="solvedStats" class="text-sm font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-lg">Loading...</span>
+          <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-transform active:scale-95"><i id="themeIcon" class="fas fa-moon text-xl"></i></button>
+          <div class="relative">
+            <button id="notificationBtn" class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none">
+              <i class="fas fa-bell text-xl"></i>
+              <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-800"></span>
+            </button>
+          </div>
+          <button id="headerProfileBtn" class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+            <div id="headerAvatar" class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm">?</div>
+            <span id="headerName" class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block">Profile</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+      <div class="min-h-[calc(100vh-7rem)] flex gap-6">
+        <aside class="w-72 bg-white dark:bg-gray-800 border border-primary-200 dark:border-gray-700 rounded-xl p-6 overflow-y-auto hidden lg:block shadow-sm sticky top-24 h-[calc(100vh-8rem)]">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-lg font-semibold text-primary-600 dark:text-white">Filters</h2>
+            <button id="clearFiltersBtn" class="text-sm text-primary-400 hover:text-primary-600 dark:text-blue-400 hover:underline">CLEAR ALL</button>
+          </div>
+          <div class="relative mb-6">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fas fa-search text-primary-300 dark:text-gray-500"></i></div>
+            <input id="panelSearchInput" type="text" class="block w-full pl-10 pr-3 py-2 border border-primary-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white dark:placeholder-gray-400" placeholder="Search filters..." />
+          </div>
+          <div class="mb-6">
+            <h3 class="text-xs font-semibold text-primary-500 dark:text-gray-400 uppercase tracking-wider mb-3">Status</h3>
+            <div class="space-y-2">
+              <label class="flex items-center justify-between cursor-pointer hover:bg-primary-50 dark:hover:bg-gray-700 p-1 rounded transition-colors">
+                <div class="flex items-center gap-2"><input id="statusSolved" type="checkbox" class="filter-check"><span class="text-sm text-primary-600 dark:text-gray-300">Solved</span></div>
+                <span id="statusSolvedCount" class="text-xs text-primary-500 bg-primary-50 dark:bg-gray-700 dark:text-gray-400 px-2 py-0.5 rounded-full">0</span>
+              </label>
+              <label class="flex items-center justify-between cursor-pointer hover:bg-primary-50 dark:hover:bg-gray-700 p-1 rounded transition-colors">
+                <div class="flex items-center gap-2"><input id="statusUnsolved" type="checkbox" class="filter-check"><span class="text-sm text-primary-600 dark:text-gray-300">Unsolved</span></div>
+                <span id="statusUnsolvedCount" class="text-xs text-primary-500 bg-primary-50 dark:bg-gray-700 dark:text-gray-400 px-2 py-0.5 rounded-full">0</span>
+              </label>
+            </div>
+          </div>
+          <div class="mb-6">
+            <h3 class="text-xs font-semibold text-primary-500 dark:text-gray-400 uppercase tracking-wider mb-3">Level</h3>
+            <div class="space-y-2">
+              <label class="flex items-center justify-between cursor-pointer hover:bg-primary-50 dark:hover:bg-gray-700 p-1 rounded transition-colors">
+                <div class="flex items-center gap-2"><input id="levelGlobal" type="checkbox" class="filter-check"><span class="text-sm text-primary-600 dark:text-gray-300">Global</span></div>
+                <span id="levelGlobalCount" class="text-xs text-primary-500 bg-primary-50 dark:bg-gray-700 dark:text-gray-400 px-2 py-0.5 rounded-full">0</span>
+              </label>
+              <label class="flex items-center justify-between cursor-pointer hover:bg-primary-50 dark:hover:bg-gray-700 p-1 rounded transition-colors">
+                <div class="flex items-center gap-2"><input id="levelCollege" type="checkbox" class="filter-check"><span class="text-sm text-primary-600 dark:text-gray-300">College</span></div>
+                <span id="levelCollegeCount" class="text-xs text-primary-500 bg-primary-50 dark:bg-gray-700 dark:text-gray-400 px-2 py-0.5 rounded-full">0</span>
+              </label>
+            </div>
+          </div>
+          <div class="mb-6">
+            <h3 class="text-xs font-semibold text-primary-500 dark:text-gray-400 uppercase tracking-wider mb-3">Topics</h3>
+            <div id="topicFilters" class="space-y-2"></div>
+            <div class="mt-3 flex items-center gap-2">
+              <input type="checkbox" id="showTagsToggle" class="filter-check" checked />
+              <label for="showTagsToggle" class="text-sm text-primary-600 dark:text-gray-300">Show topic tags</label>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-xs font-semibold text-primary-500 dark:text-gray-400 uppercase tracking-wider mb-3">Difficulty</h3>
+            <div class="space-y-2">
+              <label class="flex items-center justify-between cursor-pointer hover:bg-primary-50 dark:hover:bg-gray-700 p-1 rounded transition-colors">
+                <div class="flex items-center gap-2"><input id="diffEasy" type="checkbox" class="filter-check"><span class="text-sm text-primary-600 dark:text-gray-300">Easy</span></div>
+                <span id="diffEasyCount" class="text-xs text-primary-500 bg-primary-50 dark:bg-gray-700 dark:text-gray-400 px-2 py-0.5 rounded-full">0</span>
+              </label>
+              <label class="flex items-center justify-between cursor-pointer hover:bg-primary-50 dark:hover:bg-gray-700 p-1 rounded transition-colors">
+                <div class="flex items-center gap-2"><input id="diffMedium" type="checkbox" class="filter-check"><span class="text-sm text-primary-600 dark:text-gray-300">Medium</span></div>
+                <span id="diffMediumCount" class="text-xs text-primary-500 bg-primary-50 dark:bg-gray-700 dark:text-gray-400 px-2 py-0.5 rounded-full">0</span>
+              </label>
+              <label class="flex items-center justify-between cursor-pointer hover:bg-primary-50 dark:hover:bg-gray-700 p-1 rounded transition-colors">
+                <div class="flex items-center gap-2"><input id="diffHard" type="checkbox" class="filter-check"><span class="text-sm text-primary-600 dark:text-gray-300">Hard</span></div>
+                <span id="diffHardCount" class="text-xs text-primary-500 bg-primary-50 dark:bg-gray-700 dark:text-gray-400 px-2 py-0.5 rounded-full">0</span>
+              </label>
+            </div>
+          </div>
+        </aside>
+
+        <section class="flex-1 min-w-0">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+            <h1 class="text-2xl font-bold text-primary-600 dark:text-white">Popular Problems</h1>
+            <div class="flex flex-col sm:flex-row gap-4">
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fas fa-search text-primary-300 dark:text-gray-500"></i></div>
+                <input id="sectionSearchInput" type="text" class="block w-full pl-10 pr-3 py-2 border border-primary-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white dark:placeholder-gray-400" placeholder="Search problems..." />
+              </div>
+              <div class="flex items-center">
+                <span class="text-sm text-primary-500 dark:text-gray-400 mr-2 whitespace-nowrap">Sort by:</span>
+                <select id="sortSelect" class="border-0 bg-transparent text-primary-600 dark:text-blue-400 font-medium focus:ring-0 focus:outline-none text-sm dark:bg-gray-900 cursor-pointer">
+                  <option value="submissions">Submissions</option>
+                  <option value="difficulty">Difficulty</option>
+                  <option value="acceptance">Acceptance</option>
+                  <option value="points">Points</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-primary-100 dark:border-gray-700">
+            <div class="hidden md:grid grid-cols-12 bg-primary-50 dark:bg-gray-700/50 px-6 py-3 border-b border-primary-200 dark:border-gray-700">
+              <div class="col-span-1 text-xs font-medium text-primary-500 dark:text-gray-400 uppercase tracking-wider">Status</div>
+              <div class="col-span-7 text-xs font-medium text-primary-500 dark:text-gray-400 uppercase tracking-wider">Title</div>
+              <div class="col-span-2 text-xs font-medium text-primary-500 dark:text-gray-400 uppercase tracking-wider text-center">Difficulty</div>
+              <div class="col-span-2 text-xs font-medium text-primary-500 dark:text-gray-400 uppercase tracking-wider text-right">Submissions</div>
+            </div>
+            <div id="problemsContainer">
+              <div class="py-12 text-center text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i>Loading problems...</div>
+            </div>
+            <div id="emptyState" class="hidden py-16 text-center text-gray-400">
+              <i class="fas fa-code text-5xl mb-4 block opacity-30"></i>
+              <p class="font-medium">No problems found</p>
+              <p class="text-sm mt-1">Try adjusting your filters</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="notificationDropdown" class="fixed top-16 right-6 z-50 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 hidden">
+  <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+    <h3 class="font-semibold text-gray-800 dark:text-white">Notifications</h3>
+    <span class="text-xs text-primary-500 cursor-pointer hover:underline">Mark all read</span>
+  </div>
+  <div class="p-2">
+    <div class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer">
+      <p class="text-sm text-gray-800 dark:text-gray-200 font-medium">Practice Reminder</p>
+      <p class="text-xs text-gray-500 dark:text-gray-400">Solve one more problem to improve your streak.</p>
+    </div>
+  </div>
+</div>
+
+<div id="profileOverlay" class="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+  <div class="w-[340px] bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden">
+    <div class="bg-[#1E4A7A] dark:bg-[#0f2a4a] relative pt-8 pb-16 px-6 text-center">
+      <button id="closeProfileOverlay" class="absolute top-4 right-4 text-white/70 hover:text-white"><i class="fas fa-times text-lg"></i></button>
+      <div class="absolute left-1/2 bottom-[-45px] -translate-x-1/2">
+        <div class="w-24 h-24 rounded-full bg-[#1E4A7A] p-1">
+          <div class="w-full h-full rounded-full bg-[#1E4A7A] flex items-center justify-center text-white text-4xl font-normal border-4 border-white dark:border-gray-800"><span id="profileAvatarLarge">S</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="pt-14 pb-6 px-6 text-center">
+      <h2 id="profileName" class="text-xl font-bold text-gray-900 dark:text-white">Student</h2>
+      <div class="flex flex-col items-center mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <span class="flex items-center gap-1"><i class="fas fa-users text-xs"></i> <span id="profileCollege">-</span></span>
+        <span id="profileEmail">-</span>
+      </div>
+      <div class="flex justify-between mt-6 px-2">
+        <div class="text-center">
+          <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Solved</div>
+          <div id="profileSolved" class="text-xl font-bold text-gray-900 dark:text-white mt-1">0</div>
+        </div>
+        <div class="text-center border-l border-r border-gray-100 dark:border-gray-700 px-4">
+          <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Rank</div>
+          <div id="profileRank" class="text-xl font-bold text-gray-900 dark:text-white mt-1">#-</div>
+        </div>
+        <div class="text-center">
+          <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Points</div>
+          <div id="profilePoints" class="text-xl font-bold text-gray-900 dark:text-white mt-1">0</div>
+        </div>
+      </div>
+      <div class="h-px bg-gray-100 dark:bg-gray-700 my-6"></div>
+      <div class="space-y-1">
+        <a href="/student/profile" class="nav-item"><i class="fas fa-id-card"></i><span>My Profile</span></a>
+        <a href="/student/profile" class="nav-item"><i class="fas fa-pen"></i><span>Edit Profile</span></a>
+        <a href="/student/report" class="nav-item"><i class="fas fa-chart-pie"></i><span>Report</span></a>
+        <a href="/student/stats" class="nav-item"><i class="fas fa-list"></i><span>Stats</span></a>
+        <a href="/auth/logout" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
+          <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center"><i class="fas fa-sign-out-alt"></i></div>
+          <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let allProblems = [];
+  let visibleTopicTags = true;
+
+  (function () {
+    const t = localStorage.getItem('theme');
+    if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme:dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    }
+  })();
+
+  function toggleTheme() {
+    const isDark = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    document.getElementById('themeIcon').className = isDark ? 'fas fa-sun text-xl' : 'fas fa-moon text-xl';
+  }
+
+  function escHtml(s) {
+    return (s || '').replace(/[&<>'"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;' }[c]));
+  }
+
+  async function loadUser() {
+    try {
+      const r = await fetch('/api/forum/me');
+      const d = await r.json();
+      if (d.success) {
+        const fullName = d.user.fullName || 'Student';
+        const initials = fullName.split(' ').filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase() || 'S';
+        document.getElementById('headerName').textContent = fullName;
+        document.getElementById('headerAvatar').textContent = initials;
+        document.getElementById('profileName').textContent = fullName;
+        document.getElementById('profileCollege').textContent = d.user.collegeName || '-';
+        document.getElementById('profileEmail').textContent = d.user.email || '-';
+        const solved = Number(d.user.problems_solved ?? d.user.solvedCount ?? 0);
+        const points = Number(d.user.xp ?? d.user.points ?? 0);
+        let rank = String(d.user.global_rank ?? d.user.rank ?? '#-').trim();
+        if (rank && rank !== '#-' && !rank.startsWith('#')) rank = `#${rank}`;
+        if (!rank) rank = '#-';
+        document.getElementById('profileSolved').textContent = solved;
+        document.getElementById('profileRank').textContent = rank;
+        document.getElementById('profilePoints').textContent = points;
+        document.getElementById('profileAvatarLarge').textContent = initials.charAt(0);
+      }
+    } catch (e) {}
+  }
+
+  const profileOverlay = document.getElementById('profileOverlay');
+    const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+  const mainSidebar = document.getElementById('mainSidebar');
+  const sidebarLogoText = document.getElementById('sidebarLogoText');
+  const headerLogoText = document.getElementById('headerLogoText');
+
+  sidebarToggleBtn.addEventListener('click', () => {
+    const toggleIcon = sidebarToggleBtn.querySelector('i');
+    mainSidebar.classList.toggle('collapsed');
+    if (mainSidebar.classList.contains('collapsed')) {
+      mainSidebar.classList.replace('w-64', 'w-20');
+      toggleIcon.style.transform = 'rotate(180deg)';
+      sidebarLogoText.style.opacity = '0';
+      sidebarLogoText.style.width = '0px';
+      headerLogoText.classList.remove('hidden');
+      setTimeout(() => headerLogoText.classList.remove('opacity-0', '-translate-x-2'), 50);
+    } else {
+      mainSidebar.classList.replace('w-20', 'w-64');
+      toggleIcon.style.transform = 'rotate(0deg)';
+      sidebarLogoText.style.opacity = '1';
+      sidebarLogoText.style.width = 'auto';
+      headerLogoText.classList.add('opacity-0', '-translate-x-2');
+      setTimeout(() => headerLogoText.classList.add('hidden'), 300);
+    }
+  });
+
+  function openProfileOverlay() {
+    profileOverlay.classList.remove('hidden');
+  }
+
+  function closeProfileOverlay() {
+    profileOverlay.classList.add('hidden');
+  }
+
+  const profileBtn = document.getElementById('headerProfileBtn');
+  const sidebarProfileBtn = document.getElementById('sidebarProfileBtn');
+  const closeProfileOverlayBtn = document.getElementById('closeProfileOverlay');
+  if (profileBtn) profileBtn.addEventListener('click', openProfileOverlay);
+  if (sidebarProfileBtn) sidebarProfileBtn.addEventListener('click', openProfileOverlay);
+  if (closeProfileOverlayBtn) closeProfileOverlayBtn.addEventListener('click', closeProfileOverlay);
+  const notificationBtn = document.getElementById('notificationBtn');
+  const notificationDropdown = document.getElementById('notificationDropdown');
+  if (notificationBtn && notificationDropdown) {
+    notificationBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      notificationDropdown.classList.toggle('hidden');
+    });
+    document.addEventListener('click', (event) => {
+      if (!notificationDropdown.contains(event.target) && !notificationBtn.contains(event.target)) {
+        notificationDropdown.classList.add('hidden');
+      }
+    });
+  }
+  profileOverlay.addEventListener('click', (event) => {
+    if (event.target === profileOverlay) closeProfileOverlay();
+  });
+
+  function updateFilterCounts() {
+    const easy = allProblems.filter(p => (p.difficulty || '').toLowerCase() === 'easy').length;
+    const medium = allProblems.filter(p => (p.difficulty || '').toLowerCase() === 'medium').length;
+    const hard = allProblems.filter(p => (p.difficulty || '').toLowerCase() === 'hard').length;
+    const solved = allProblems.filter(p => (p.solved || 0) > 0).length;
+    const unsolved = allProblems.length - solved;
+    const globalCount = allProblems.filter(p => String(p.scope || '').toLowerCase() === 'global').length;
+    const collegeCount = allProblems.filter(p => String(p.scope || '').toLowerCase() === 'college').length;
+
+    document.getElementById('diffEasyCount').textContent = easy;
+    document.getElementById('diffMediumCount').textContent = medium;
+    document.getElementById('diffHardCount').textContent = hard;
+    document.getElementById('statusSolvedCount').textContent = solved;
+    document.getElementById('statusUnsolvedCount').textContent = unsolved;
+    document.getElementById('levelGlobalCount').textContent = globalCount;
+    document.getElementById('levelCollegeCount').textContent = collegeCount;
+
+    const topicMap = new Map();
+    allProblems.forEach(problem => {
+      (problem.tags || '').split(',').map(tag => tag.trim()).filter(Boolean).forEach(tag => {
+        topicMap.set(tag, (topicMap.get(tag) || 0) + 1);
+      });
+    });
+
+    const topicFilters = document.getElementById('topicFilters');
+    const topTopics = Array.from(topicMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    topicFilters.innerHTML = topTopics.length ? topTopics.map(([topic, count]) => `
+      <label class="flex items-center justify-between cursor-pointer hover:bg-primary-50 dark:hover:bg-gray-700 p-1 rounded transition-colors">
+        <div class="flex items-center gap-2"><input type="checkbox" class="filter-check topic-filter" value="${escHtml(topic)}"><span class="text-sm text-primary-600 dark:text-gray-300">${escHtml(topic)}</span></div>
+        <span class="text-xs text-primary-500 bg-primary-50 dark:bg-gray-700 dark:text-gray-400 px-2 py-0.5 rounded-full">${count}</span>
+      </label>
+    `).join('') : '<p class="text-sm text-gray-400">No topic tags available.</p>';
+
+    document.querySelectorAll('.topic-filter').forEach(input => input.addEventListener('change', filterProblems));
+  }
+
+  function renderProblems(problems) {
+    const container = document.getElementById('problemsContainer');
+    const empty = document.getElementById('emptyState');
+
+    if (!problems.length) {
+      container.innerHTML = '';
+      empty.classList.remove('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+
+    container.innerHTML = problems.map((p, i) => {
+      const diffClass = p.difficulty?.toLowerCase() === 'easy' ? 'diff-easy' : p.difficulty?.toLowerCase() === 'medium' ? 'diff-medium' : 'diff-hard';
+      const tags = (p.tags || '').split(',').filter(t => t.trim()).map(t => `<span class="tag-badge">${escHtml(t.trim())}</span>`).join(' ');
+      const solved = (p.solved || 0) > 0;
+      const attempted = !solved && (p.attempts || 0) > 0;
+      const statusClass = solved ? 'solved' : attempted ? 'attempted' : 'todo';
+      const submissionCount = p.submissions || p.attempts || 0;
+      const submissionLabel = submissionCount >= 1000 ? `${(submissionCount / 1000).toFixed(1)}k` : String(submissionCount);
+      const level = String(p.scope || '').toLowerCase() === 'global' ? 'global' : 'college';
+      const levelClass = level === 'global' ? 'level-global' : 'level-college';
+      const levelLabel = level === 'global' ? 'Global' : 'College';
+
+      return `
+        <div class="problem-row cursor-pointer ${solved ? 'solved-row' : ''}" onclick="window.location='/student/problem/${p.id}'">
+          <div class="flex items-center justify-center md:justify-start">
+            <span class="status-dot ${statusClass}" title="${solved ? 'Solved' : attempted ? 'Attempted' : 'Todo'}"></span>
+          </div>
+          <div class="min-w-0">
+            <a class="font-medium text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 block transition-colors">${i + 1}. ${escHtml(p.title)}</a>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="level-badge ${levelClass}">${levelLabel}</span>
+            </div>
+            <div class="flex flex-wrap gap-2 mt-1 ${visibleTopicTags ? '' : 'hidden'}">${tags || '<span class="text-xs text-gray-400">No tags</span>'}</div>
+          </div>
+          <div class="problem-meta md:contents">
+            <div class="flex justify-center md:block">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${diffClass}">${p.difficulty || 'Easy'}</span>
+            </div>
+            <div class="text-right">
+              <span class="text-sm text-primary-500 dark:text-gray-400">${submissionLabel}</span>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function syncSearchInputs(sourceId, value) {
+    ['searchInput', 'panelSearchInput', 'sectionSearchInput'].filter(id => id !== sourceId).forEach(id => {
+      const input = document.getElementById(id);
+      if (input && input.value !== value) input.value = value;
+    });
+  }
+
+  function filterProblems() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const selectedDiffs = ['easy', 'medium', 'hard'].filter(diff => document.getElementById(`diff${diff.charAt(0).toUpperCase() + diff.slice(1)}`).checked);
+    const selectedTopics = Array.from(document.querySelectorAll('.topic-filter:checked')).map(input => input.value.toLowerCase());
+    const solvedChecked = document.getElementById('statusSolved').checked;
+    const unsolvedChecked = document.getElementById('statusUnsolved').checked;
+    const globalChecked = document.getElementById('levelGlobal').checked;
+    const collegeChecked = document.getElementById('levelCollege').checked;
+
+    let filtered = allProblems.filter(p => {
+      const matchSearch = !search || p.title.toLowerCase().includes(search) || (p.tags || '').toLowerCase().includes(search);
+      const matchDiff = !selectedDiffs.length || selectedDiffs.includes((p.difficulty || '').toLowerCase());
+      const isSolved = (p.solved || 0) > 0;
+      const matchStatus = (!solvedChecked && !unsolvedChecked) || (solvedChecked && isSolved) || (unsolvedChecked && !isSolved);
+      const tagList = (p.tags || '').toLowerCase().split(',').map(item => item.trim());
+      const matchTopic = !selectedTopics.length || selectedTopics.some(topic => tagList.includes(topic));
+      const level = String(p.scope || '').toLowerCase();
+      const matchLevel = (!globalChecked && !collegeChecked) || (globalChecked && level === 'global') || (collegeChecked && level === 'college');
+      return matchSearch && matchDiff && matchStatus && matchTopic && matchLevel;
+    });
+
+    const sortValue = document.getElementById('sortSelect').value;
+    filtered.sort((a, b) => {
+      if (sortValue === 'difficulty') {
+        const order = { easy: 1, medium: 2, hard: 3 };
+        return (order[(a.difficulty || '').toLowerCase()] || 99) - (order[(b.difficulty || '').toLowerCase()] || 99);
+      }
+      if (sortValue === 'points') return (b.points || 0) - (a.points || 0);
+      if (sortValue === 'acceptance') return (b.solved || 0) - (a.solved || 0);
+      return (b.submissions || b.attempts || 0) - (a.submissions || a.attempts || 0);
+    });
+
+    renderProblems(filtered);
+  }
+
+  async function loadProblems() {
+    try {
+      const r = await fetch('/api/problems/list');
+      const d = await r.json();
+      if (!d.success) return;
+      allProblems = d.problems || [];
+      const solved = allProblems.filter(p => (p.solved || 0) > 0).length;
+      document.getElementById('solvedStats').textContent = `${solved} / ${allProblems.length} Solved`;
+      updateFilterCounts();
+      filterProblems();
+    } catch (e) {
+      document.getElementById('problemsContainer').innerHTML = `<div class="py-12 text-center text-red-500">Failed to load problems</div>`;
+    }
+  }
+
+  ['searchInput', 'panelSearchInput', 'sectionSearchInput'].forEach(id => {
+    document.getElementById(id).addEventListener('input', (e) => {
+      syncSearchInputs(id, e.target.value);
+      filterProblems();
+    });
+  });
+
+  ['diffEasy', 'diffMedium', 'diffHard', 'statusSolved', 'statusUnsolved', 'levelGlobal', 'levelCollege'].forEach(id => {
+    document.getElementById(id).addEventListener('change', filterProblems);
+  });
+
+  document.getElementById('sortSelect').addEventListener('change', filterProblems);
+  document.getElementById('showTagsToggle').addEventListener('change', (e) => {
+    visibleTopicTags = e.target.checked;
+    filterProblems();
+  });
+
+  document.getElementById('clearFiltersBtn').addEventListener('click', () => {
+    ['searchInput', 'panelSearchInput', 'sectionSearchInput'].forEach(id => { document.getElementById(id).value = ''; });
+    ['diffEasy', 'diffMedium', 'diffHard', 'statusSolved', 'statusUnsolved', 'levelGlobal', 'levelCollege'].forEach(id => { document.getElementById(id).checked = false; });
+    document.querySelectorAll('.topic-filter').forEach(input => { input.checked = false; });
+    document.getElementById('sortSelect').value = 'submissions';
+    document.getElementById('showTagsToggle').checked = true;
+    visibleTopicTags = true;
+    filterProblems();
+  });
+
+  loadUser();
+  loadProblems();
+</script>
+</body>
+</html>
+

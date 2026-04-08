@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student - Support</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: { sans: ["Poppins", "sans-serif"] },
+            colors: {
+              primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" },
+              dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" }
+            }
+          }
+        }
+      };
+    </script>
+    <style>
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      .sidebar { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
+      .sidebar.collapsed .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
+      .sidebar.collapsed .nav-item i { margin-right: 0; font-size: 1.25rem; }
+      .sidebar.collapsed .nav-item span,
+      .sidebar.collapsed .bottom-menu span { display: none; }
+      .sidebar.collapsed .bottom-menu .nav-item { justify-content: center; }
+      .nav-item { transition: all 0.2s ease; position: relative; display: flex; align-items: center; padding: 0.75rem 1rem; margin-bottom: 0.25rem; color: #374151; border-radius: 0.5rem; cursor: pointer; white-space: nowrap; }
+      .nav-item:hover { background-color: #f3f4f6; }
+      .dark .nav-item { color: #d1d5db; }
+      .dark .nav-item:hover { background-color: #374151; }
+      .nav-item.active { background-color: #d0e1f5; color: #1e4a7a; }
+      .dark .nav-item.active { background-color: #1e4a7a; color: #ffffff; }
+      .nav-item.active::before { content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 60%; width: 4px; background-color: #2e5e99; border-radius: 0 4px 4px 0; }
+      .dark .nav-item.active::before { background-color: #60a5fa; }
+      .nav-item i { width: 1.5rem; text-align: center; margin-right: 0.75rem; font-size: 1.1rem; flex-shrink: 0; }
+      .nav-item span { font-size: 0.875rem; font-weight: 500; }
+      .faq-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out, padding 0.3s ease; }
+      .faq-item.active .faq-content { max-height: 500px; padding-bottom: 1.25rem; }
+      .faq-item.active .faq-icon { transform: rotate(180deg); }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200">
+  <div class="flex h-screen overflow-hidden">
+    <aside id="mainSidebar" class="sidebar w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen flex-shrink-0 transition-colors duration-200 z-50">
+      <div class="p-6 flex-shrink-0 flex items-center justify-between h-[88px]">
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2 overflow-hidden whitespace-nowrap">
+          <i class="fas fa-code text-primary-500 text-2xl flex-shrink-0"></i>
+          <span id="sidebarLogoText" class="transition-all duration-300 opacity-100 w-auto">CampusCode</span>
+        </h1>
+        <button id="sidebarToggleBtn" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary-500 transition-colors focus:outline-none">
+          <i class="fas fa-chevron-left transition-transform duration-300"></i>
+        </button>
+      </div>
+      <nav class="flex-1 px-4 space-y-1 overflow-y-auto mt-2">
+        <a href="/student/dashboard" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="/student/problems" class="nav-item"><i class="fas fa-tasks"></i><span>Problems</span></a>
+        <a href="/student/contests" class="nav-item"><i class="fas fa-trophy"></i><span>Contests</span></a>
+        <a href="/forum/forum.html" class="nav-item"><i class="fas fa-comments"></i><span>Community</span></a>
+        <a href="/student/stats" class="nav-item"><i class="fas fa-list"></i><span>Stats</span></a>
+        <a href="/student/report" class="nav-item"><i class="fas fa-chart-pie"></i><span>Report</span></a>
+        <a href="/student/profile" class="nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+      </nav>
+      <div class="p-4 space-y-1 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0 bottom-menu">
+        <a href="/student/support" class="nav-item active"><i class="far fa-question-circle"></i><span>Help & Support</span></a>
+        <a href="/student/settings" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+      </div>
+    </aside>
+    <div class="flex-1 overflow-y-auto">
+      <header class="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+          <div class="flex-1 max-w-2xl ml-4 flex items-center gap-4">
+            <div class="relative flex items-center w-full">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fas fa-search text-gray-400"></i></div>
+              <input type="text" id="faqSearch" class="block w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all" placeholder="Search FAQs..." />
+            </div>
+          </div>
+          <div class="ml-4 flex items-center gap-3">
+            <button id="themeToggleBtn" class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none"><i class="fas fa-moon text-xl"></i></button>
+            <a href="/student/profile" class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              <div class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm"><%= (user.username || 'ST').slice(0,2).toUpperCase() %></div>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block"><%= user.fullName %></span>
+            </a>
+          </div>
+        </div>
+      </header>
+      <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="mb-8 text-center md:text-left">
+          <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Help Center</h1>
+          <p class="text-gray-600 dark:text-gray-400 mt-1">Search for documentation, troubleshooting tips, or contact support.</p>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div class="lg:col-span-7 space-y-6">
+            <div class="space-y-4" id="faqContainer">
+              
+              <div class="faq-item bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm transition-all hover:border-primary-300 dark:hover:border-primary-700">
+                <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left focus:outline-none"><span class="font-semibold text-gray-800 dark:text-gray-200">Why am I getting Time Limit Exceeded?</span><i class="fas fa-chevron-down faq-icon text-gray-400 transition-transform"></i></button>
+                <div class="faq-content px-5 text-gray-600 dark:text-gray-400 text-sm leading-relaxed">This usually means your algorithm is too slow for the input size. Try improving time complexity or reducing unnecessary work inside loops.</div>
+              </div>
+              <div class="faq-item bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm transition-all hover:border-primary-300 dark:hover:border-primary-700">
+                <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left focus:outline-none"><span class="font-semibold text-gray-800 dark:text-gray-200">Where can I see my submission history?</span><i class="fas fa-chevron-down faq-icon text-gray-400 transition-transform"></i></button>
+                <div class="faq-content px-5 text-gray-600 dark:text-gray-400 text-sm leading-relaxed">Open your Report page for recent history or use the problem page submissions tab for problem-specific attempts.</div>
+              </div>
+              <div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-sm p-5">
+                <div class="flex items-center justify-between mb-2">
+                  <h4 class="text-base font-bold text-gray-800 dark:text-white">Track This Query Status</h4>
+                  <button id="refreshMyTicketsBtn" type="button" class="text-xs font-semibold text-primary-500 hover:text-primary-600">Refresh</button>
+                </div>
+                <p class="text-sm text-gray-600 dark:text-gray-300 mb-1"><span class="font-semibold">Answer:</span> Open your <span class="font-semibold">Report</span> page for recent history or use the problem page <span class="font-semibold">Submissions</span> tab for problem-specific attempts.</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Track support replies for your submission-history or other help tickets.</p>
+                <div id="myTicketsList" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+                  <div class="text-sm text-gray-500 dark:text-gray-400">Loading your tickets...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <aside class="lg:col-span-5">
+            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-6 md:p-8 rounded-xl shadow-sm relative overflow-hidden">
+              <div class="absolute top-0 right-0 w-32 h-32 bg-primary-50 dark:bg-primary-900/20 rounded-full -mr-16 -mt-16 z-0"></div>
+              <div class="relative z-10">
+                <h3 class="text-xl font-bold mb-2 text-gray-800 dark:text-white">Open a Ticket</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Our team typically responds in under 4 hours.</p>
+                <form id="supportForm" class="space-y-4">
+                  <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-1 text-gray-500 dark:text-gray-400">Subject</label>
+                    <input id="ticketSubject" type="text" required placeholder="Brief summary..." class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition text-sm">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-1 text-gray-500 dark:text-gray-400">Category</label>
+                    <select id="ticketCategory" class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-400 outline-none transition text-sm">
+                      <option>General Question</option>
+                      <option>Contest Issue</option>
+                      <option>Account Problem</option>
+                      <option>Report Bug</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-1 text-gray-500 dark:text-gray-400">Details</label>
+                    <textarea id="ticketDetails" rows="5" required placeholder="Describe your issue..." class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition text-sm font-sans"></textarea>
+                  </div>
+                  <button id="submitTicketBtn" type="submit" class="w-full bg-primary-500 hover:bg-primary-600 text-white font-bold py-3 rounded-xl shadow-md hover:shadow-lg transform active:scale-[0.98] transition-all">Submit Ticket</button>
+                </form>
+                <div id="successState" class="hidden text-center py-12">
+                  <div class="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check text-2xl"></i>
+                  </div>
+                  <h4 class="text-xl font-bold mb-2 text-gray-800 dark:text-white">Ticket Received!</h4>
+                  <p class="text-gray-500 dark:text-gray-400 mb-6 text-sm">Check your email for confirmation.<br>Ref ID: <span id="ticketRefId" class="font-mono text-primary-500">--</span></p>
+                  <button onclick="window.location.reload()" class="text-primary-500 font-bold hover:underline text-sm">Send another message</button>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const root = document.documentElement;
+    const themeBtn = document.getElementById('themeToggleBtn');
+    const themeIcon = themeBtn.querySelector('i');
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      root.classList.add('dark');
+      themeIcon.classList.replace('fa-moon', 'fa-sun');
+    }
+    function toggleTheme() {
+      root.classList.toggle('dark');
+      const isDark = root.classList.contains('dark');
+      localStorage.theme = isDark ? 'dark' : 'light';
+      themeIcon.className = isDark ? 'fas fa-sun text-xl' : 'fas fa-moon text-xl';
+    }
+    themeBtn.addEventListener('click', toggleTheme);
+    const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+    const mainSidebar = document.getElementById('mainSidebar');
+    const sidebarLogoText = document.getElementById('sidebarLogoText');
+    if (sidebarToggleBtn && mainSidebar) {
+      sidebarToggleBtn.addEventListener('click', () => {
+        const toggleIcon = sidebarToggleBtn.querySelector('i');
+        mainSidebar.classList.toggle('collapsed');
+        if (mainSidebar.classList.contains('collapsed')) {
+          mainSidebar.classList.replace('w-64', 'w-20');
+          if (toggleIcon) toggleIcon.style.transform = 'rotate(180deg)';
+          if (sidebarLogoText) {
+            sidebarLogoText.style.opacity = '0';
+            sidebarLogoText.style.width = '0px';
+          }
+        } else {
+          mainSidebar.classList.replace('w-20', 'w-64');
+          if (toggleIcon) toggleIcon.style.transform = 'rotate(0deg)';
+          if (sidebarLogoText) {
+            sidebarLogoText.style.opacity = '1';
+            sidebarLogoText.style.width = 'auto';
+          }
+        }
+      });
+    }
+    function toggleFaq(button) { button.parentElement.classList.toggle('active'); }
+    const supportForm = document.getElementById('supportForm');
+    const successState = document.getElementById('successState');
+    const submitTicketBtn = document.getElementById('submitTicketBtn');
+    const ticketRefId = document.getElementById('ticketRefId');
+    const myTicketsList = document.getElementById('myTicketsList');
+    const refreshMyTicketsBtn = document.getElementById('refreshMyTicketsBtn');
+
+    function escapeHtml(value) {
+      return String(value || '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    }
+
+    function ticketStatusChip(status) {
+      const normalized = String(status || 'open').toLowerCase();
+      if (normalized === 'resolved') {
+        return '<span class="px-2 py-1 rounded-full text-[11px] font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">Resolved</span>';
+      }
+      if (normalized === 'in_progress') {
+        return '<span class="px-2 py-1 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">In Progress</span>';
+      }
+      return '<span class="px-2 py-1 rounded-full text-[11px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">Open</span>';
+    }
+
+    function formatDateTime(value) {
+      if (!value) return 'N/A';
+      const parsed = new Date(value);
+      if (Number.isNaN(parsed.getTime())) return String(value);
+      return parsed.toLocaleString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    async function loadMyTickets() {
+      if (!myTicketsList) return;
+      myTicketsList.innerHTML = '<div class="text-sm text-gray-500 dark:text-gray-400">Loading your tickets...</div>';
+      try {
+        const response = await fetch('/api/support/tickets/me');
+        const payload = await response.json();
+        const tickets = payload?.tickets || [];
+        if (!response.ok || !payload?.success) throw new Error(payload?.message || 'Unable to fetch tickets');
+        if (!tickets.length) {
+          myTicketsList.innerHTML = '<div class="text-sm text-gray-500 dark:text-gray-400">No tickets yet. Create one above and track updates here.</div>';
+          return;
+        }
+        myTicketsList.innerHTML = tickets.slice(0, 5).map((ticket) => {
+          const status = String(ticket.status || 'open').toLowerCase();
+          const solutionText = String(ticket.superadmin_reply || '').trim();
+          const solutionLine = solutionText
+            ? `<p class="text-xs text-gray-700 dark:text-gray-200 mt-2"><span class="font-semibold">Support Solution:</span> ${escapeHtml(solutionText)}</p>`
+            : (status === 'resolved'
+                ? '<p class="text-xs text-amber-700 dark:text-amber-300 mt-2"><span class="font-semibold">Support Solution:</span> Resolved without a written note yet.</p>'
+                : '<p class="text-xs text-gray-500 dark:text-gray-400 mt-2"><span class="font-semibold">Support Solution:</span> Waiting for support response.</p>');
+          return `
+          <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-3 bg-gray-50/70 dark:bg-gray-900/30">
+            <div class="flex items-center justify-between gap-3">
+              <p class="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">${escapeHtml(ticket.subject || 'Untitled')}</p>
+              ${ticketStatusChip(ticket.status)}
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">#TKT-${escapeHtml(ticket.id)} | ${escapeHtml(ticket.category || 'General')}</p>
+            <p class="text-xs text-gray-600 dark:text-gray-300 mt-2"><span class="font-semibold">Your Query:</span> ${escapeHtml(ticket.details || '-')}</p>
+            ${solutionLine}
+            <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-2">Last Updated: ${escapeHtml(formatDateTime(ticket.updatedAt))}</p>
+          </div>
+        `;
+        }).join('');
+      } catch (error) {
+        myTicketsList.innerHTML = `<div class="text-sm text-red-500">${escapeHtml(error.message || 'Failed to load tickets')}</div>`;
+      }
+    }
+
+    if (refreshMyTicketsBtn) {
+      refreshMyTicketsBtn.addEventListener('click', loadMyTickets);
+    }
+
+    loadMyTickets();
+
+    supportForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const original = submitTicketBtn.textContent;
+      submitTicketBtn.textContent = 'Submitting...';
+      submitTicketBtn.disabled = true;
+      const payload = {
+        subject: document.getElementById('ticketSubject').value.trim(),
+        category: document.getElementById('ticketCategory').value,
+        details: document.getElementById('ticketDetails').value.trim()
+      };
+      try {
+        const response = await fetch('/api/support/tickets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.message || 'Failed to submit ticket');
+        supportForm.classList.add('hidden');
+        ticketRefId.textContent = data.ticketId ? `#TKT-${data.ticketId}` : '--';
+        successState.classList.remove('hidden');
+        loadMyTickets();
+      } catch (err) {
+        alert(err.message || 'Failed to submit ticket');
+        submitTicketBtn.textContent = original;
+        submitTicketBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

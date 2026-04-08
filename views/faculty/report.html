@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reports - Faculty Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/css/shared.css">
+    <link rel="stylesheet" href="/css/faculty/style.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ["Poppins", "sans-serif"] },
+                    colors: {
+                        primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" },
+                        dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" }
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200 text-gray-800 dark:text-gray-200">
+<div class="flex h-screen overflow-hidden">
+    <%- include('../partials/faculty_nav') %>
+    <div class="flex-1 overflow-y-auto">
+        <%- include('../partials/faculty_header') %>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="mb-6">
+                <h2 class="text-lg font-bold text-gray-800 dark:text-white">Performance Overview</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Analytics for <%= user.collegeName || 'Your College' %> - <%= user.post || 'Faculty' %></p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5">
+                    <p class="text-xs uppercase font-semibold text-gray-400">Problems</p>
+                    <p class="text-3xl font-black mt-2 text-gray-800 dark:text-white"><%= reportData?.problems || 0 %></p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5">
+                    <p class="text-xs uppercase font-semibold text-gray-400">Contests</p>
+                    <p class="text-3xl font-black mt-2 text-gray-800 dark:text-white"><%= reportData?.contests || 0 %></p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5">
+                    <p class="text-xs uppercase font-semibold text-gray-400">Active Students</p>
+                    <p class="text-3xl font-black mt-2 text-gray-800 dark:text-white"><%= reportData?.activeStudents || 0 %></p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                    <h3 class="text-base font-semibold text-gray-800 dark:text-white mb-4">Submission Trend (Last 6 Months)</h3>
+                    <div class="h-64"><canvas id="participationChart"></canvas></div>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                    <h3 class="text-base font-semibold text-gray-800 dark:text-white mb-4">Problem Difficulty Distribution</h3>
+                    <div class="h-64 flex justify-center"><canvas id="difficultyChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
+                <div class="w-16 h-16 rounded-full bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-file-download text-3xl text-primary-500"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Export Reports</h3>
+                <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">Download current analytics for submissions and difficulty spread.</p>
+                <div class="flex justify-center gap-3">
+                    <button class="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                        <i class="fas fa-file-excel"></i> Export Excel
+                    </button>
+                    <button class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const sidebar = document.getElementById('mainSidebar');
+    const toggleBtn = document.getElementById('sidebarToggleBtn');
+    const toggleIcon = toggleBtn ? toggleBtn.querySelector('i') : null;
+    const sidebarLogoText = document.getElementById('sidebarLogoText');
+    const headerLogoText = document.getElementById('headerLogoText');
+    if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            if (sidebar.classList.contains('collapsed')) {
+                sidebar.classList.replace('w-64', 'w-20');
+                if (toggleIcon) toggleIcon.style.transform = 'rotate(180deg)';
+                if (sidebarLogoText) { sidebarLogoText.style.opacity = '0'; sidebarLogoText.style.width = '0px'; }
+                if (headerLogoText) {
+                    headerLogoText.classList.remove('hidden');
+                    setTimeout(() => headerLogoText.classList.remove('opacity-0', '-translate-x-2'), 20);
+                }
+            } else {
+                sidebar.classList.replace('w-20', 'w-64');
+                if (toggleIcon) toggleIcon.style.transform = 'rotate(0deg)';
+                if (sidebarLogoText) { sidebarLogoText.style.opacity = '1'; sidebarLogoText.style.width = 'auto'; }
+                if (headerLogoText) {
+                    headerLogoText.classList.add('opacity-0', '-translate-x-2');
+                    setTimeout(() => headerLogoText.classList.add('hidden'), 300);
+                }
+            }
+        });
+    }
+
+    const themeBtn = document.getElementById('themeToggleBtn');
+    const themeIcon = themeBtn ? themeBtn.querySelector('i') : null;
+    const html = document.documentElement;
+    const applyTheme = (theme) => {
+        if (theme === 'dark') html.classList.add('dark');
+        else html.classList.remove('dark');
+        if (themeIcon) {
+            themeIcon.classList.remove('fa-moon', 'fa-sun');
+            themeIcon.classList.add(html.classList.contains('dark') ? 'fa-sun' : 'fa-moon');
+        }
+    };
+    if (themeBtn) {
+        themeBtn.addEventListener('click', () => {
+            const nextTheme = html.classList.contains('dark') ? 'light' : 'dark';
+            localStorage.theme = nextTheme;
+            applyTheme(nextTheme);
+        });
+    }
+    const savedTheme = localStorage.theme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    applyTheme(savedTheme);
+
+    const notifBtn = document.getElementById('notificationBtn');
+    const notifDropdown = document.getElementById('notificationDropdown');
+    if (notifBtn && notifDropdown) {
+        notifBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notifDropdown.classList.toggle('hidden');
+        });
+    }
+
+    const profileBtn = document.getElementById('headerProfileBtn');
+    const profileOverlay = document.getElementById('profileOverlay');
+    const closeProfileBtn = document.getElementById('closeProfileOverlay');
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (profileBtn && profileOverlay) profileBtn.addEventListener('click', () => profileOverlay.classList.remove('hidden'));
+    if (closeProfileBtn && profileOverlay) closeProfileBtn.addEventListener('click', () => profileOverlay.classList.add('hidden'));
+    if (profileOverlay) {
+        profileOverlay.addEventListener('click', (e) => {
+            if (e.target === profileOverlay) profileOverlay.classList.add('hidden');
+        });
+    }
+    if (logoutBtn) logoutBtn.addEventListener('click', () => window.location.href = '/auth/logout');
+
+    document.addEventListener('click', (e) => {
+        if (notifDropdown && notifBtn && !notifDropdown.contains(e.target) && !notifBtn.contains(e.target)) {
+            notifDropdown.classList.add('hidden');
+        }
+    });
+
+    const trendCtx = document.getElementById('participationChart');
+    if (trendCtx) {
+        new Chart(trendCtx, {
+            type: 'bar',
+            data: {
+                labels: <%- JSON.stringify(reportData?.labels || []) %>,
+                datasets: [{
+                    label: 'Submissions',
+                    data: <%- JSON.stringify(reportData?.participationTrend || []) %>,
+                    backgroundColor: 'rgba(30,74,122,0.7)',
+                    borderRadius: 6
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+    }
+
+    const diffCtx = document.getElementById('difficultyChart');
+    if (diffCtx) {
+        new Chart(diffCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Easy', 'Medium', 'Hard'],
+                datasets: [{
+                    data: <%- JSON.stringify(reportData?.difficulty || [0,0,0]) %>,
+                    backgroundColor: ['#22c55e', '#eab308', '#ef4444'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+});
+</script>
+</body>
+</html>

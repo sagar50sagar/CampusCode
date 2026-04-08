@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Faculty - HOD Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/shared.css">
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ["Poppins", "sans-serif"] }, colors: { primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" }, dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" } } } } };
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="/js/Hod/index1_logic.js"></script>
+</head>
+
+<body
+    class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200 text-gray-800 dark:text-gray-200">
+    <div class="flex h-screen overflow-hidden">
+        <%- include('partials/sidebar.html', { currentPage: currentPage }) %>
+        <aside class="hidden">
+
+            <div class="p-6 flex-shrink-0 flex items-center justify-between h-[88px]">
+                <h1
+                    class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2 overflow-hidden whitespace-nowrap">
+                    <i class="fas fa-code text-primary-500 text-2xl flex-shrink-0"></i>
+                    <span id="sidebarLogoText" class="transition-all duration-300 opacity-100">CampusCode</span>
+                </h1>
+                <button id="sidebarToggleBtn"
+                    class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary-500 transition-colors focus:outline-none">
+                    <i class="fas fa-chevron-left transition-transform duration-300"></i>
+                </button>
+            </div>
+
+            <nav class="flex-1 space-y-1 overflow-y-auto mt-2 font-sans">
+
+                <a href="/college/hod/dashboard"
+                    class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all <%= currentPage === 'dashboard' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-r-4 border-primary-600 dark:border-primary-400' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border-r-4 border-transparent' %>">
+                    <i class="fas fa-home w-5 text-center text-lg"></i>
+                    <span class="whitespace-nowrap">Dashboard</span>
+                </a>
+
+                <a href="/college/hod/problem"
+                    class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all <%= currentPage === 'problem' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-r-4 border-primary-600 dark:border-primary-400' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border-r-4 border-transparent' %>">
+                    <i class="fas fa-tasks w-5 text-center text-lg"></i>
+                    <span class="whitespace-nowrap">Problems</span>
+                </a>
+
+                <a href="/college/hod/contest"
+                    class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all <%= currentPage === 'contest' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-r-4 border-primary-600 dark:border-primary-400' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border-r-4 border-transparent' %>">
+                    <i class="fas fa-trophy w-5 text-center text-lg"></i>
+                    <span class="whitespace-nowrap">Contests</span>
+                </a>
+
+                <a href="/college/hod/faculty"
+                    class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all <%= currentPage === 'faculty' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-r-4 border-primary-600 dark:border-primary-400' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border-r-4 border-transparent' %>">
+                    <i class="fas fa-users w-5 text-center text-lg"></i>
+                    <span class="whitespace-nowrap">Faculty</span>
+                </a>
+
+                <a href="/college/hod/student"
+                    class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all <%= currentPage === 'student' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-r-4 border-primary-600 dark:border-primary-400' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border-r-4 border-transparent' %>">
+                    <i class="fas fa-user-graduate w-5 text-center text-lg"></i>
+                    <span class="whitespace-nowrap">Students</span>
+                </a>
+
+                <a href="/forum/forum.html"
+                    class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all <%= currentPage === 'community' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-r-4 border-primary-600 dark:border-primary-400' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border-r-4 border-transparent' %>">
+                    <i class="fas fa-comments w-5 text-center text-lg"></i>
+                    <span class="whitespace-nowrap">Community</span>
+                </a>
+
+                <a href="/college/hod/report"
+                    class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all <%= currentPage === 'report' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-r-4 border-primary-600 dark:border-primary-400' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border-r-4 border-transparent' %>">
+                    <i class="fas fa-chart-pie w-5 text-center text-lg"></i>
+                    <span class="whitespace-nowrap">Reports</span>
+                </a>
+
+                <a href="/college/hod/profile"
+                    class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all <%= currentPage === 'profile' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-r-4 border-primary-600 dark:border-primary-400' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border-r-4 border-transparent' %>">
+                    <i class="fas fa-user w-5 text-center text-lg"></i>
+                    <span class="whitespace-nowrap">Profile</span>
+                </a>
+
+            </nav>
+
+            <div
+                class="p-4 space-y-1 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
+
+                <a href="/college/hod/help"
+                    class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all rounded-lg <%= currentPage === 'help' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' %>">
+                    <i class="far fa-question-circle w-5 text-center text-lg group-hover:scale-110 transition-transform"></i>
+                    <span class="whitespace-nowrap">Help & Support</span>
+                </a>
+
+                <a href="/college/hod/settings"
+                    class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all rounded-lg <%= currentPage === 'settings' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' %>">
+                    <i class="fas fa-cog w-5 text-center text-lg group-hover:rotate-90 transition-transform duration-500"></i>
+                    <span class="whitespace-nowrap">Settings</span>
+                </a>
+
+            </div>
+        </aside>
+        <div class="flex-1 overflow-y-auto">
+            <header class="bg-white dark:bg-gray-800 shadow-sm transition-colors duration-200 sticky top-0 z-20">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-white ml-2">Faculty Management</h2>
+                    <div class="ml-4 flex items-center gap-3">
+                        <button id="themeToggleBtn"
+                            class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none transition-transform active:scale-95"><i
+                                class="fas fa-moon text-xl"></i></button>
+                        <div class="relative">
+                            <button id="notificationBtn"
+                                class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none transition-transform active:scale-95">
+                                <i class="fas fa-bell text-xl"></i>
+                                <span
+                                    class="absolute top-0 right-0 h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-white dark:border-gray-800"></span>
+                            </button>
+                        </div>
+                        <button id="headerProfileBtn"
+                            class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <div
+                                class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm">
+                                <%= user.fullName.split(' ').map(n => n[0]).join('') %></div>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block"><%= user.fullName %></span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 relative">
+                <!-- SECTION: FACULTY MANAGEMENT (NEW) -->
+                <div id="section-manage-faculty" class="content-section">
+
+                    <!-- Stats Overview -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div
+                            class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4 hover:shadow-md transition-shadow">
+                            <div
+                                class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                                <i class="fas fa-chalkboard-teacher text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">College Teachers</p>
+                                <h3 class="text-2xl font-bold text-gray-800 dark:text-white"><%= (departmentFaculty || []).length %></h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Success / Error Banner -->
+                    <% if (typeof created !== 'undefined' && created) { %>
+                    <div class="mb-4 bg-green-50 dark:bg-green-900/30 border-l-4 border-green-500 p-4 rounded-r-lg flex items-center gap-3">
+                        <i class="fas fa-check-circle text-green-500"></i>
+                        <p class="text-sm text-green-700 dark:text-green-300 font-medium">Faculty created successfully! Temporary password: <code class="font-bold bg-green-100 dark:bg-green-900/50 px-1 rounded">changeme123</code></p>
+                    </div>
+                    <% } %>
+                    <% if (typeof error !== 'undefined' && error) { %>
+                    <div class="mb-4 bg-red-50 dark:bg-red-900/30 border-l-4 border-red-500 p-4 rounded-r-lg flex items-center gap-3">
+                        <i class="fas fa-exclamation-circle text-red-500"></i>
+                        <p class="text-sm text-red-700 dark:text-red-300 font-medium"><%= error %></p>
+                    </div>
+                    <% } %>
+
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+                        <!-- Header & Filters -->
+                        <div
+                            class="p-6 border-b border-gray-100 dark:border-gray-700 flex flex-col md:flex-row justify-between items-center gap-4 bg-gray-50/50 dark:bg-gray-700/20">
+                            <div class="relative w-full md:w-72">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-search text-gray-400"></i>
+                                </div>
+                                <input type="text" id="facultySearchInput"
+                                    class="block w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 transition-shadow"
+                                    placeholder="Search by name, email, or role...">
+                            </div>
+
+                            <div class="w-full md:w-auto">
+                                <select id="facultySubjectFilter"
+                                    class="w-full md:w-auto rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 transition-shadow outline-none cursor-pointer">
+                                    <option value="All Subjects">All Subjects</option>
+                                    <% dropdownData.subjects.forEach(subject => { %>
+                                        <option value="<%= subject %>"><%= subject %></option>
+                                    <% }) %>
+                                </select>
+                            </div>
+
+                            <div class="flex items-center gap-3 w-full md:w-auto">
+                                <button id="btn-export-faculty"
+                                    class="group p-2.5 rounded-xl border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-600 dark:text-gray-300 transition-colors"
+                                    title="Export Data">
+                                    <i
+                                        class="fas fa-download group-hover:text-primary-600 dark:group-hover:text-primary-400"></i>
+                                </button>
+                                <div class="h-8 w-px bg-gray-200 dark:bg-gray-700 mx-1"></div>
+                                <button id="btn-global-search" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md hover:shadow-lg active:scale-95">
+                                    <i class="fas fa-search-plus"></i>
+                                    <span>Global Search</span>
+                                </button>
+                                <button id="btn-add-faculty"
+                                    class="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md hover:shadow-lg active:scale-95">
+                                    <i class="fas fa-plus"></i>
+                                    <span>Add Faculty</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Enhanced Faculty Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead
+                                    class="bg-gray-50/80 dark:bg-gray-700/50 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-semibold">
+                                    <tr>
+                                        <th class="px-6 py-4 rounded-tl-lg">Faculty Member</th>
+                                        <th class="px-6 py-4">Domain & Role</th>
+                                        <th class="px-6 py-4">Academic Assignments</th>
+                                        <th class="px-6 py-4 text-right rounded-tr-lg">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                                    <% (departmentFaculty || []).forEach(f => { %>
+                                    <tr class="group hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center gap-4">
+                                                <div
+                                                    class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 flex items-center justify-center text-blue-600 dark:text-blue-300 font-bold text-sm shadow-sm">
+                                                    <%= f.fullName.split(' ').map(n => n[0]).join('') %>
+                                                </div>
+                                                <div>
+                                                    <span
+                                                        class="faculty-name-trigger subject-count-trigger block text-sm font-semibold text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 cursor-pointer transition-colors"
+                                                        data-name="<%= f.fullName %>" data-email="<%= f.email %>" data-dept="<%= f.department %>" data-role="<%= f.role %>" data-assigned="<%= f.assignments || '' %>"
+                                                        data-subjects='<%= JSON.stringify((f.assignments || "").split(",")) %>'>
+                                                        <%= f.fullName %>
+                                                    </span>
+                                                    <span
+                                                        class="text-xs text-gray-500 dark:text-gray-400"><%= f.email %></span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="flex flex-col items-start gap-1">
+                                                <span
+                                                    class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide <%= f.role === 'hod' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' : (f.role === 'hos' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300') %> border border-current">
+                                                    <%= f.role.toUpperCase() %>
+                                                </span>
+                                                <span class="text-xs text-gray-600 dark:text-gray-300"><%= f.department %></span>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <% if (f.assignments) { %>
+                                                <div class="flex flex-wrap gap-1">
+                                                    <% f.assignments.split(',').forEach(a => { %>
+                                                        <span class="px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-[10px] font-medium border border-indigo-100 dark:border-indigo-800">
+                                                            <%= a %>
+                                                        </span>
+                                                    <% }) %>
+                                                </div>
+                                            <% } else { %>
+                                                <span class="text-xs text-gray-400 italic text-nowrap">No Assignments</span>
+                                            <% } %>
+                                        </td>
+                                        <td class="px-6 py-4 text-nowrap">
+                                            <div class="flex items-center justify-end gap-2">
+                                                <% if (f.status === 'pending') { %>
+                                                    <button onclick="confirmVerify('<%= f.id %>')"
+                                                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-green-500 hover:bg-green-600 text-white text-[10px] font-bold uppercase transition-all shadow-sm"
+                                                        title="Verify Faculty Member">
+                                                        <i class="fas fa-check text-xs"></i> Verify
+                                                    </button>
+                                                <% } %>
+                                                <button onclick='openUnifiedModal("<%= f.id %>", <%- JSON.stringify(f.fullName) %>, "<%= f.role %>", <%- JSON.stringify(f.hosSubject || "") %>, <%- JSON.stringify(f.assignments || "") %>, <%- JSON.stringify(f.email || "") %>)'
+                                                    class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-[10px] font-bold uppercase transition-all shadow-sm"
+                                                    title="Manage Assignments & Role">
+                                                    <i class="fas fa-cog text-xs"></i> Manage
+                                                </button>
+                                                <button onclick='editFaculty("<%= f.id %>", <%- JSON.stringify(f.fullName) %>, "<%= f.email %>", "<%= f.joiningDate || "" %>")'
+                                                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 transition-all"
+                                                    title="Edit Profile">
+                                                    <i class="fas fa-edit text-xs"></i>
+                                                </button>
+                                                <button onclick="deleteFaculty('<%= f.id %>')"
+                                                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-all"
+                                                    title="Delete Faculty Account">
+                                                    <i class="fas fa-trash-alt text-xs"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                                    <% if (!(departmentFaculty || []).length) { %>
+                                    <tr>
+                                        <td colspan="4" class="py-12 text-center text-gray-500 dark:text-gray-400">
+                                            No teachers found in this college.
+                                        </td>
+                                    </tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Faculty Form (Hidden) -->
+                <div id="faculty-form-view" class="hidden">
+                    <div class="max-w-3xl mx-auto">
+                        <div
+                            class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden">
+                            <!-- Form Header -->
+                            <div
+                                class="px-8 py-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-700/30">
+                                <div class="flex items-center gap-4">
+                                    <button id="btn-back-to-faculty-list"
+                                        class="w-8 h-8 rounded-full bg-white dark:bg-gray-600 shadow-sm flex items-center justify-center text-gray-500 hover:text-primary-600 transition-colors">
+                                        <i class="fas fa-arrow-left text-sm"></i>
+                                    </button>
+                                    <div>
+                                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Add New Faculty</h2>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">Enter faculty details to
+                                            register</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="p-8">
+                                <form action="/college/hod/faculty/create" method="POST" class="space-y-8">
+                                    <!-- Personal Info Section -->
+                                    <div>
+                                        <h3
+                                            class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-100 dark:border-gray-700 pb-2">
+                                            Personal Information
+                                        </h3>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div class="md:col-span-2">
+                                                <label
+                                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Full
+                                                    Name</label>
+                                                <div class="relative">
+                                                    <div
+                                                        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                        <i class="fas fa-user text-gray-400"></i>
+                                                    </div>
+                                                    <input type="text" name="fullName"
+                                                        class="pl-10 w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 transition-shadow"
+                                                        placeholder="e.g. Dr. Vishnu Gupta" required>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label
+                                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email
+                                                    Address</label>
+                                                <div class="relative">
+                                                    <div
+                                                        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                        <i class="fas fa-envelope text-gray-400"></i>
+                                                    </div>
+                                                    <input type="email" name="email"
+                                                        class="pl-10 w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 transition-shadow"
+                                                        placeholder="e.g. vishnu.gupta@college.edu" required>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label
+                                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Phone
+                                                    Number</label>
+                                                <div class="relative">
+                                                    <div
+                                                        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                        <i class="fas fa-phone text-gray-400"></i>
+                                                    </div>
+                                                    <input type="text" name="mobile"
+                                                        class="pl-10 w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 transition-shadow"
+                                                        placeholder="e.g. +91 98765 43210">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Professional Info Section -->
+                                    <div>
+                                        <h3
+                                            class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-100 dark:border-gray-700 pb-2">
+                                            Professional Details
+                                        </h3>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div>
+                                                <label
+                                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Department</label>
+                                                <div class="relative">
+                                                    <div
+                                                        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                        <i class="fas fa-building text-gray-400"></i>
+                                                    </div>
+                                                    <!-- Department is auto-set to HOD's dept; hidden -->
+                                                    <input type="hidden" name="department" value="<%= user.department %>">
+                                                    <div class="relative">
+                                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                            <i class="fas fa-building text-gray-400"></i>
+                                                        </div>
+                                                        <!-- Read-only display -->
+                                                        <input type="text" value="<%= user.department %>" readonly
+                                                            class="pl-10 w-full rounded-lg border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-sm p-2.5 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Designation</label>
+                                                <div class="relative">
+                                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                        <i class="fas fa-user-tie text-gray-400"></i>
+                                                    </div>
+                                                    <select name="post"
+                                                        class="pl-10 w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 transition-shadow appearance-none">
+                                                        <option value="Professor">Professor</option>
+                                                        <option value="Associate Professor">Associate Professor</option>
+                                                        <option value="Assistant Professor">Assistant Professor</option>
+                                                        <option value="Lecturer">Lecturer</option>
+                                                    </select>
+                                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                                        <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="md:col-span-2">
+                                                <label
+                                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Assigned
+                                                    Subject</label>
+                                                <div class="relative">
+                                                    <div
+                                                        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                        <i class="fas fa-book text-gray-400"></i>
+                                                    </div>
+                                                    <select
+                                                        class="pl-10 w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 transition-shadow appearance-none">
+                                                        <% dropdownData.subjects.forEach(subject => { %>
+                                                            <option><%= subject %></option>
+                                                        <% }) %>
+                                                    </select>
+                                                    <div
+                                                        class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                                        <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Actions -->
+                                    <div
+                                        class="flex items-center justify-end gap-3 pt-6 border-t border-gray-100 dark:border-gray-700">
+                                        <button type="button" id="btn-cancel-faculty-edit"
+                                            class="px-5 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 bg-white dark:bg-gray-800 border border-red-200 dark:border-red-900/30 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors shadow-sm">
+                                            Cancel
+                                        </button>
+                                        <button type="submit"
+                                            class="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors shadow-md hover:shadow-lg flex items-center">
+                                            <i class="fas fa-check mr-2"></i> Register Faculty
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <div id="exportPreviewModal"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+        <div
+            class="bg-white dark:bg-gray-800 w-[95%] h-[90%] max-w-7xl rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-[fadeIn_0.2s_ease-out]">
+            <!-- Modal Header -->
+            <div
+                class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-700/30">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-white">Export Faculty Report</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Customize your report before downloading</p>
+                </div>
+                <button id="closeExportModal"
+                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="flex-1 flex overflow-hidden">
+                <!-- Left Sidebar: Column Selection -->
+                <aside
+                    class="w-64 bg-gray-50 dark:bg-gray-800/50 border-r border-gray-200 dark:border-gray-700 p-5 overflow-y-auto">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Columns
+                        </h3>
+                        <button id="selectAllColumns"
+                            class="text-xs text-primary-600 hover:underline font-medium">Select All</button>
+                    </div>
+
+                    <div class="space-y-3" id="columnSelectionList">
+                        <!-- Checkboxes will be injected by JS -->
+                        <!-- Example Structure -->
+                        <!-- 
+                        <label class="flex items-center space-x-3 cursor-pointer group">
+                            <input type="checkbox" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500 transition-all">
+                            <span class="text-sm text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">Full Name</span>
+                        </label> 
+                        -->
+                    </div>
+                </aside>
+
+                <!-- Main Preview Area -->
+                <main class="flex-1 flex flex-col min-w-0 bg-white dark:bg-gray-800">
+                    <!-- Filters Toolbar -->
+                    <div
+                        class="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+
+                        <!-- Search -->
+                        <div class="w-full sm:w-auto flex-1 min-w-[200px] max-w-xs">
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-search text-gray-400"></i>
+                                </div>
+                                <input type="text" id="exportSearchInput"
+                                    class="block w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 placeholder-gray-500"
+                                    placeholder="Search Name/ID...">
+                            </div>
+                        </div>
+
+                        <!-- Filters & Sort -->
+                        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+
+                            <!-- Year Filter -->
+                            <select id="exportFilterYear"
+                                class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-2 pl-3 pr-8 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
+                                <option value="all">Year: All</option>
+                                <!-- Populated by JS -->
+                            </select>
+
+                            <!-- Section Filter -->
+                            <select id="exportFilterSection"
+                                class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-2 pl-3 pr-8 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
+                                <option value="all">Sec: All</option>
+                                <!-- Populated by JS -->
+                            </select>
+
+                            <!-- Subject Filter -->
+                            <select id="exportFilterSubject"
+                                class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-2 pl-3 pr-8 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 max-w-[150px]">
+                                <option value="all">Sub: All</option>
+                                <!-- Populated by JS -->
+                            </select>
+
+                            <div class="h-6 w-px bg-gray-300 dark:bg-gray-700 mx-1 hidden sm:block"></div>
+
+                            <!-- Sort -->
+                            <select id="exportSortSelect"
+                                class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-2 pl-3 pr-8 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
+                                <option value="name_asc">Name (A-Z)</option>
+                                <option value="name_desc">Name (Z-A)</option>
+                                <option value="date_new">Join Date (Newest)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Table Preview -->
+                    <div class="flex-1 overflow-auto p-4 bg-gray-50/50 dark:bg-gray-900/10">
+                        <div
+                            class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 inline-block min-w-full align-middle">
+                            <table class="min-w-full text-left text-sm" id="exportPreviewTable">
+                                <thead
+                                    class="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-semibold uppercase tracking-wider text-xs sticky top-0 z-10">
+                                    <tr id="exportTableHeadRow">
+                                        <!-- Headers injected by JS -->
+                                    </tr>
+                                </thead>
+                                <tbody id="exportTableBody" class="divide-y divide-gray-200 dark:divide-gray-700">
+                                    <!-- Rows injected by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Preview Status Bar -->
+                    <div
+                        class="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-500 flex justify-between">
+                        <span id="previewCount">Showing 0 records</span>
+                        <span>Previewing first 50 rows only</span>
+                    </div>
+                </main>
+            </div>
+
+            <!-- Modal Footer -->
+            <div
+                class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex justify-between items-center">
+                <div class="text-sm text-gray-500 italic">
+                    <i class="fas fa-info-circle mr-1"></i> Data selected here will be included in the report.
+                </div>
+                <div class="flex gap-3">
+                    <button id="btnFinalDownloadPDF"
+                        class="flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors shadow-sm">
+                        <i class="fas fa-print mr-2"></i> Print Report
+                    </button>
+                    <button id="btnFinalDownloadExcel"
+                        class="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors shadow-sm">
+                        <i class="fas fa-file-excel mr-2"></i> Download Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- PROFILE OVERLAY -->
+        <div id="profileOverlay" class="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+        <div class="w-[380px] bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden animate-[fadeIn_0.2s_ease-out]">
+            <div class="bg-gradient-to-br from-[#1E4A7A] to-[#153255] relative pt-12 pb-20 px-6 text-center">
+                <button id="closeProfileOverlay" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white/90 transition-all flex items-center justify-center backdrop-blur-sm">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+
+                <div class="absolute left-1/2 bottom-[-48px] -translate-x-1/2">
+                    <div class="relative w-24 h-24 rounded-full p-1.5 bg-white dark:bg-gray-800 ring-4 ring-[#1E4A7A]/10 dark:ring-[#1E4A7A]/30">
+                        <div class="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold shadow-inner">
+                            <%= user.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2) %>
+                        </div>
+                        <div class="absolute bottom-0 right-0 w-6 h-6 bg-green-500 border-4 border-white dark:border-gray-800 rounded-full"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-16 pb-8 px-6">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-1"><%= user.fullName %></h2>
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3"><%= user.post || 'Faculty Member' %></p>
+
+                    <div class="flex items-center justify-center gap-2 flex-wrap">
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-100 dark:border-blue-800">
+                            <%= user.department || 'General' %> Dept
+                        </span>
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border border-purple-100 dark:border-purple-800">
+                            <%= user.role ? user.role.toUpperCase() : 'FACULTY' %>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="p-3 rounded-2xl bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700 text-center">
+                        <p class="text-xs text-gray-500 uppercase font-semibold">Faculty ID</p>
+                        <p class="text-sm font-bold text-gray-800 dark:text-gray-200">FAC-<%= user.id %></p>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700 text-center">
+                        <p class="text-xs text-gray-500 uppercase font-semibold">Joined</p>
+                        <p class="text-sm font-bold text-gray-800 dark:text-gray-200"><%= user.joiningDate || 'Unknown' %></p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <button id="logoutBtn" class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group transition-all duration-200 border border-transparent hover:border-red-100 dark:hover:border-red-800">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center justify-center">
+                                <i class="fas fa-sign-out-alt text-sm"></i>
+                            </div>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-red-600 dark:group-hover:text-red-400">Logout</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-xs text-gray-400 group-hover:text-red-500 dark:group-hover:text-red-400"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION DROPDOWN -->
+    <div id="notificationDropdown"
+        class="fixed top-16 right-6 z-50 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 hidden animate-[fadeIn_0.1s_ease-out]">
+        <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+            <h3 class="font-semibold text-gray-800 dark:text-white">Recent Activity</h3>
+            <span class="text-xs text-primary-500 cursor-pointer hover:underline">Mark all read</span>
+        </div>
+        <div class="p-2">
+            <div class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer">
+                <p class="text-sm text-gray-800 dark:text-gray-200 font-medium">Contest Reminder</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Weekly contest starts in 1 hour.</p>
+            </div>
+            <div class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer">
+                <p class="text-sm text-gray-800 dark:text-gray-200 font-medium">New Student Joined</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Alex joined CS101.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- FACULTY HOVER TOOLTIP -->
+    <div id="facultyProfileTooltip"
+        class="absolute z-[60] bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 w-80 p-4 hidden pointer-events-none transition-opacity duration-200 opacity-0 transform scale-95 origin-top-left">
+        <div class="flex items-start gap-4">
+            <div
+                class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold shadow-md flex-shrink-0">
+                <span id="tooltipInitials">JG</span>
+            </div>
+            <div>
+                <h3 id="tooltipName" class="font-bold text-gray-900 dark:text-white text-lg leading-tight">Name</h3>
+                <p id="tooltipDesignation" class="text-xs text-primary-600 dark:text-primary-400 font-semibold mb-1">
+                    Professor</p>
+                <div class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                    <i class="fas fa-building w-3"></i>
+                    <span id="tooltipDept">Department</span>
+                </div>
+                <div class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                    <i class="fas fa-envelope w-3"></i>
+                    <span id="tooltipEmail">email@example.com</span>
+                </div>
+            </div>
+        </div>
+        <div class="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center">
+            <div class="text-center px-2">
+                <p class="text-[10px] uppercase text-gray-400 font-bold">Joined</p>
+                <p id="tooltipJoinDate" class="text-xs font-semibold text-gray-700 dark:text-gray-300">2020</p>
+            </div>
+            <div class="w-px h-6 bg-gray-100 dark:bg-gray-700"></div>
+            <div class="text-center px-2">
+                <p class="text-[10px] uppercase text-gray-400 font-bold">ID</p>
+                <p id="tooltipId" class="text-xs font-semibold text-gray-700 dark:text-gray-300">FAC-001</p>
+            </div>
+            <div class="w-px h-6 bg-gray-100 dark:bg-gray-700"></div>
+            <div class="text-center px-2">
+                <p class="text-[10px] uppercase text-gray-400 font-bold">Status</p>
+                <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUBJECT LIST TOOLTIP -->
+    <div id="subjectListTooltip"
+        class="absolute z-[60] bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-3 hidden pointer-events-none transition-opacity duration-200 opacity-0 transform scale-95">
+        <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Assigned Subjects
+        </h4>
+        <ul id="tooltipSubjectList" class="space-y-1.5">
+            <!-- Items injected via JS -->
+        </ul>
+    </div>
+
+    <!-- EDIT FACULTY MODAL -->
+    <div id="editFacultyModal"
+        class="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden animate-[fadeIn_0.2s_ease-out]">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden m-4">
+            <div
+                class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-700/30">
+                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Edit Faculty Details</h3>
+                <button id="closeEditFacultyModal"
+                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="editFacultyForm" class="p-6 space-y-6">
+                <input type="hidden" id="editFacultyId">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Full
+                            Name</label>
+                        <input type="text" id="editFacultyName"
+                            class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
+                            required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email</label>
+                        <input type="email" id="editFacultyEmail"
+                            class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
+                            required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Joining Date</label>
+                        <input type="text" id="editFacultyJoiningDate" placeholder="e.g. Aug 2023"
+                            class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
+                    </div>
+
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Department</label>
+                        <select id="editFacultyDept"
+                            class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
+                            <option>Computer Science</option>
+                            <option>Information Technology</option>
+                            <option>Electronics</option>
+                            <option>Mechanical</option>
+                            <option>Civil</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Role</label>
+                        <select id="editFacultyRole"
+                            class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
+                            <option>Professor</option>
+                            <option>Associate Professor</option>
+                            <option>Assistant Professor</option>
+                            <option>Lecturer</option>
+                            <option>HOD</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Status</label>
+                        <select id="editFacultyStatus"
+                            class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
+                            <option value="Active">Active</option>
+                            <option value="On Leave">On Leave</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3">
+                    <button type="button" id="cancelEditFaculty"
+                        class="px-5 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">Cancel</button>
+                    <button type="submit"
+                        class="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors shadow-sm">Save
+                        Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Global Search Modal -->
+    <div id="global-search-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-[fadeIn_0.2s_ease-out]">
+            <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-700/20">
+                <h3 class="font-bold text-gray-800 dark:text-white">College-wide Teacher Search</h3>
+                <button onclick="closeGlobalSearch()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="relative mb-6">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                    <input type="text" id="globalTeacherSearchInput" 
+                        class="block w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 transition-shadow"
+                        placeholder="Search by name or email across all departments...">
+                </div>
+                
+                <div id="globalSearchResults" class="space-y-2 max-h-96 overflow-y-auto">
+                    <p class="text-center text-gray-500 py-8 italic">Start typing to search teachers...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unified Assignment Modal -->
+    <div id="unifiedModal" class="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-[fadeIn_0.2s_ease-out]">
+            <div class="px-8 py-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-700/20">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 dark:text-white">Unified Assignment Console</h3>
+                    <p class="text-xs text-gray-500" id="modalTargetName"></p>
+                </div>
+                <button onclick="closeUnifiedModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-8">
+                <div class="flex gap-4 mb-6 border-b border-gray-100 dark:border-gray-700 pb-px">
+                    <button id="tab-promote" onclick="showTab('promote')" class="pb-3 text-sm font-bold border-b-2 border-primary-500 text-primary-600 transition-all">Role & Promotion</button>
+                    <button id="tab-assign" onclick="showTab('assign')" class="pb-3 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 transition-all">Subject Assignment</button>
+                </div>
+
+                <div id="content-promote" class="space-y-6">
+                    <form id="promoteForm" class="space-y-4">
+                        <input type="hidden" name="id" id="promoteUserId">
+                        <input type="hidden" name="email" id="promoteUserEmail">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Designated Role</label>
+                            <select id="roleSelect" name="role" onchange="togglePromoSubject()" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm p-3 focus:ring-2 focus:ring-primary-500">
+                                <option value="faculty">Faculty Member</option>
+                                <option value="hos">Head of Studies (HOS)</option>
+                            </select>
+                        </div>
+                        <div id="promoSubjectContainer" class="hidden">
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Assign Master Subject</label>
+                            <select name="subject" id="promoSubject" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm p-3 focus:ring-2 focus:ring-primary-500">
+                                <option value="">Select a Subject...</option>
+                                <% dropdownData.subjects.forEach(s => { %>
+                                    <option value="<%= s %>"><%= s %></option>
+                                <% }) %>
+                            </select>
+                            <p class="mt-2 text-[10px] text-primary-500 font-medium italic"><i class="fas fa-magic mr-1"></i> Promotion to HOS triggers automated bulk-assignment for every section of this subject.</p>
+                        </div>
+                        <div class="pt-6">
+                            <button type="submit" class="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold shadow-lg transition-all active:scale-95">Update Primary Role</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="content-assign" class="hidden space-y-6">
+                    <form id="assignForm" class="space-y-4">
+                        <input type="hidden" name="facultyId" id="assignUserId">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Select Subject</label>
+                            <select name="subjectName" id="mainSubjectSelect" onchange="handleSubjectChange()" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm p-3 focus:ring-2 focus:ring-primary-500">
+                                <option value="">Choose Subject</option>
+                                <% dropdownData.subjects.forEach(s => { %>
+                                    <option value="<%= s %>"><%= s %></option>
+                                <% }) %>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Year</label>
+                                <select name="assignedYears" id="yearSelect" onchange="handleYearChange()" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm p-3 focus:ring-2 focus:ring-primary-500" disabled>
+                                    <option value="">Select Year</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Section</label>
+                                <select name="assignedSections" id="sectionSelect" class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm p-3 focus:ring-2 focus:ring-primary-500" disabled>
+                                    <option value="">Select Section</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="pt-6">
+                            <button type="submit" id="btnSubmitAssign" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">Assign Academic Load</button>
+                        </div>
+                    </form>
+
+                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4 bg-gray-50/40 dark:bg-gray-900/30">
+                        <div class="flex items-center justify-between mb-3">
+                            <p class="text-xs font-bold uppercase tracking-widest text-gray-500">Current Assigned Subjects</p>
+                            <span id="assignedSubjectCount" class="text-[10px] px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300">0</span>
+                        </div>
+                        <div id="currentAssignmentsList" class="space-y-2">
+                            <p class="text-xs text-gray-400 italic">No assignments found.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const subjectMapping = <%- JSON.stringify(dropdownData.subjectMapping) %>;
+
+        function openUnifiedModal(id, name, role, subject, assignmentsRaw, email) {
+            document.getElementById('modalTargetName').textContent = `Configuring: ${name}`;
+            document.getElementById('promoteUserId').value = id;
+            document.getElementById('promoteUserEmail').value = email || '';
+            document.getElementById('assignUserId').value = id;
+            document.getElementById('roleSelect').value = role;
+            document.getElementById('promoSubject').value = subject || '';
+            renderCurrentAssignments(id, assignmentsRaw || '');
+            
+            togglePromoSubject();
+            document.getElementById('unifiedModal').classList.remove('hidden');
+        }
+
+        function closeUnifiedModal() {
+            document.getElementById('unifiedModal').classList.add('hidden');
+        }
+
+        function showTab(tab) {
+            const btnPromote = document.getElementById('tab-promote');
+            const btnAssign = document.getElementById('tab-assign');
+            const contentPromote = document.getElementById('content-promote');
+            const contentAssign = document.getElementById('content-assign');
+
+            if (tab === 'promote') {
+                btnPromote.classList.add('border-primary-500', 'text-primary-600', 'font-bold');
+                btnPromote.classList.remove('text-gray-500', 'border-transparent');
+                
+                btnAssign.classList.remove('border-primary-500', 'text-primary-600', 'font-bold');
+                btnAssign.classList.add('text-gray-500', 'border-transparent');
+
+                contentPromote.classList.remove('hidden');
+                contentAssign.classList.add('hidden');
+            } else {
+                btnAssign.classList.add('border-primary-500', 'text-primary-600', 'font-bold');
+                btnAssign.classList.remove('text-gray-500', 'border-transparent');
+                
+                btnPromote.classList.remove('border-primary-500', 'text-primary-600', 'font-bold');
+                btnPromote.classList.add('text-gray-500', 'border-transparent');
+
+                contentAssign.classList.remove('hidden');
+                contentPromote.classList.add('hidden');
+            }
+        }
+
+        function togglePromoSubject() {
+            const role = document.getElementById('roleSelect').value;
+            const container = document.getElementById('promoSubjectContainer');
+            if (role === 'hos') {
+                container.classList.remove('hidden');
+                document.getElementById('promoSubject').required = true;
+            } else {
+                container.classList.add('hidden');
+                document.getElementById('promoSubject').required = false;
+            }
+        }
+
+        function handleSubjectChange() {
+            const subject = document.getElementById('mainSubjectSelect').value;
+            const yearSelect = document.getElementById('yearSelect');
+            const sectionSelect = document.getElementById('sectionSelect');
+            const btn = document.getElementById('btnSubmitAssign');
+
+            yearSelect.innerHTML = '<option value="">Select Year</option>';
+            sectionSelect.innerHTML = '<option value="">Select Section</option>';
+            yearSelect.disabled = true;
+            sectionSelect.disabled = true;
+            btn.disabled = true;
+
+            if (subject && subjectMapping[subject]) {
+                const uniqueYears = [...new Set(subjectMapping[subject].map(m => m.year))];
+                uniqueYears.sort().forEach(y => {
+                    const opt = document.createElement('option');
+                    opt.value = y;
+                    opt.textContent = y;
+                    yearSelect.appendChild(opt);
+                });
+                yearSelect.disabled = false;
+            }
+        }
+
+        function handleYearChange() {
+            const subject = document.getElementById('mainSubjectSelect').value;
+            const year = document.getElementById('yearSelect').value;
+            const sectionSelect = document.getElementById('sectionSelect');
+            const btn = document.getElementById('btnSubmitAssign');
+
+            sectionSelect.innerHTML = '<option value="">Select Section</option>';
+            sectionSelect.disabled = true;
+            btn.disabled = true;
+
+            if (subject && year && subjectMapping[subject]) {
+                const availableSections = subjectMapping[subject]
+                    .filter(m => m.year === year)
+                    .map(m => m.section);
+                
+                availableSections.sort().forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s;
+                    opt.textContent = s;
+                    sectionSelect.appendChild(opt);
+                });
+                sectionSelect.disabled = false;
+                btn.disabled = false;
+            }
+        }
+
+        function parseUniqueSubjects(assignmentsRaw) {
+            if (!assignmentsRaw) return [];
+            const labels = String(assignmentsRaw).split(',').map(s => s.trim()).filter(Boolean);
+            const subjectNames = labels.map(l => {
+                const idx = l.indexOf(' (');
+                return idx > -1 ? l.slice(0, idx).trim() : l.trim();
+            }).filter(Boolean);
+            return [...new Set(subjectNames)];
+        }
+
+        function renderCurrentAssignments(facultyId, assignmentsRaw) {
+            const list = document.getElementById('currentAssignmentsList');
+            const count = document.getElementById('assignedSubjectCount');
+            if (!list || !count) return;
+
+            const subjects = parseUniqueSubjects(assignmentsRaw);
+            count.textContent = subjects.length;
+
+            if (!subjects.length) {
+                list.innerHTML = '<p class="text-xs text-gray-400 italic">No assignments found.</p>';
+                return;
+            }
+
+            list.innerHTML = subjects.map(subject => `
+                <div class="flex items-center justify-between gap-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2">
+                    <p class="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">${subject}</p>
+                    <button onclick='deassignSubject("${facultyId}", ${JSON.stringify(subject)})'
+                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-[11px] font-semibold transition-colors"
+                        title="De-assign subject">
+                        <i class="fas fa-unlink text-[10px]"></i> De-assign
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        async function deassignSubject(facultyId, subject) {
+            if (!confirm(`De-assign "${subject}" from this faculty member?`)) return;
+            try {
+                const res = await fetch('/college/hod/api/deassign-subject', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ facultyId, subjectName: subject })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Failed to de-assign subject');
+                }
+            } catch (err) {
+                alert('Connection error');
+            }
+        }
+
+        // Global Search Logic
+        const globalSearchModal = document.getElementById('global-search-modal');
+        const globalTeacherSearchInput = document.getElementById('globalTeacherSearchInput');
+        const globalSearchResults = document.getElementById('globalSearchResults');
+
+        if (document.getElementById('btn-global-search')) {
+            document.getElementById('btn-global-search').addEventListener('click', () => {
+                globalSearchModal.classList.remove('hidden');
+                globalTeacherSearchInput.focus();
+            });
+        }
+
+        function closeGlobalSearch() {
+            globalSearchModal.classList.add('hidden');
+        }
+
+        let searchTimeout;
+        if (globalTeacherSearchInput) {
+            globalTeacherSearchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                const q = e.target.value;
+                if (q.length < 2) {
+                    globalSearchResults.innerHTML = '<p class="text-center text-gray-500 py-8 italic">Type at least 2 characters...</p>';
+                    return;
+                }
+
+                searchTimeout = setTimeout(() => {
+                    fetch(`/college/hod/api/search-teachers?q=${encodeURIComponent(q)}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.length === 0) {
+                                globalSearchResults.innerHTML = '<p class="text-center text-gray-500 py-8 italic">No teachers found.</p>';
+                            } else {
+                                globalSearchResults.innerHTML = data.map(t => `
+                                    <div class="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border border-transparent hover:border-gray-100 dark:hover:border-gray-600">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-xs">
+                                                ${t.fullName.split(' ').map(n => n[0]).join('')}
+                                            </div>
+                                            <div>
+                                                <h4 class="text-sm font-bold text-gray-800 dark:text-white">${t.fullName}</h4>
+                                                <p class="text-xs text-gray-500">${t.email} • ${t.department}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <button onclick="openAssignSubjectModal(${t.id}, ${JSON.stringify(t.fullName)})" class="px-3 py-1.5 text-xs font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 rounded-lg transition-colors">Assign Subject</button>
+                                        </div>
+                                    </div>
+                                `).join('');
+                            }
+                        });
+                }, 300);
+            });
+        }
+
+        function openAssignSubjectModal(id, name) {
+            openUnifiedModal(id, name, 'faculty', '', '', '');
+            showTab('assign');
+        }
+
+        function editFaculty(id, name, email, joiningDate) {
+            document.getElementById('editFacultyId').value = id;
+            document.getElementById('editFacultyName').value = name;
+            document.getElementById('editFacultyEmail').value = email;
+            document.getElementById('editFacultyJoiningDate').value = joiningDate;
+            document.getElementById('editFacultyModal').classList.remove('hidden');
+        }
+
+        // Form Submissions
+        document.addEventListener('DOMContentLoaded', () => {
+            const promoteForm = document.getElementById('promoteForm');
+            if(promoteForm) {
+                promoteForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const id = document.getElementById('promoteUserId').value;
+                    const email = document.getElementById('promoteUserEmail').value;
+                    const role = document.getElementById('roleSelect').value;
+                    const subject = document.getElementById('promoSubject').value;
+
+                    try {
+                        const res = await fetch('/college/hod/api/assign-role', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ id, email, role, subject })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert(data.message);
+                        }
+                    } catch (err) {
+                        alert('Connection error');
+                    }
+                });
+            }
+
+            const assignForm = document.getElementById('assignForm');
+            if(assignForm) {
+                assignForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target);
+                    const body = Object.fromEntries(formData.entries());
+
+                    try {
+                        const res = await fetch('/college/hod/api/assign-sections', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(body)
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert(data.message);
+                        }
+                    } catch (err) {
+                        alert('Connection error');
+                    }
+                });
+            }
+        });
+
+        function confirmVerify(id) {
+            if (confirm('Verify this faculty member?')) {
+                verifyFaculty(id);
+            }
+        }
+
+        async function verifyFaculty(id) {
+            try {
+                const res = await fetch('/college/hod/api/verify-faculty', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error verifying faculty: ' + data.message);
+                }
+            } catch (err) {
+                alert('Error connecting to server');
+            }
+        }
+
+        async function deleteFaculty(id) {
+            if (!confirm('Are you sure you want to remove this faculty member? This action cannot be undone.')) return;
+            try {
+                const res = await fetch('/college/hod/api/delete-faculty', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error deleting faculty: ' + data.message);
+                }
+            } catch (err) {
+                alert('Connection error');
+            }
+        }
+
+        // Edit Faculty Form Submission
+        const editForm = document.getElementById('editFacultyForm');
+        if (editForm) {
+            editForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const id = document.getElementById('editFacultyId').value;
+                const fullName = document.getElementById('editFacultyName').value;
+                const email = document.getElementById('editFacultyEmail').value;
+                const joiningDate = document.getElementById('editFacultyJoiningDate').value;
+
+                try {
+                    const res = await fetch('/college/hod/api/update-faculty', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id, fullName, email, joiningDate })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error updating faculty: ' + data.message);
+                    }
+                } catch (err) {
+                    alert('Connection error');
+                }
+            });
+        }
+
+        // UI Helpers
+        if(document.getElementById('closeEditFacultyModal')) {
+            document.getElementById('closeEditFacultyModal').onclick = () => {
+                document.getElementById('editFacultyModal').classList.add('hidden');
+            };
+        }
+        if(document.getElementById('cancelEditFaculty')) {
+            document.getElementById('cancelEditFaculty').onclick = () => {
+                document.getElementById('editFacultyModal').classList.add('hidden');
+            };
+        }
+    </script>
+    <!-- PROFILE OVERLAY -->
+    <div id="profileOverlay"
+        class="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+        <div
+            class="w-[380px] bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden animate-[fadeIn_0.2s_ease-out]">
+            <div class="bg-gradient-to-br from-[#1E4A7A] to-[#153255] relative pt-12 pb-20 px-6 text-center">
+                <button id="closeProfileOverlay"
+                    class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white/90 transition-all flex items-center justify-center backdrop-blur-sm">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+
+                <div class="absolute left-1/2 bottom-[-48px] -translate-x-1/2">
+                    <div
+                        class="relative w-24 h-24 rounded-full p-1.5 bg-white dark:bg-gray-800 ring-4 ring-[#1E4A7A]/10 dark:ring-[#1E4A7A]/30">
+                        <div
+                            class="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold shadow-inner">
+                            <%= user.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2) %>
+                        </div>
+                        <div
+                            class="absolute bottom-0 right-0 w-6 h-6 bg-green-500 border-4 border-white dark:border-gray-800 rounded-full">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-16 pb-8 px-6">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-1"><%= user.fullName %></h2>
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3"><%= user.post || 'Head of Department' %></p>
+
+                    <div class="flex items-center justify-center gap-2 flex-wrap">
+                        <span
+                            class="px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-100 dark:border-blue-800">
+                            <%= user.department %> Dept
+                        </span>
+                        <span
+                            class="px-3 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border border-purple-100 dark:border-purple-800">
+                            HOD
+                        </span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div
+                        class="p-3 rounded-2xl bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700 text-center">
+                        <p class="text-xs text-gray-500 uppercase font-semibold">Faculty ID</p>
+                        <p class="text-sm font-bold text-gray-800 dark:text-gray-200">FAC-<%= user.id %></p>
+                    </div>
+                    <div
+                        class="p-3 rounded-2xl bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700 text-center">
+                        <p class="text-xs text-gray-500 uppercase font-semibold">Joined</p>
+                        <p class="text-sm font-bold text-gray-800 dark:text-gray-200"><%= user.joiningDate || 'Aug 2023' %></p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <button id="logoutBtn"
+                        class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group transition-all duration-200 border border-transparent hover:border-red-100 dark:hover:border-red-800">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center justify-center">
+                                <i class="fas fa-sign-out-alt text-sm"></i>
+                            </div>
+                            <span
+                                class="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-red-600 dark:group-hover:text-red-400">Logout</span>
+                        </div>
+                        <i
+                            class="fas fa-chevron-right text-xs text-gray-400 group-hover:text-red-500 dark:group-hover:text-red-400"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/Hod/index1_logic.js"></script>
+</body>
+
+</html>

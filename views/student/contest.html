@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CampusCode - Contests</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: { sans: ["Poppins", "sans-serif"] },
+          colors: {
+            primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    .sidebar.collapsed .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
+    .sidebar.collapsed .nav-item i { margin-right: 0; font-size: 1.25rem; }
+    .sidebar.collapsed .nav-item span, .sidebar.collapsed .bottom-menu span { display: none; }
+    .sidebar.collapsed .bottom-menu .nav-item { justify-content: center; }
+    .nav-item { transition: all .2s ease; position: relative; display: flex; align-items: center; padding: .75rem 1rem; margin-bottom: .25rem; color: #374151; border-radius: .5rem; white-space: nowrap; cursor: pointer; }
+    .dark .nav-item { color: #d1d5db; }
+    .nav-item:hover { background-color: #f3f4f6; }
+    .dark .nav-item:hover { background-color: #374151; }
+    .nav-item.active { background-color: #d0e1f5; color: #1e4a7a; }
+    .dark .nav-item.active { background-color: #1e4a7a; color: #fff; }
+    .nav-item.active::before { content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 60%; width: 4px; background: #2e5e99; border-radius: 0 4px 4px 0; }
+    .dark .nav-item.active::before { background-color: #60a5fa; }
+    .nav-item i { width: 1.5rem; text-align: center; margin-right: .75rem; font-size: 1.1rem; flex-shrink: 0; }
+    .nav-item span { font-size: .875rem; font-weight: 500; }
+    .sidebar { transition: width .3s cubic-bezier(.4, 0, .2, 1); }
+    .tab-button.active { border-color: #2e5e99; color: #1e4a7a; }
+    .dark .tab-button.active { border-color: #60a5fa; color: #93c5fd; }
+  </style>
+</head>
+<body class="bg-primary-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200">
+  <div class="flex h-screen overflow-hidden">
+    <aside id="mainSidebar" class="sidebar w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen flex-shrink-0 transition-colors duration-200 z-50">
+            <div class="p-6 flex-shrink-0 flex items-center justify-between h-[88px]">
+                <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2 overflow-hidden whitespace-nowrap">
+                    <i class="fas fa-code text-primary-500 text-2xl flex-shrink-0"></i>
+                    <span id="sidebarLogoText" class="transition-all duration-300 opacity-100 w-auto">CampusCode</span>
+                </h1>
+                <button id="sidebarToggleBtn" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary-500 transition-colors focus:outline-none">
+                    <i class="fas fa-chevron-left transition-transform duration-300"></i>
+                </button>
+            </div>
+
+            <nav class="flex-1 px-4 space-y-1 overflow-y-auto mt-2">
+                <a href="/student/dashboard" class="nav-item "><i class="fas fa-home"></i><span>Home</span></a>
+                <a href="/student/problems" class="nav-item"><i class="fas fa-tasks"></i><span>Problems</span></a>
+                <a href="/student/contests" class="nav-item active"><i class="fas fa-trophy"></i><span>Contests</span></a>
+                <a href="/forum/forum.html" class="nav-item"><i class="fas fa-comments"></i><span>Community</span></a>
+                <a href="/student/stats" class="nav-item"><i class="fas fa-list"></i><span>Stats</span></a>
+                <a href="/student/report" class="nav-item"><i class="fas fa-chart-pie"></i><span>Report</span></a>
+                <a href="/student/profile" class="nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+            </nav>
+
+            <div class="p-4 space-y-1 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0 bottom-menu">
+                <a href="/student/support" class="nav-item"><i class="far fa-question-circle"></i><span>Help & Support</span></a>
+                <a href="/student/settings" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+            </div>
+        </aside>
+
+    <div class="flex-1 overflow-y-auto">
+      <header class="bg-white dark:bg-gray-800 shadow-sm transition-colors duration-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+          <div class="flex-1 max-w-2xl ml-4 flex items-center gap-4">
+            <h1 id="headerLogoText" class="text-xl font-bold text-gray-800 dark:text-white hidden transition-all duration-300 opacity-0 transform -translate-x-2 whitespace-nowrap">CampusCode</h1>
+            <div class="relative flex items-center w-full">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fas fa-search text-gray-400"></i></div>
+              <input id="headerSearchInput" type="text" class="block w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all" placeholder="Search contests, classes..." />
+            </div>
+          </div>
+          <div class="ml-4 flex items-center gap-3">
+            <span class="text-sm text-gray-500 dark:text-gray-300 hidden md:inline">Class <span id="studentClassBadge" class="font-semibold text-primary-500">-</span></span>
+            <button id="themeToggleBtn" class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none transition-transform active:scale-95">
+              <i id="themeIcon" class="fas fa-moon text-xl"></i>
+            </button>
+            <div class="relative">
+              <button id="notificationBtn" class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none">
+                <i class="fas fa-bell text-xl"></i>
+                <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-800"></span>
+              </button>
+            </div>
+            <button id="headerProfileBtn" class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              <div id="headerAvatar" class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm"><%= (user.username || 'ST').slice(0,2).toUpperCase() %></div>
+              <span id="headerName" class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block"><%= user.fullName %></span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-primary-100 dark:border-gray-700">
+            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">Eligible Class</p>
+            <p id="eligibleClass" class="text-2xl font-bold text-primary-600 dark:text-blue-300">-</p>
+          </div>
+          <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-primary-100 dark:border-gray-700">
+            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">Available Contests</p>
+            <p id="availableCount" class="text-2xl font-bold text-primary-600 dark:text-blue-300">0</p>
+          </div>
+          <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-primary-100 dark:border-gray-700">
+            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">Can Join Now</p>
+            <p id="joinableCount" class="text-2xl font-bold text-green-600 dark:text-green-300">0</p>
+          </div>
+        </div>
+
+        <div class="border-b border-primary-200 dark:border-gray-700 mb-6">
+          <nav class="-mb-px flex space-x-8">
+            <button id="upcomingTab" class="tab-button active border-b-2 py-3 text-sm font-medium">Upcoming</button>
+            <button id="pastTab" class="tab-button border-b-2 border-transparent py-3 text-sm font-medium text-gray-500 dark:text-gray-300">Past</button>
+          </nav>
+        </div>
+
+        <div class="mb-5 flex flex-col sm:flex-row gap-3">
+          <input id="searchBox" type="text" class="w-full sm:max-w-md border border-primary-200 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 dark:text-white" placeholder="Search contests..." />
+          <select id="classFilter" class="border border-primary-200 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 dark:text-white">
+            <option value="">All Classes</option>
+            <option value="E">E</option>
+            <option value="D">D</option>
+            <option value="C">C</option>
+            <option value="B">B</option>
+            <option value="A">A</option>
+            <option value="S">S</option>
+          </select>
+        </div>
+
+        <div id="contestList" class="space-y-4"></div>
+      </main>
+    </div>
+  </div>
+
+  <div id="notificationDropdown" class="fixed top-16 right-6 z-50 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 hidden">
+    <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+      <h3 class="font-semibold text-gray-800 dark:text-white">Notifications</h3>
+      <span class="text-xs text-primary-500 cursor-pointer hover:underline">Mark all read</span>
+    </div>
+    <div class="p-2">
+      <div class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer">
+        <p class="text-sm text-gray-800 dark:text-gray-200 font-medium">Contest Reminder</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400">Check upcoming contests and join before deadline.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="profileOverlay" class="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+    <div class="w-[340px] bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden">
+      <div class="bg-[#1E4A7A] dark:bg-[#0f2a4a] relative pt-8 pb-16 px-6 text-center">
+        <button id="closeProfileOverlay" class="absolute top-4 right-4 text-white/70 hover:text-white"><i class="fas fa-times text-lg"></i></button>
+        <div class="absolute left-1/2 bottom-[-45px] -translate-x-1/2">
+          <div class="w-24 h-24 rounded-full bg-[#1E4A7A] p-1">
+            <div class="w-full h-full rounded-full bg-[#1E4A7A] flex items-center justify-center text-white text-4xl font-normal border-4 border-white dark:border-gray-800"><%= (user.username || 'S').charAt(0).toUpperCase() %></div>
+          </div>
+        </div>
+      </div>
+      <div class="pt-14 pb-6 px-6 text-center">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white"><%= user.fullName %></h2>
+        <div class="flex flex-col items-center mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <span class="flex items-center gap-1"><i class="fas fa-users text-xs"></i> <%= user.college %></span>
+          <span><%= user.email %></span>
+        </div>
+        <div class="flex justify-between mt-6 px-2">
+          <div class="text-center">
+            <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Solved</div>
+            <div class="text-xl font-bold text-gray-900 dark:text-white mt-1"><%= user.problems_solved %></div>
+          </div>
+          <div class="text-center border-l border-r border-gray-100 dark:border-gray-700 px-4">
+            <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Rank</div>
+            <div class="text-xl font-bold text-gray-900 dark:text-white mt-1"><%= user.global_rank %></div>
+          </div>
+          <div class="text-center">
+            <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Points</div>
+            <div class="text-xl font-bold text-gray-900 dark:text-white mt-1"><%= user.xp %></div>
+          </div>
+        </div>
+        <div class="h-px bg-gray-100 dark:bg-gray-700 my-6"></div>
+        <div class="space-y-1">
+          <a href="/student/profile" class="nav-item"><i class="fas fa-id-card"></i><span>My Profile</span></a>
+          <a href="/student/profile" class="nav-item"><i class="fas fa-pen"></i><span>Edit Profile</span></a>
+          <a href="/student/report" class="nav-item"><i class="fas fa-chart-pie"></i><span>Report</span></a>
+          <a href="/student/stats" class="nav-item"><i class="fas fa-list"></i><span>Stats</span></a>
+          <a href="/auth/logout" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
+            <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center"><i class="fas fa-sign-out-alt"></i></div>
+            <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+    function toggleTheme() {
+      const root = document.documentElement;
+      root.classList.toggle('dark');
+      localStorage.theme = root.classList.contains('dark') ? 'dark' : 'light';
+      const icon = document.getElementById('themeIcon');
+      if (icon) icon.className = root.classList.contains('dark') ? 'fas fa-sun text-xl' : 'fas fa-moon text-xl';
+    }
+    const themeIcon = document.getElementById('themeIcon');
+    if (themeIcon && document.documentElement.classList.contains('dark')) themeIcon.className = 'fas fa-sun text-xl';
+    const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+    const mainSidebar = document.getElementById('mainSidebar');
+    const sidebarLogoText = document.getElementById('sidebarLogoText');
+    if (sidebarToggleBtn && mainSidebar) {
+      sidebarToggleBtn.addEventListener('click', () => {
+        const toggleIcon = sidebarToggleBtn.querySelector('i');
+        mainSidebar.classList.toggle('collapsed');
+        if (mainSidebar.classList.contains('collapsed')) {
+          mainSidebar.classList.replace('w-64', 'w-20');
+          if (toggleIcon) toggleIcon.style.transform = 'rotate(180deg)';
+          if (sidebarLogoText) {
+            sidebarLogoText.style.opacity = '0';
+            sidebarLogoText.style.width = '0px';
+          }
+        } else {
+          mainSidebar.classList.replace('w-20', 'w-64');
+          if (toggleIcon) toggleIcon.style.transform = 'rotate(0deg)';
+          if (sidebarLogoText) {
+            sidebarLogoText.style.opacity = '1';
+            sidebarLogoText.style.width = 'auto';
+          }
+        }
+      });
+    }
+
+    const state = { contests: [], activeTab: 'upcoming', studentClass: '<%= user.rank_class || "E" %>' };
+    const byId = (id) => document.getElementById(id);
+    byId('themeToggleBtn')?.addEventListener('click', toggleTheme);
+    byId('headerSearchInput')?.addEventListener('input', (e) => {
+      byId('searchBox').value = e.target.value;
+      render();
+    });
+
+    const notificationBtn = byId('notificationBtn');
+    const notificationDropdown = byId('notificationDropdown');
+    if (notificationBtn && notificationDropdown) {
+      notificationBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        notificationDropdown.classList.toggle('hidden');
+      });
+      document.addEventListener('click', (event) => {
+        if (!notificationDropdown.contains(event.target) && !notificationBtn.contains(event.target)) {
+          notificationDropdown.classList.add('hidden');
+        }
+      });
+    }
+
+    const profileOverlay = byId('profileOverlay');
+    const headerProfileBtn = byId('headerProfileBtn');
+    const closeProfileOverlayBtn = byId('closeProfileOverlay');
+    if (profileOverlay && headerProfileBtn && closeProfileOverlayBtn) {
+      headerProfileBtn.addEventListener('click', () => profileOverlay.classList.remove('hidden'));
+      closeProfileOverlayBtn.addEventListener('click', () => profileOverlay.classList.add('hidden'));
+      profileOverlay.addEventListener('click', (event) => {
+        if (event.target === profileOverlay) profileOverlay.classList.add('hidden');
+      });
+    }
+
+    function parseDate(value) {
+      if (!value) return null;
+      const d = new Date(value);
+      return Number.isNaN(d.getTime()) ? null : d;
+    }
+
+    function getContestStatus(contest) {
+      const now = new Date();
+      const start = parseDate(contest.startDate || contest.date);
+      const end = parseDate(contest.endDate || contest.deadline);
+      if (end && end < now) return 'past';
+      if (start && start > now) return 'upcoming';
+      return 'upcoming';
+    }
+
+    function humanDate(value) {
+      const d = parseDate(value);
+      return d ? d.toLocaleString() : 'TBA';
+    }
+
+    function buildCard(contest) {
+      const status = getContestStatus(contest);
+      const statusBadge = status === 'past'
+        ? '<span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">Completed</span>'
+        : '<span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">Upcoming</span>';
+      const joinButton = contest.can_join
+        ? `<a href="/student/contests/${contest.id}" class="inline-block text-center bg-primary-500 hover:bg-primary-600 text-white px-5 py-2 rounded-lg font-medium transition-colors">View Details</a>`
+        : `<button disabled class="inline-block text-center bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-5 py-2 rounded-lg font-medium cursor-not-allowed">Locked</button>`;
+      const restriction = contest.can_join ? '' : `<p class="text-xs text-red-500 mt-2">${contest.join_restriction || ''}</p>`;
+      return `
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-primary-100 dark:border-gray-700">
+          <div class="p-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div class="flex-1">
+                <div class="flex items-center gap-3">${statusBadge}<span class="text-xs font-semibold px-2 py-1 rounded bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-200">Class ${contest.contest_class || 'E'}</span></div>
+                <h2 class="text-xl font-bold text-primary-600 dark:text-white mt-2">${contest.title || 'Untitled Contest'}</h2>
+                <p class="text-primary-500 dark:text-gray-400 mt-1">${contest.description || contest.rulesAndDescription || 'No description available.'}</p>
+                <div class="mt-3 text-sm text-primary-600 dark:text-blue-300 flex flex-wrap gap-4">
+                  <span><i class="far fa-calendar-alt mr-1"></i> ${humanDate(contest.startDate || contest.date)}</span>
+                  <span><i class="far fa-clock mr-1"></i> ${contest.duration || 'TBA'}</span>
+                  <span><i class="fas fa-gift mr-1"></i> ${contest.prize || 'No prize specified'}</span>
+                </div>
+              </div>
+              <div class="md:text-right">${joinButton}${restriction}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function render() {
+      const q = byId('searchBox').value.trim().toLowerCase();
+      const classFilter = byId('classFilter').value;
+      const filtered = state.contests.filter(c => {
+        const status = getContestStatus(c);
+        if (state.activeTab === 'upcoming' && status !== 'upcoming') return false;
+        if (state.activeTab === 'past' && status !== 'past') return false;
+        if (classFilter && (c.contest_class || 'E') !== classFilter) return false;
+        const text = `${c.title || ''} ${c.description || ''}`.toLowerCase();
+        return !q || text.includes(q);
+      });
+
+      byId('contestList').innerHTML = filtered.length
+        ? filtered.map(buildCard).join('')
+        : `<div class="bg-white dark:bg-gray-800 rounded-xl border border-primary-100 dark:border-gray-700 p-8 text-center text-gray-500 dark:text-gray-300">No contests found.</div>`;
+    }
+
+    async function loadContests() {
+      const res = await fetch('/student/api/contests');
+      const payload = await res.json();
+      if (!payload.success) throw new Error(payload.error || 'Failed to load contests');
+      state.contests = payload.contests || [];
+      const studentClass = state.contests[0]?.student_rank_class || state.studentClass || 'E';
+      byId('studentClassBadge').textContent = studentClass;
+      byId('eligibleClass').textContent = `${studentClass} (and one class above)`;
+      byId('availableCount').textContent = String(state.contests.length);
+      byId('joinableCount').textContent = String(state.contests.filter(c => c.can_join).length);
+      render();
+    }
+
+    byId('upcomingTab').addEventListener('click', () => {
+      state.activeTab = 'upcoming';
+      byId('upcomingTab').classList.add('active');
+      byId('pastTab').classList.remove('active');
+      render();
+    });
+    byId('pastTab').addEventListener('click', () => {
+      state.activeTab = 'past';
+      byId('pastTab').classList.add('active');
+      byId('upcomingTab').classList.remove('active');
+      render();
+    });
+    byId('searchBox').addEventListener('input', render);
+    byId('classFilter').addEventListener('change', render);
+
+    loadContests().catch((e) => {
+      byId('contestList').innerHTML = `<div class="bg-white dark:bg-gray-800 rounded-xl border border-red-200 dark:border-red-700 p-6 text-red-600 dark:text-red-300">${e.message}</div>`;
+    });
+  </script>
+</body>
+</html>

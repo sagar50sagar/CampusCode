@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CampusCode - Contest Details</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: { sans: ["Poppins", "sans-serif"] },
+          colors: {
+            primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" }
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-primary-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200">
+  <div class="min-h-screen">
+    <header class="bg-white dark:bg-gray-800 shadow-sm transition-colors duration-200 sticky top-0 z-40">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+        <div class="flex-1 max-w-2xl ml-4 flex items-center gap-4">
+          <h1 id="headerLogoText" class="text-xl font-bold text-gray-800 dark:text-white hidden transition-all duration-300 opacity-0 transform -translate-x-2 whitespace-nowrap">CampusCode</h1>
+          <div class="relative flex items-center w-full">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fas fa-search text-gray-400"></i></div>
+            <input type="text" class="block w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all" placeholder="Search contest details..." />
+          </div>
+        </div>
+        <div class="ml-4 flex items-center gap-3">
+          <button id="themeToggleBtn" class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none transition-transform active:scale-95">
+            <i id="themeIcon" class="fas fa-moon text-xl"></i>
+          </button>
+          <div class="relative">
+            <button id="notificationBtn" class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none">
+              <i class="fas fa-bell text-xl"></i>
+              <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-800"></span>
+            </button>
+          </div>
+          <button id="headerProfileBtn" class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+            <div class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm"><%= (user.username || 'ST').slice(0,2).toUpperCase() %></div>
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block"><%= user.fullName %></span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <a href="/student/contests" class="inline-flex items-center text-sm text-primary-600 hover:text-primary-700 dark:text-blue-300 mb-4">
+        <i class="fas fa-arrow-left mr-2"></i> Back to Contests
+      </a>
+      <div id="content"></div>
+    </div>
+  </div>
+
+  <div id="notificationDropdown" class="fixed top-16 right-6 z-50 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 hidden">
+    <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+      <h3 class="font-semibold text-gray-800 dark:text-white">Notifications</h3>
+      <span class="text-xs text-primary-500 cursor-pointer hover:underline">Mark all read</span>
+    </div>
+    <div class="p-2">
+      <div class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer">
+        <p class="text-sm text-gray-800 dark:text-gray-200 font-medium">Contest Reminder</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400">Check start time and guidelines before joining.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="profileOverlay" class="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+    <div class="w-[340px] bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden">
+      <div class="bg-[#1E4A7A] dark:bg-[#0f2a4a] relative pt-8 pb-16 px-6 text-center">
+        <button id="closeProfileOverlay" class="absolute top-4 right-4 text-white/70 hover:text-white"><i class="fas fa-times text-lg"></i></button>
+        <div class="absolute left-1/2 bottom-[-45px] -translate-x-1/2">
+          <div class="w-24 h-24 rounded-full bg-[#1E4A7A] p-1">
+            <div class="w-full h-full rounded-full bg-[#1E4A7A] flex items-center justify-center text-white text-4xl font-normal border-4 border-white dark:border-gray-800"><%= (user.username || 'S').charAt(0).toUpperCase() %></div>
+          </div>
+        </div>
+      </div>
+      <div class="pt-14 pb-6 px-6 text-center">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white"><%= user.fullName %></h2>
+        <div class="flex flex-col items-center mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <span class="flex items-center gap-1"><i class="fas fa-users text-xs"></i> <%= user.college %></span>
+          <span><%= user.email %></span>
+        </div>
+        <div class="flex justify-between mt-6 px-2">
+          <div class="text-center">
+            <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Solved</div>
+            <div class="text-xl font-bold text-gray-900 dark:text-white mt-1"><%= user.problems_solved %></div>
+          </div>
+          <div class="text-center border-l border-r border-gray-100 dark:border-gray-700 px-4">
+            <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Rank</div>
+            <div class="text-xl font-bold text-gray-900 dark:text-white mt-1"><%= user.global_rank %></div>
+          </div>
+          <div class="text-center">
+            <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Points</div>
+            <div class="text-xl font-bold text-gray-900 dark:text-white mt-1"><%= user.xp %></div>
+          </div>
+        </div>
+        <div class="h-px bg-gray-100 dark:bg-gray-700 my-6"></div>
+        <div class="space-y-1">
+          <a href="/student/profile" class="nav-item"><i class="fas fa-id-card"></i><span>My Profile</span></a>
+          <a href="/student/profile" class="nav-item"><i class="fas fa-pen"></i><span>Edit Profile</span></a>
+          <a href="/student/report" class="nav-item"><i class="fas fa-chart-pie"></i><span>Report</span></a>
+          <a href="/student/stats" class="nav-item"><i class="fas fa-list"></i><span>Stats</span></a>
+          <a href="/auth/logout" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
+            <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center"><i class="fas fa-sign-out-alt"></i></div>
+            <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+      const themeIcon = document.getElementById('themeIcon');
+      if (themeIcon && document.documentElement.classList.contains('dark')) themeIcon.className = 'fas fa-sun text-xl';
+    })();
+    document.getElementById('themeToggleBtn')?.addEventListener('click', () => {
+      const root = document.documentElement;
+      root.classList.toggle('dark');
+      localStorage.theme = root.classList.contains('dark') ? 'dark' : 'light';
+      const themeIcon = document.getElementById('themeIcon');
+      if (themeIcon) themeIcon.className = root.classList.contains('dark') ? 'fas fa-sun text-xl' : 'fas fa-moon text-xl';
+    });
+    const notificationBtn = document.getElementById('notificationBtn');
+    const notificationDropdown = document.getElementById('notificationDropdown');
+    if (notificationBtn && notificationDropdown) {
+      notificationBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        notificationDropdown.classList.toggle('hidden');
+      });
+      document.addEventListener('click', (event) => {
+        if (!notificationDropdown.contains(event.target) && !notificationBtn.contains(event.target)) notificationDropdown.classList.add('hidden');
+      });
+    }
+    const profileOverlay = document.getElementById('profileOverlay');
+    const headerProfileBtn = document.getElementById('headerProfileBtn');
+    const closeProfileOverlayBtn = document.getElementById('closeProfileOverlay');
+    if (profileOverlay && headerProfileBtn && closeProfileOverlayBtn) {
+      headerProfileBtn.addEventListener('click', () => profileOverlay.classList.remove('hidden'));
+      closeProfileOverlayBtn.addEventListener('click', () => profileOverlay.classList.add('hidden'));
+      profileOverlay.addEventListener('click', (event) => {
+        if (event.target === profileOverlay) profileOverlay.classList.add('hidden');
+      });
+    }
+
+    const contestId = <%= Number(contestId || 0) %>;
+    const content = document.getElementById('content');
+
+    function parseDate(value) {
+      if (!value) return null;
+      const d = new Date(value);
+      return Number.isNaN(d.getTime()) ? null : d;
+    }
+
+    function formatDate(value) {
+      const d = parseDate(value);
+      return d ? d.toLocaleString() : 'TBA';
+    }
+
+    function statusBadge(contest) {
+      const now = new Date();
+      const start = parseDate(contest.startDate || contest.date);
+      const end = parseDate(contest.endDate || contest.deadline);
+      if (end && end < now) return '<span class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">Completed</span>';
+      if (start && start > now) return '<span class="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">Upcoming</span>';
+      return '<span class="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300">Live</span>';
+    }
+
+    function renderContest(contest, leaderboard = []) {
+      const problems = Array.isArray(contest.problems) ? contest.problems : [];
+      const lockText = contest.can_join ? '' : `<p class="text-sm text-red-500 mt-3">${contest.join_restriction || 'You are not eligible for this contest.'}</p>`;
+      const joinButton = !contest.can_join
+        ? `<button disabled class="w-full bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-semibold py-3 rounded-lg cursor-not-allowed">Not Eligible</button>`
+        : contest.joined
+          ? `<button disabled class="w-full bg-green-600 text-white font-semibold py-3 rounded-lg cursor-not-allowed"><i class="fas fa-check mr-2"></i>Joined</button>`
+          : `<button onclick="joinContest()" class="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-3 rounded-lg transition-colors">Join Contest</button>`;
+      const leaderboardMarkup = leaderboard.length
+        ? leaderboard.slice(0, 10).map((entry) => `
+            <li class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-0">
+              <span class="text-sm text-gray-700 dark:text-gray-200">${entry.rank}. ${entry.fullName}</span>
+              <span class="text-xs font-semibold text-primary-600 dark:text-primary-200">${entry.score} pts</span>
+            </li>
+          `).join('')
+        : '<li class="text-sm text-gray-500 dark:text-gray-400">No submissions yet.</li>';
+      content.innerHTML = `
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-primary-100 dark:border-gray-700 p-6 md:p-8 mb-6">
+          <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2 mb-2">
+                ${statusBadge(contest)}
+                <span class="px-3 py-1 rounded-full text-xs font-semibold bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-200">Class ${contest.contest_class || 'E'}</span>
+              </div>
+              <h1 class="text-3xl font-bold text-gray-900 dark:text-white">${contest.title || 'Untitled Contest'}</h1>
+              <p class="text-gray-600 dark:text-gray-300 mt-2">${contest.description || contest.rulesAndDescription || 'No description available.'}</p>
+              ${lockText}
+            </div>
+            <div class="bg-primary-50 dark:bg-gray-700/60 rounded-xl p-4 min-w-[180px] border border-primary-100 dark:border-gray-600">
+              <p class="text-xs text-gray-500 dark:text-gray-300 uppercase mb-1">Hosted By</p>
+              <p class="text-sm font-semibold text-gray-800 dark:text-white">${contest.creatorName || 'CampusCode'}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Your Class: <span class="font-semibold">${contest.student_rank_class || 'E'}</span></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-primary-100 dark:border-gray-700 p-6">
+              <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Contest Details</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div><p class="text-gray-500 dark:text-gray-400">Start</p><p class="font-semibold text-gray-800 dark:text-gray-200">${formatDate(contest.startDate || contest.date)}</p></div>
+                <div><p class="text-gray-500 dark:text-gray-400">End</p><p class="font-semibold text-gray-800 dark:text-gray-200">${formatDate(contest.endDate || contest.deadline)}</p></div>
+                <div><p class="text-gray-500 dark:text-gray-400">Duration</p><p class="font-semibold text-gray-800 dark:text-gray-200">${contest.duration || 'TBA'}</p></div>
+                <div><p class="text-gray-500 dark:text-gray-400">Prize</p><p class="font-semibold text-gray-800 dark:text-gray-200">${contest.prize || 'Not specified'}</p></div>
+              </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-primary-100 dark:border-gray-700 p-6">
+              <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3">Guidelines</h3>
+              <p class="text-gray-600 dark:text-gray-300 whitespace-pre-line">${contest.guidelines || contest.rulesAndDescription || 'No guidelines provided.'}</p>
+            </div>
+          </div>
+
+          <aside class="space-y-6">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-primary-100 dark:border-gray-700 p-6">
+              <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3">Problems</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">${problems.length} problem(s) configured</p>
+              <ul class="space-y-2 text-sm">
+                ${problems.length ? problems.map((p, idx) => `
+                  <li class="px-3 py-2 rounded bg-gray-50 dark:bg-gray-700/40 text-gray-700 dark:text-gray-200">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="font-medium">Problem ${idx + 1}: ${p.title || `Problem #${p.id}`}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${p.difficulty || 'Easy'} • ${p.points || 0} XP</p>
+                      </div>
+                      ${contest.joined
+                        ? `<a href="/student/problem/${p.id}?contestId=${contest.id}" class="shrink-0 px-3 py-1.5 rounded-md bg-primary-500 hover:bg-primary-600 text-white text-xs font-semibold">${p.solved ? 'Re-solve' : 'Solve'}</a>`
+                        : `<span class="shrink-0 px-3 py-1.5 rounded-md bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-200 text-xs font-semibold">Join first</span>`}
+                    </div>
+                  </li>
+                `).join('') : '<li class="text-gray-500 dark:text-gray-400">Problem list will appear here.</li>'}
+              </ul>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-primary-100 dark:border-gray-700 p-6">
+              ${joinButton}
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-primary-100 dark:border-gray-700 p-6">
+              <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3">Leaderboard</h3>
+              <ul class="space-y-0">
+                ${leaderboardMarkup}
+              </ul>
+            </div>
+          </aside>
+        </div>
+      `;
+    }
+
+    async function joinContest() {
+      const res = await fetch(`/student/api/contests/${contestId}/join`, { method: 'POST' });
+      const payload = await res.json();
+      if (!payload.success) throw new Error(payload.error || 'Failed to join contest.');
+      await loadContest();
+    }
+
+    async function loadContest() {
+      if (!contestId) {
+        content.innerHTML = '<div class="bg-white dark:bg-gray-800 rounded-xl border border-red-200 dark:border-red-700 p-6 text-red-600 dark:text-red-300">Invalid contest id.</div>';
+        return;
+      }
+      const res = await fetch(`/student/api/contests/${contestId}`);
+      const payload = await res.json();
+      if (!payload.success || !payload.contest) throw new Error(payload.error || 'Contest not found');
+      renderContest(payload.contest, payload.leaderboard || []);
+    }
+
+    loadContest().catch((e) => {
+      content.innerHTML = `<div class="bg-white dark:bg-gray-800 rounded-xl border border-red-200 dark:border-red-700 p-6 text-red-600 dark:text-red-300">${e.message}</div>`;
+    });
+  </script>
+</body>
+</html>

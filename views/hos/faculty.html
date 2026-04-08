@@ -1,0 +1,600 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Contests - HOS Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/js/index1_logic.js"></script>
+    <link rel="stylesheet" href="/css/shared.css">
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ["Poppins", "sans-serif"] }, colors: { primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" }, dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" } } } } };
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    /* Global Sidebar Collapse overrides */
+    .sidebar.collapsed {
+        width: 5rem !important; /* w-20 equivalent */
+    }
+    .sidebar.collapsed nav a, .sidebar.collapsed .p-4 a {
+        justify-content: center !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        width: 100% !important;
+    }
+    .sidebar.collapsed nav a span, .sidebar.collapsed .p-4 a span {
+        display: none !important;
+    }
+    .sidebar.collapsed nav a i, .sidebar.collapsed .p-4 a i {
+        margin-right: 0 !important;
+        font-size: 1.25rem !important;
+    }
+    .sidebar.collapsed #sidebarLogoText {
+        display: none !important;
+    }
+</style>
+    <script src="/js/hos/theme.js"></script>
+</head>
+
+<body
+    class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200 text-gray-800 dark:text-gray-200">
+    <div class="flex h-screen overflow-hidden">
+        <%- include('partials/sidebar.html', { currentPage: currentPage }) %>
+        <div class="flex-1 overflow-y-auto">
+            <header class="bg-white dark:bg-gray-800 shadow-sm transition-colors duration-200 sticky top-0 z-20">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-white ml-2">Faculty Management</h2>
+                    <div class="ml-4 flex items-center gap-3">
+                        <button id="themeToggleBtn"
+                            class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100 focus:outline-none transition-transform active:scale-95"><i
+                                class="fas fa-moon text-xl"></i></button>
+                        <div class="relative">
+                            <button id="notificationBtn"
+                                class="p-2 rounded-full text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-100 focus:outline-none transition-colors">
+                                <i class="fas fa-bell text-xl"></i>
+                                <span
+                                    class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-800"></span>
+                            </button>
+                        </div>
+                        <button id="headerProfileBtn"
+                            class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <div
+                                class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm">
+                                <%= user.fullName.split(' ').map(n => n[0]).join('') %></div>
+                        </button>
+                    </div>
+                </div>
+            </header>
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 relative">
+                <!-- SECTION: FACULTY MANAGEMENT (NEW) -->
+                <div id="section-manage-faculty" class="content-section">
+
+                    <!-- Stats Overview -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div
+                            class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4 hover:shadow-md transition-shadow">
+                            <div
+                                class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                                <i class="fas fa-chalkboard-teacher text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Faculty</p>
+                                <h3 id="totalFacultyCount" class="text-2xl font-bold text-gray-800 dark:text-white"><%= (typeof facultySummary !== 'undefined' && facultySummary && facultySummary.totalFaculty) || (faculty || []).length || 0 %></h3>
+                            </div>
+                        </div>
+                        <div
+                            class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4 hover:shadow-md transition-shadow">
+                            <div
+                                class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
+                                <i class="fas fa-building text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Sections</p>
+                                <h3 id="totalSectionsCount" class="text-2xl font-bold text-gray-800 dark:text-white"><%= (typeof facultySummary !== 'undefined' && facultySummary && facultySummary.sectionsCount) || 0 %></h3>
+                            </div>
+                        </div>
+                        <div
+                            class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4 hover:shadow-md transition-shadow">
+                            <div
+                                class="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
+                                <i class="fas fa-flask text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Active Contest</p>
+                                <h3 id="activeContestCount" class="text-2xl font-bold text-gray-800 dark:text-white"><%= (typeof facultySummary !== 'undefined' && facultySummary && facultySummary.activeContestCount) || 0 %></h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+                        <!-- Header & Filters -->
+                        <div
+                            class="p-6 border-b border-gray-100 dark:border-gray-700 flex flex-col md:flex-row justify-between items-center gap-4 bg-gray-50/50 dark:bg-gray-700/20">
+                            <div class="relative w-full md:w-72">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-search text-gray-400"></i>
+                                </div>
+                                <input id="facultySearchInput" type="text"
+                                    class="block w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 transition-shadow"
+                                    placeholder="Search by name, email, or dept...">
+                            </div>
+
+                            <div class="w-full md:w-auto">
+                                <select id="facultySubjectFilter"
+                                    class="w-full md:w-auto rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 transition-shadow outline-none cursor-pointer">
+                                    <option value="All Subjects">All Subjects</option>
+                                    <% if (typeof subjects !== 'undefined') { %>
+                                        <% subjects.forEach(subject => { %>
+                                            <option value="<%= subject %>"><%= subject %></option>
+                                        <% }) %>
+                                    <% } %>
+                                </select>
+                            </div>
+
+                            <div class="flex items-center gap-3 w-full md:w-auto">
+                                <button id="btn-export-faculty"
+                                    class="group p-2.5 rounded-xl border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-600 dark:text-gray-300 transition-colors"
+                                    title="Export Data">
+                                    <i
+                                        class="fas fa-download group-hover:text-primary-600 dark:group-hover:text-primary-400"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Enhanced Faculty Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead
+                                    class="bg-gray-50/80 dark:bg-gray-700/50 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-semibold">
+                                    <tr>
+                                        <th class="px-6 py-4 rounded-tl-lg">Faculty Member</th>
+                                        <th class="px-6 py-4">Domain & Role</th>
+                                        <th class="px-6 py-4 text-right rounded-tr-lg">Status & Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="facultyTableBody">
+                                    <% if (typeof faculty !== 'undefined' && (faculty || []).length > 0) { %>
+                                        <% (faculty || []).forEach(fac => { %>
+                                            <tr class="group hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors" data-subjects="<%= (fac.teaching_subjects || '').toLowerCase() %>" data-search="<%= `${fac.fullName || ''} ${fac.email || ''} ${fac.department || ''}`.toLowerCase() %>">
+                                                <td class="px-6 py-4">
+                                                    <div class="flex items-center gap-4">
+                                                        <div
+                                                            class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 flex items-center justify-center text-blue-600 dark:text-blue-300 font-bold text-sm shadow-sm">
+                                                            <%= fac.fullName ? fac.fullName.split(' ').map(n => n?.[0]).join('').substring(0,2).toUpperCase() : 'F' %>
+                                                        </div>
+                                                        <div>
+                                                            <span
+                                                                class="faculty-name-trigger block text-sm font-semibold text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 cursor-pointer transition-colors"
+                                                                data-faculty-id="<%= fac.id %>" data-name="<%= fac.fullName %>"
+                                                                data-email="<%= fac.email %>" data-dept="<%= fac.department %>"
+                                                                data-role="<%= fac.post %>" data-joined="<%= fac.joiningDate || 'N/A' %>">
+                                                                <%= fac.fullName %>
+                                                            </span>
+                                                            <span class="text-xs text-gray-500 dark:text-gray-400"><%= fac.email %></span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <div class="flex flex-col items-start gap-1">
+                                                        <span
+                                                            class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide <%= fac.post && fac.post.toLowerCase() === 'hos' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30' : (fac.post && fac.post.toLowerCase().includes('assistant') ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300') %> border <%= fac.post && fac.post.toLowerCase() === 'hos' ? 'border-purple-200 dark:border-purple-800' : (fac.post && fac.post.toLowerCase().includes('assistant') ? 'border-blue-200 dark:border-blue-800' : 'border-gray-200 dark:border-gray-600') %>">
+                                                            <%= fac.post || 'HOS' %>
+                                                        </span>
+                                                        <span class="text-xs text-gray-600 dark:text-gray-300"><%= fac.department || 'N/A' %></span>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <div class="flex items-center justify-end gap-2">
+                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium <%= fac.status === 'active' || fac.status === 'Active' ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 border border-green-100 dark:border-green-800' : 'bg-gray-50 text-gray-700 dark:bg-gray-700/20 dark:text-gray-400 border border-gray-100 dark:border-gray-800' %>">
+                                                            <span class="flex h-1.5 w-1.5 rounded-full <%= fac.status === 'active' || fac.status === 'Active' ? 'bg-green-500' : 'bg-gray-500' %>"></span>
+                                                            <%= fac.status ? fac.status.charAt(0).toUpperCase() + fac.status.slice(1) : 'Inactive' %>
+                                                        </span>
+                                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-semibold">
+                                                            <i class="fas fa-file-code text-xs"></i>
+                                                            <%= fac.problems_created || 0 %>
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <% }) %>
+                                    <% } else { %>
+                                        <tr>
+                                            <td colspan="4" class="py-12 text-center text-gray-500 dark:text-gray-400">
+                                                <div class="flex flex-col items-center justify-center">
+                                                    <i class="fas fa-chalkboard-teacher text-gray-300 dark:text-gray-600 text-4xl mb-3"></i>
+                                                    <p class="mb-2">No faculty found.</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+    <div id="exportPreviewModal"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+        <div
+            class="bg-white dark:bg-gray-800 w-[95%] h-[90%] max-w-7xl rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-[fadeIn_0.2s_ease-out]">
+            <!-- Modal Header -->
+            <div
+                class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-700/30">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-white">Export Faculty Report</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Customize your report before downloading</p>
+                </div>
+                <button id="closeExportModal"
+                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="flex-1 flex overflow-hidden">
+                <!-- Left Sidebar: Column Selection -->
+                <aside
+                    class="w-64 bg-gray-50 dark:bg-gray-800/50 border-r border-gray-200 dark:border-gray-700 p-5 overflow-y-auto">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Columns
+                        </h3>
+                        <button id="selectAllColumns"
+                            class="text-xs text-primary-600 hover:underline font-medium">Select All</button>
+                    </div>
+
+                    <div class="space-y-3" id="columnSelectionList">
+                        <!-- Checkboxes will be injected by JS -->
+                        <!-- Example Structure -->
+                        <!-- 
+                        <label class="flex items-center space-x-3 cursor-pointer group">
+                            <input type="checkbox" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500 transition-all">
+                            <span class="text-sm text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">Full Name</span>
+                        </label> 
+                        -->
+                    </div>
+                </aside>
+
+                <!-- Main Preview Area -->
+                <main class="flex-1 flex flex-col min-w-0 bg-white dark:bg-gray-800">
+                    <!-- Filters Toolbar -->
+                    <div
+                        class="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+
+                        <!-- Search -->
+                        <div class="w-full sm:w-auto flex-1 min-w-[200px] max-w-xs">
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-search text-gray-400"></i>
+                                </div>
+                                <input type="text" id="exportSearchInput"
+                                    class="block w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 placeholder-gray-500"
+                                    placeholder="Search Name/ID...">
+                            </div>
+                        </div>
+
+                        <!-- Filters & Sort -->
+                        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+
+                            <!-- Year Filter -->
+                            <select id="exportFilterYear"
+                                class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-2 pl-3 pr-8 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
+                                <option value="all">Year: All</option>
+                                <!-- Populated by JS -->
+                            </select>
+
+                            <!-- Section Filter -->
+                            <select id="exportFilterSection"
+                                class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-2 pl-3 pr-8 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
+                                <option value="all">Sec: All</option>
+                                <!-- Populated by JS -->
+                            </select>
+
+                            <!-- Subject Filter -->
+                            <select id="exportFilterSubject"
+                                class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-2 pl-3 pr-8 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 max-w-[150px]">
+                                <option value="all">Sub: All</option>
+                                <!-- Populated by JS -->
+                            </select>
+
+                            <div class="h-6 w-px bg-gray-300 dark:bg-gray-700 mx-1 hidden sm:block"></div>
+
+                            <!-- Sort -->
+                            <select id="exportSortSelect"
+                                class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-2 pl-3 pr-8 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
+                                <option value="name_asc">Name (A-Z)</option>
+                                <option value="name_desc">Name (Z-A)</option>
+                                <option value="date_new">Join Date (Newest)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Table Preview -->
+                    <div class="flex-1 overflow-auto p-4 bg-gray-50/50 dark:bg-gray-900/10">
+                        <div
+                            class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 inline-block min-w-full align-middle">
+                            <table class="min-w-full text-left text-sm" id="exportPreviewTable">
+                                <thead
+                                    class="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-semibold uppercase tracking-wider text-xs sticky top-0 z-10">
+                                    <tr id="exportTableHeadRow">
+                                        <!-- Headers injected by JS -->
+                                    </tr>
+                                </thead>
+                                <tbody id="exportTableBody" class="divide-y divide-gray-200 dark:divide-gray-700">
+                                    <!-- Rows injected by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Preview Status Bar -->
+                    <div
+                        class="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-500 flex justify-between">
+                        <span id="previewCount">Showing 0 records</span>
+                        <span>Previewing first 50 rows only</span>
+                    </div>
+                </main>
+            </div>
+
+            <!-- Modal Footer -->
+            <div
+                class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex justify-between items-center">
+                <div class="text-sm text-gray-500 italic">
+                    <i class="fas fa-info-circle mr-1"></i> Data selected here will be included in the report.
+                </div>
+                <div class="flex gap-3">
+                    <button id="btnFinalDownloadPDF"
+                        class="flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors shadow-sm">
+                        <i class="fas fa-print mr-2"></i> Print Report
+                    </button>
+                    <button id="btnFinalDownloadExcel"
+                        class="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors shadow-sm">
+                        <i class="fas fa-file-excel mr-2"></i> Download Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- PROFILE OVERLAY -->
+        <div id="profileOverlay" class="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+        <div class="w-[380px] bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden animate-[fadeIn_0.2s_ease-out]">
+            <div class="bg-gradient-to-br from-[#1E4A7A] to-[#153255] relative pt-12 pb-20 px-6 text-center">
+                <button id="closeProfileOverlay" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white/90 transition-all flex items-center justify-center backdrop-blur-sm">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+
+                <div class="absolute left-1/2 bottom-[-48px] -translate-x-1/2">
+                    <div class="relative w-24 h-24 rounded-full p-1.5 bg-white dark:bg-gray-800 ring-4 ring-[#1E4A7A]/10 dark:ring-[#1E4A7A]/30">
+                        <div class="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold shadow-inner">
+                            <%= user.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2) %>
+                        </div>
+                        <div class="absolute bottom-0 right-0 w-6 h-6 bg-green-500 border-4 border-white dark:border-gray-800 rounded-full"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-16 pb-8 px-6">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-1"><%= user.fullName %></h2>
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3"><%= user.post || 'Faculty Member' %></p>
+
+                    <div class="flex items-center justify-center gap-2 flex-wrap">
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-100 dark:border-blue-800">
+                            <%= user.department || 'General' %> Dept
+                        </span>
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border border-purple-100 dark:border-purple-800">
+                            <%= user.role ? user.role.toUpperCase() : 'FACULTY' %>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="p-3 rounded-2xl bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700 text-center">
+                        <p class="text-xs text-gray-500 uppercase font-semibold">Faculty ID</p>
+                        <p class="text-sm font-bold text-gray-800 dark:text-gray-200">FAC-<%= user.id %></p>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700 text-center">
+                        <p class="text-xs text-gray-500 uppercase font-semibold">Joined</p>
+                        <p class="text-sm font-bold text-gray-800 dark:text-gray-200"><%= user.joiningDate || 'Unknown' %></p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <button id="logoutBtn" class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group transition-all duration-200 border border-transparent hover:border-red-100 dark:hover:border-red-800">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center justify-center">
+                                <i class="fas fa-sign-out-alt text-sm"></i>
+                            </div>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-red-600 dark:group-hover:text-red-400">Logout</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-xs text-gray-400 group-hover:text-red-500 dark:group-hover:text-red-400"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION DROPDOWN -->
+    <div id="notificationDropdown"
+        class="fixed top-16 right-6 z-50 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 hidden animate-[fadeIn_0.1s_ease-out]">
+        <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+            <h3 class="font-semibold text-gray-800 dark:text-white">Recent Activity</h3>
+            <span class="text-xs text-primary-500 cursor-pointer hover:underline">Mark all read</span>
+        </div>
+        <div class="p-2">
+            <div class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer">
+                <p class="text-sm text-gray-800 dark:text-gray-200 font-medium">Contest Reminder</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Weekly contest starts in 1 hour.</p>
+            </div>
+            <div class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer">
+                <p class="text-sm text-gray-800 dark:text-gray-200 font-medium">New Student Joined</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Alex joined CS101.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- FACULTY HOVER TOOLTIP -->
+    <div id="facultyProfileTooltip"
+        class="absolute z-[60] bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 w-80 p-4 hidden pointer-events-none transition-opacity duration-200 opacity-0 transform scale-95 origin-top-left">
+        <div class="flex items-start gap-4">
+            <div
+                class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold shadow-md flex-shrink-0">
+                <span id="tooltipInitials">JG</span>
+            </div>
+            <div>
+                <h3 id="tooltipName" class="font-bold text-gray-900 dark:text-white text-lg leading-tight">Name</h3>
+                <p id="tooltipDesignation" class="text-xs text-primary-600 dark:text-primary-400 font-semibold mb-1">
+                    Professor</p>
+                <div class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                    <i class="fas fa-building w-3"></i>
+                    <span id="tooltipDept">Department</span>
+                </div>
+                <div class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                    <i class="fas fa-envelope w-3"></i>
+                    <span id="tooltipEmail">email@example.com</span>
+                </div>
+            </div>
+        </div>
+        <div class="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center">
+            <div class="text-center px-2">
+                <p class="text-[10px] uppercase text-gray-400 font-bold">Joined</p>
+                <p id="tooltipJoinDate" class="text-xs font-semibold text-gray-700 dark:text-gray-300">2020</p>
+            </div>
+            <div class="w-px h-6 bg-gray-100 dark:bg-gray-700"></div>
+            <div class="text-center px-2">
+                <p class="text-[10px] uppercase text-gray-400 font-bold">ID</p>
+                <p id="tooltipId" class="text-xs font-semibold text-gray-700 dark:text-gray-300">FAC-001</p>
+            </div>
+            <div class="w-px h-6 bg-gray-100 dark:bg-gray-700"></div>
+            <div class="text-center px-2">
+                <p class="text-[10px] uppercase text-gray-400 font-bold">Status</p>
+                <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUBJECT LIST TOOLTIP -->
+    <div id="subjectListTooltip"
+        class="absolute z-[60] bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-3 hidden pointer-events-none transition-opacity duration-200 opacity-0 transform scale-95">
+        <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Assigned Subjects
+        </h4>
+        <ul id="tooltipSubjectList" class="space-y-1.5">
+            <!-- Items injected via JS -->
+        </ul>
+    </div>
+
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Status</label>
+                        <select id="editFacultyStatus"
+                            class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
+                            <option value="Active">Active</option>
+                            <option value="On Leave">On Leave</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3">
+                    <button type="button" id="cancelEditFaculty"
+                        class="px-5 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">Cancel</button>
+                    <button type="submit"
+                        class="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors shadow-sm">Save
+                        Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/index1_logic.js"></script>
+    <script id="facultySummaryData" type="application/json"><%- JSON.stringify((typeof facultySummary !== 'undefined' && facultySummary) ? facultySummary : { totalFaculty: 0, sectionsCount: 0, activeContestCount: 0, facultyCountBySubject: {}, sectionsCountBySubject: {}, activeContestCountBySubject: {} }) %></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById('mainSidebar');
+            const toggleBtn = document.getElementById('sidebarToggleBtn');
+            const toggleIcon = toggleBtn ? toggleBtn.querySelector('i') : null;
+            const sidebarLogoText = document.getElementById('sidebarLogoText');
+            const headerLogoText = document.getElementById('headerLogoText');
+
+            if (toggleBtn && sidebar) {
+                toggleBtn.addEventListener('click', () => {
+                    sidebar.classList.toggle('collapsed');
+                    if (sidebar.classList.contains('collapsed')) {
+                        sidebar.classList.replace('w-64', 'w-20');
+                        if (toggleIcon) toggleIcon.style.transform = 'rotate(180deg)';
+                        if (sidebarLogoText) { sidebarLogoText.style.opacity = '0'; sidebarLogoText.style.width = '0px'; }
+                        if (headerLogoText) {
+                            headerLogoText.classList.remove('hidden');
+                            setTimeout(() => { headerLogoText.classList.remove('opacity-0', '-translate-x-2'); }, 50);
+                        }
+                    } else {
+                        sidebar.classList.replace('w-20', 'w-64');
+                        if (toggleIcon) toggleIcon.style.transform = 'rotate(0deg)';
+                        if (sidebarLogoText) { sidebarLogoText.style.opacity = '1'; sidebarLogoText.style.width = 'auto'; }
+                        if (headerLogoText) {
+                            headerLogoText.classList.add('opacity-0', '-translate-x-2');
+                            setTimeout(() => { headerLogoText.classList.add('hidden'); }, 300);
+                        }
+                    }
+                });
+            }
+
+            const summaryDataEl = document.getElementById('facultySummaryData');
+            const summaryData = summaryDataEl ? JSON.parse(summaryDataEl.textContent) : {
+                totalFaculty: 0,
+                sectionsCount: 0,
+                activeContestCount: 0,
+                facultyCountBySubject: {},
+                sectionsCountBySubject: {},
+                activeContestCountBySubject: {}
+            };
+            const subjectFilter = document.getElementById('facultySubjectFilter');
+            const searchInput = document.getElementById('facultySearchInput');
+            const totalFacultyCountEl = document.getElementById('totalFacultyCount');
+            const totalSectionsCountEl = document.getElementById('totalSectionsCount');
+            const activeContestCountEl = document.getElementById('activeContestCount');
+            const facultyRows = Array.from(document.querySelectorAll('#facultyTableBody tr[data-subjects]'));
+
+            function updateSummaryCards(selectedSubject) {
+                if (!totalFacultyCountEl || !totalSectionsCountEl || !activeContestCountEl) return;
+                if (!selectedSubject || selectedSubject === 'All Subjects') {
+                    totalFacultyCountEl.textContent = String(summaryData.totalFaculty || 0);
+                    totalSectionsCountEl.textContent = String(summaryData.sectionsCount || 0);
+                    activeContestCountEl.textContent = String(summaryData.activeContestCount || 0);
+                    return;
+                }
+                totalFacultyCountEl.textContent = String((summaryData.facultyCountBySubject || {})[selectedSubject] || 0);
+                totalSectionsCountEl.textContent = String((summaryData.sectionsCountBySubject || {})[selectedSubject] || 0);
+                activeContestCountEl.textContent = String((summaryData.activeContestCountBySubject || {})[selectedSubject] || 0);
+            }
+
+            function applyFacultyFilters() {
+                const selectedSubject = subjectFilter ? subjectFilter.value : 'All Subjects';
+                const query = (searchInput ? searchInput.value : '').trim().toLowerCase();
+                for (const row of facultyRows) {
+                    const rowSubjects = row.dataset.subjects || '';
+                    const rowSearch = row.dataset.search || '';
+                    const subjectMatch = selectedSubject === 'All Subjects' || rowSubjects.split(',').map((s) => s.trim()).includes(selectedSubject.toLowerCase());
+                    const queryMatch = !query || rowSearch.includes(query);
+                    row.style.display = subjectMatch && queryMatch ? '' : 'none';
+                }
+                updateSummaryCards(selectedSubject);
+            }
+
+            if (subjectFilter) subjectFilter.addEventListener('change', applyFacultyFilters);
+            if (searchInput) searchInput.addEventListener('input', applyFacultyFilters);
+            applyFacultyFilters();
+        });
+    </script>
+
+</body>
+
+</html>

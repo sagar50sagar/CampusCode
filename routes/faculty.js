@@ -1,10 +1,19 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
 const { requireRole } = require('../middleware/auth');
 const { checkScope } = require('../middleware/authMiddleware');
 
 module.exports = (db) => {
     const router = express.Router();
+    const hiddenTestsUpload = multer({
+        storage: multer.memoryStorage(),
+        limits: { fileSize: 2 * 1024 * 1024 }
+    }).fields([
+        { name: 'hidden_input_file', maxCount: 1 },
+        { name: 'hidden_output_file', maxCount: 1 }
+    ]);
 
     // ==========================================
     // HELPER: Build common template data
@@ -30,16 +39,29 @@ module.exports = (db) => {
         });
     });
 
+    function computeDurationFromRange(startDate, endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) {
+            return null;
+        }
+        const totalMinutes = Math.floor((end.getTime() - start.getTime()) / 60000);
+        if (totalMinutes < 60) return `${totalMinutes} mins`;
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
+    }
+
     router.get('/dashboard', requireRole(['faculty', 'hos', 'hod']), checkScope, async (req, res) => {
         const user = buildUser(req);
         
         try {
-            const studentCountRow = await getSingle(`SELECT COUNT(id) as count FROM users WHERE role = 'student' AND status = 'active' AND collegeName = ?`, [user.collegeName]);
+            const studentCountRow = await getSingle(`SELECT COUNT(id) as count FROM account_users WHERE role = 'student' AND status = 'active' AND collegeName = ?`, [user.collegeName]);
             const problemsCountRow = await getSingle(`SELECT COUNT(id) as count FROM problems WHERE faculty_id = ?`, [user.id]);
             const contestsCountRow = await getSingle(
                 `SELECT COUNT(c.id) as count 
                  FROM contests c 
-                 LEFT JOIN users u ON c.createdBy = u.id 
+                 LEFT JOIN account_users u ON c.createdBy = u.id 
                  WHERE (u.collegeName = ? AND c.status = 'accepted') OR (c.createdBy = ? AND c.status = 'accepted')`, 
                 [user.collegeName, user.id]
             );
@@ -60,7 +82,7 @@ module.exports = (db) => {
                 }
             } else {
                 // Faculty/HOS count from explicit assignments
-                const assignmentCountRow = await getSingle(`SELECT COUNT(DISTINCT subject) as count FROM user_assignments WHERE user_id = ?`, [user.id]);
+                const assignmentCountRow = await getSingle(`SELECT COUNT(DISTINCT subject) as count FROM faculty_assignments WHERE user_id = ?`, [user.id]);
                 subjectsTaught = assignmentCountRow ? assignmentCountRow.count : 0;
             }
             
@@ -97,15 +119,20 @@ module.exports = (db) => {
                 subjectsTaught: subjectsTaught
             };
 
-            res.render('faculty/dashboard', { user, stats, draftProblems, recentActivity, difficultySpread, currentPage: 'dashboard', pageTitle: 'Dashboard' });
+            const nowHour = new Date().getHours();
+            const greeting = nowHour < 12 ? 'Good morning' : (nowHour < 17 ? 'Good afternoon' : 'Good evening');
+            res.render('faculty/dashboard.html', { user, stats, draftProblems, recentActivity, difficultySpread, greeting, currentPage: 'dashboard', pageTitle: 'Dashboard' });
         } catch (error) {
             console.error("Dashboard DB Error:", error);
-            res.render('faculty/dashboard', { 
+            const nowHour = new Date().getHours();
+            const greeting = nowHour < 12 ? 'Good morning' : (nowHour < 17 ? 'Good afternoon' : 'Good evening');
+            res.render('faculty/dashboard.html', { 
                 user, 
                 stats: { problemsCreated: 0, activeContests: 0, totalStudents: 0, subjectsTaught: 0 }, 
                 draftProblems: [], 
                 recentActivity: [],
                 difficultySpread: [0, 0, 0],
+                greeting,
                 currentPage: 'dashboard',
                 pageTitle: 'Dashboard'
             });
@@ -119,17 +146,19 @@ module.exports = (db) => {
         const user = buildUser(req);
         // Fetch globally approved problems from the entire college, plus all problems belonging to this faculty
         db.all(
-            `SELECT p.* FROM problems p 
-             JOIN users u ON p.faculty_id = u.id 
-             WHERE (u.collegeName = ? AND p.status = 'accepted' AND LOWER(p.visibility_scope) = 'global') OR p.faculty_id = ? 
+            `SELECT p.*, u.fullName as facultyName, u.role as creatorRole FROM problems p 
+             LEFT JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id 
+             WHERE (u.collegeName = ? AND p.status = 'accepted' AND LOWER(p.visibility_scope) = 'global')
+                OR (p.status IN ('accepted', 'active') AND LOWER(p.visibility_scope) = 'global' AND LOWER(COALESCE(u.role, '')) IN ('superadmin', 'admin'))
+                OR p.faculty_id = ? 
              ORDER BY p.createdAt DESC`,
             [user.collegeName, user.id],
             (err, problems) => {
                 if (err) problems = [];
                 
-                db.all(`SELECT subject FROM user_assignments WHERE user_id = ?`, [user.id], (err, assignments) => {
+                db.all(`SELECT subject FROM faculty_assignments WHERE user_id = ?`, [user.id], (err, assignments) => {
                     const assignedSubjects = assignments ? assignments.map(a => a.subject) : [];
-                    res.render('faculty/problem', { 
+                    res.render('faculty/problem.html', { 
                         user, 
                         problems, 
                         assignedSubjects,
@@ -148,7 +177,7 @@ module.exports = (db) => {
         const user = buildUser(req);
         // Re-fetch isVerified from DB to avoid stale session data
         // (admin may have approved the faculty after they logged in)
-        db.get(`SELECT isVerified FROM users WHERE id = ?`, [user.id], (err, row) => {
+        db.get(`SELECT isVerified FROM account_users WHERE id = ?`, [user.id], (err, row) => {
             if (!err && row) {
                 const freshIsVerified = row.isVerified === 1 || row.isVerified === true;
                 // Sync the session so other pages also see the updated value
@@ -156,9 +185,9 @@ module.exports = (db) => {
                 user.isVerified = freshIsVerified;
             }
             
-            db.all(`SELECT subject FROM user_assignments WHERE user_id = ?`, [user.id], (err, assignments) => {
+            db.all(`SELECT subject FROM faculty_assignments WHERE user_id = ?`, [user.id], (err, assignments) => {
                 const assignedSubjects = assignments ? assignments.map(a => a.subject) : [];
-                res.render('faculty/create-problem', { 
+                res.render('faculty/create-problem.html', { 
                     user, 
                     currentPage: 'problem',
                     pageTitle: 'Create New Problem',
@@ -170,44 +199,91 @@ module.exports = (db) => {
     });
 
     router.post('/problem/create', requireRole(['faculty', 'hos', 'hod']), (req, res) => {
-        const user = buildUser(req);
-        let { title, subject, difficulty, input_format, output_format, constraints, sample_input, sample_output, hidden_test_cases, description, is_public, visibility_scope } = req.body;
-        
-        let isPublicVal = (is_public === 'on' || is_public === 'true' || is_public === '1') ? 1 : 0;
-        if (!user.isVerified) { isPublicVal = 0; }
-        
-        const scope = visibility_scope || 'global';
+        hiddenTestsUpload(req, res, (uploadErr) => {
+            if (uploadErr) {
+                return res.status(400).send(`Hidden testcase upload failed: ${uploadErr.message}`);
+            }
 
-        console.log("[Create Problem] created_by:", user.id, "| title:", title, "| isPublic:", isPublicVal, "| scope:", scope);
+            const user = buildUser(req);
+            let { title, subject, difficulty, input_format, output_format, constraints, sample_input, sample_output, hidden_test_cases, description, tags, visibility_scope } = req.body;
+            const files = req.files || {};
+            const inputFile = Array.isArray(files.hidden_input_file) ? files.hidden_input_file[0] : null;
+            const outputFile = Array.isArray(files.hidden_output_file) ? files.hidden_output_file[0] : null;
 
-        db.run(`INSERT INTO problems (title, description, subject, difficulty, input_format, output_format, constraints, sample_input, sample_output, hidden_test_cases, faculty_id, is_public, department, visibility_scope, status) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [title, description, subject, difficulty, input_format, output_format, constraints, sample_input, sample_output, hidden_test_cases, user.id, isPublicVal, user.department, scope, 'pending'],
-            function(err) {
-                if (err) {
-                    console.error("[Create Problem] DB Error:", err.message);
-                    return res.status(500).send("Database error while creating problem: " + err.message);
-                }
-                if (user.role === 'hod') {
-                    res.redirect('/college/hod/problem');
-                } else if (user.role === 'hos') {
-                    res.redirect('/hos/problem');
-                } else {
-                    res.redirect('/faculty/dashboard'); 
+            if ((inputFile && !outputFile) || (!inputFile && outputFile)) {
+                return res.status(400).send('Please upload both hidden testcase files: input.txt and output.txt');
+            }
+
+            if (inputFile && outputFile) {
+                const inputName = String(inputFile.originalname || '').trim().toLowerCase();
+                const outputName = String(outputFile.originalname || '').trim().toLowerCase();
+                if (inputName !== 'input.txt' || outputName !== 'output.txt') {
+                    return res.status(400).send('Hidden testcase files must be named exactly: input.txt and output.txt');
                 }
             }
-        );
+
+            const scope = visibility_scope || 'global';
+            const autoApproved = user.role === 'hos' || user.role === 'hod';
+            const status = autoApproved ? 'accepted' : 'pending';
+            const isPublicVal = autoApproved ? 1 : 0;
+            const hosVerified = user.role === 'hos' ? 1 : 0;
+            const hodVerified = user.role === 'hod' ? 1 : 0;
+            const approvedBy = autoApproved ? user.id : null;
+            const approvedAt = autoApproved ? new Date().toISOString() : null;
+
+            console.log("[Create Problem] created_by:", user.id, "| title:", title, "| status:", status, "| scope:", scope);
+
+            db.run(`INSERT INTO problems (title, description, subject, difficulty, input_format, output_format, constraints, sample_input, sample_output, hidden_test_cases, faculty_id, is_public, department, visibility_scope, status, tags, created_by, hos_verified, hod_verified, approved_by, approved_at) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [title, description, subject, difficulty, input_format || '', output_format || '', constraints || '', sample_input || '', sample_output || '', hidden_test_cases || '', user.id, isPublicVal, user.department, scope, status, tags || '', user.id, hosVerified, hodVerified, approvedBy, approvedAt],
+                function(err) {
+                    if (err) {
+                        console.error("[Create Problem] DB Error:", err.message);
+                        return res.status(500).send("Database error while creating problem: " + err.message);
+                    }
+
+                    const problemId = this.lastID;
+                    const finalizeRedirect = () => {
+                        if (user.role === 'hod') return res.redirect('/college/hod/problem');
+                        if (user.role === 'hos') return res.redirect('/hos/problem');
+                        return res.redirect('/faculty/dashboard');
+                    };
+
+                    if (!inputFile || !outputFile) {
+                        return finalizeRedirect();
+                    }
+
+                    try {
+                        const tcDir = path.join(__dirname, '..', 'public', 'uploads', 'testcases', String(problemId));
+                        fs.mkdirSync(tcDir, { recursive: true });
+                        fs.writeFileSync(path.join(tcDir, 'input1.txt'), inputFile.buffer);
+                        fs.writeFileSync(path.join(tcDir, 'output1.txt'), outputFile.buffer);
+                    } catch (fileErr) {
+                        console.error('[Create Problem] hidden testcase file write error:', fileErr.message);
+                        return res.status(500).send('Problem created, but failed to save hidden testcase files.');
+                    }
+
+                    const pairJson = JSON.stringify([{ input: 'input1.txt', output: 'output1.txt' }]);
+                    db.run(`UPDATE problems SET hidden_test_cases = ? WHERE id = ?`, [pairJson, problemId], (updateErr) => {
+                        if (updateErr) {
+                            console.error('[Create Problem] hidden testcase metadata update error:', updateErr.message);
+                            return res.status(500).send('Problem created, but failed to link hidden testcase metadata.');
+                        }
+                        finalizeRedirect();
+                    });
+                }
+            );
+        });
     });
 
     // ==========================================
     // VIEW PROBLEM
     // ==========================================
     router.get('/problem/view/:id', requireRole(['faculty', 'hos', 'hod']), checkScope, (req, res) => {
-        const user = buildUser(req);
-        db.get(`SELECT * FROM problems WHERE id = ? AND faculty_id = ?`, [req.params.id, user.id], (err, problem) => {
-            if (err || !problem) return res.status(404).send("Problem not found.");
-            res.render('faculty/view-problem', { user, problem, currentPage: 'problem', pageTitle: 'Problem Details' });
-        });
+        const problemId = Number(req.params.id);
+        if (!Number.isInteger(problemId) || problemId <= 0) return res.status(400).send("Invalid problem id.");
+        // Unified IDE/problem page used across roles
+        return res.redirect(`/student/problem/${problemId}`);
     });
 
     // ==========================================
@@ -217,20 +293,20 @@ module.exports = (db) => {
         const user = buildUser(req);
         db.get(`SELECT * FROM problems WHERE id = ? AND faculty_id = ?`, [req.params.id, user.id], (err, problem) => {
             if (err || !problem) return res.status(404).send("Problem not found.");
-            res.render('faculty/edit-problem', { user, problem, currentPage: 'problem', pageTitle: 'Edit Problem' });
+            res.render('faculty/edit-problem.html', { user, problem, currentPage: 'problem', pageTitle: 'Edit Problem' });
         });
     });
 
     router.post('/problem/edit/:id', requireRole(['faculty', 'hos', 'hod']), (req, res) => {
         const user = buildUser(req);
         const problemId = req.params.id;
-        let { title, subject, difficulty, input_format, output_format, constraints, sample_input, sample_output, hidden_test_cases, description, is_public } = req.body;
+        let { title, subject, difficulty, input_format, output_format, constraints, sample_input, sample_output, hidden_test_cases, description, tags, is_public } = req.body;
         
         let isPublicVal = (is_public === 'on' || is_public === 'true' || is_public === '1') ? 1 : 0;
         if (!user.isVerified) { isPublicVal = 0; }
 
-        db.run(`UPDATE problems SET title = ?, description = ?, subject = ?, difficulty = ?, input_format = ?, output_format = ?, constraints = ?, sample_input = ?, sample_output = ?, hidden_test_cases = ?, is_public = ? WHERE id = ? AND faculty_id = ?`,
-            [title, description, subject, difficulty, input_format, output_format, constraints, sample_input, sample_output, hidden_test_cases, isPublicVal, problemId, user.id],
+        db.run(`UPDATE problems SET title = ?, description = ?, subject = ?, difficulty = ?, input_format = ?, output_format = ?, constraints = ?, sample_input = ?, sample_output = ?, hidden_test_cases = ?, tags = ?, is_public = ? WHERE id = ? AND faculty_id = ?`,
+            [title, description, subject, difficulty, input_format, output_format, constraints, sample_input, sample_output, hidden_test_cases, tags || '', isPublicVal, problemId, user.id],
             function(err) {
                 if (err) {
                     console.error("[Edit Problem] DB Error:", err.message);
@@ -259,14 +335,21 @@ module.exports = (db) => {
 
     router.post('/contest/create', requireRole(['faculty', 'hos', 'hod']), (req, res) => {
         const user = buildUser(req);
-        const { title, startDate, endDate, subject, year, section, visibility_scope } = req.body;
-        
-        const status = 'pending';
-        const isVerified = 0;
-        const scope = visibility_scope || 'global';
+        const { title, startDate, endDate, subject, year, section, visibility_scope, registrationEndDate, deadline, description, rulesAndDescription, guidelines, problems, eligibility } = req.body;
+        const computedDuration = computeDurationFromRange(startDate, endDate);
+        if (!computedDuration) return res.status(400).send('End time must be after start time.');
 
-        db.run(`INSERT INTO contests (title, createdBy, status, isVerified, startDate, endDate, department, subject, visibility_scope) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [title, user.id, status, isVerified, startDate, endDate, user.department, subject, scope],
+        const creatorRole = String(user.role || '').toLowerCase();
+        const hosVerified = creatorRole === 'hos' || creatorRole === 'hod' ? 1 : 0;
+        const hodVerified = creatorRole === 'hod' ? 1 : 0;
+        const isAutoApproved = creatorRole === 'hod';
+        const status = isAutoApproved ? 'accepted' : 'pending';
+        const isVerified = isAutoApproved ? 1 : 0;
+        const scope = visibility_scope || 'college';
+        const regDeadline = registrationEndDate || deadline || null;
+
+        db.run(`INSERT INTO contests (title, createdBy, created_by, status, isVerified, startDate, endDate, registrationEndDate, deadline, duration, department, subject, visibility_scope, scope, level, collegeName, description, rulesAndDescription, guidelines, problems, eligibility, hos_verified, hod_verified, approved_by, approved_at, is_live, live_mode, live_user_ids, live_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [title, user.id, user.id, status, isVerified, startDate, endDate, regDeadline, regDeadline, computedDuration, user.department, subject || '', scope, 'college', 'college', user.collegeName || '', description || null, rulesAndDescription || null, guidelines || '', JSON.stringify(problems || []), eligibility || null, hosVerified, hodVerified, isAutoApproved ? user.id : null, isAutoApproved ? new Date().toISOString() : null, 0, 'manual_hold', '[]', null],
             function(err) {
                 if (err) {
                     console.error("[Create Contest] DB Error:", err.message);
@@ -287,11 +370,44 @@ module.exports = (db) => {
     // ==========================================
     router.get('/student', requireRole(['faculty', 'hos', 'hod']), checkScope, async (req, res) => {
         const user = buildUser(req);
-        let query = `SELECT id, fullName, email, role, status, points, solvedCount, rank, year, section FROM users WHERE role = 'student' AND status = 'active' AND collegeName = ?`;
+        let query = `
+            SELECT
+                u.id,
+                u.fullName,
+                u.email,
+                u.role,
+                u.status,
+                u.points,
+                u.solvedCount,
+                u.rank,
+                u.year,
+                u.section,
+                (
+                    SELECT COUNT(*)
+                    FROM contest_participants cp
+                    WHERE cp.user_id = u.id
+                ) AS contestCount,
+                (
+                    SELECT s.language
+                    FROM submissions s
+                    WHERE s.user_id = u.id
+                      AND COALESCE(s.language, '') <> ''
+                    ORDER BY datetime(s.createdAt) DESC, s.id DESC
+                    LIMIT 1
+                ) AS language,
+                (
+                    SELECT COUNT(*) + 1
+                    FROM account_users u2
+                    WHERE u2.role = 'student'
+                      AND COALESCE(u2.points, 0) > COALESCE(u.points, 0)
+                ) AS globalRank
+            FROM account_users u
+            WHERE u.role = 'student' AND u.status = 'active' AND u.collegeName = ?
+        `;
         let params = [user.collegeName];
 
         if (user.role === 'hod') {
-            query += ` AND department = ?`;
+            query += ` AND u.department = ?`;
             params.push(user.department);
         }
 
@@ -299,10 +415,10 @@ module.exports = (db) => {
 
         try {
             const students = await runQuery(query, params);
-            res.render('faculty/student', { user, students, currentPage: 'student', pageTitle: 'Students' });
+            res.render('faculty/student.html', { user, students, currentPage: 'student', pageTitle: 'Students' });
         } catch (err) {
             console.error("Student Fetch Error:", err);
-            res.render('faculty/student', { user, students: [], currentPage: 'student', pageTitle: 'Students' });
+            res.render('faculty/student.html', { user, students: [], currentPage: 'student', pageTitle: 'Students' });
         }
     });
 
@@ -311,7 +427,98 @@ module.exports = (db) => {
     // ==========================================
     router.get('/community', requireRole(['faculty', 'hos', 'hod']), checkScope, (req, res) => {
         const user = buildUser(req);
-        res.render('faculty/community', { user, currentPage: 'community', pageTitle: 'Community' });
+        res.render('faculty/community.html', { user, currentPage: 'community', pageTitle: 'Community' });
+    });
+
+    // ==========================================
+    // PROFILE
+    // ==========================================
+    router.get('/profile', requireRole(['faculty', 'hos', 'hod']), checkScope, async (req, res) => {
+        const user = buildUser(req);
+        try {
+            const [studentsRow, problemsRow, contestsRow, subjectsRow, submissionStatsRow, distinctSubmittingStudentsRow, solvedProblemsRow] = await Promise.all([
+                getSingle(`SELECT COUNT(*) as count FROM account_users WHERE role = 'student' AND collegeName = ?`, [user.collegeName]),
+                getSingle(`SELECT COUNT(*) as count FROM problems WHERE faculty_id = ?`, [user.id]),
+                getSingle(`SELECT COUNT(*) as count FROM contests WHERE createdBy = ?`, [user.id]),
+                getSingle(`SELECT COUNT(DISTINCT subject) as count FROM faculty_assignments WHERE user_id = ?`, [user.id]),
+                getSingle(
+                    `SELECT COUNT(*) as totalSubmissions,
+                            SUM(CASE WHEN LOWER(COALESCE(s.status, '')) IN ('accepted','ac') THEN 1 ELSE 0 END) as acceptedSubmissions
+                     FROM submissions s
+                     JOIN problems p ON p.id = s.problem_id
+                     WHERE p.faculty_id = ?`,
+                    [user.id]
+                ),
+                getSingle(
+                    `SELECT COUNT(DISTINCT s.user_id) as count
+                     FROM submissions s
+                     JOIN problems p ON p.id = s.problem_id
+                     WHERE p.faculty_id = ?`,
+                    [user.id]
+                ),
+                getSingle(
+                    `SELECT COUNT(DISTINCT p.id) as count
+                     FROM problems p
+                     JOIN submissions s ON s.problem_id = p.id
+                     WHERE p.faculty_id = ?
+                       AND LOWER(COALESCE(s.status, '')) IN ('accepted','ac')`,
+                    [user.id]
+                )
+            ]);
+
+            const profileStats = {
+                students: Number(studentsRow?.count || 0),
+                problems: Number(problemsRow?.count || 0),
+                activeStudents: Number(distinctSubmittingStudentsRow?.count || 0),
+                contests: Number(contestsRow?.count || 0)
+            };
+
+            const totalSubmissions = Number(submissionStatsRow?.totalSubmissions || 0);
+            const acceptedSubmissions = Number(submissionStatsRow?.acceptedSubmissions || 0);
+            const submittingStudents = Number(distinctSubmittingStudentsRow?.count || 0);
+            const solvedProblems = Number(solvedProblemsRow?.count || 0);
+            const activeContests = await getSingle(
+                `SELECT COUNT(*) as count
+                 FROM contests
+                 WHERE createdBy = ?
+                   AND (
+                     LOWER(COALESCE(status, '')) IN ('active','ongoing','live')
+                     OR (startDate IS NOT NULL AND endDate IS NOT NULL AND datetime('now') BETWEEN datetime(startDate) AND datetime(endDate))
+                   )`,
+                [user.id]
+            );
+            const activeContestCount = Number(activeContests?.count || 0);
+
+            const toPercent = (value, maxValue) => {
+                if (!maxValue || maxValue <= 0) return 0;
+                return Math.max(0, Math.min(100, Math.round((value / maxValue) * 100)));
+            };
+
+            const profilePerformance = {
+                coverage: toPercent(submittingStudents, profileStats.students),
+                engagement: toPercent(totalSubmissions, Math.max(1, profileStats.students * 5)),
+                contests: toPercent(activeContestCount, profileStats.contests),
+                mentoring: toPercent(solvedProblems, profileStats.problems),
+                outcomes: toPercent(acceptedSubmissions, totalSubmissions)
+            };
+
+            res.render('faculty/profile.html', {
+                user,
+                currentPage: 'profile',
+                pageTitle: 'Profile',
+                profileStats,
+                profilePerformance
+            });
+        } catch (error) {
+            console.error('Faculty Profile Error:', error);
+            res.render('faculty/profile.html', {
+                user,
+                currentPage: 'profile',
+                pageTitle: 'Profile',
+                profileStats: { students: 0, problems: 0, activeStudents: 0, contests: 0 },
+                profilePerformance: { coverage: 0, engagement: 0, contests: 0, mentoring: 0, outcomes: 0 }
+            });
+        }
     });
 
     // ==========================================
@@ -319,7 +526,82 @@ module.exports = (db) => {
     // ==========================================
     router.get('/report', requireRole(['faculty', 'hos', 'hod']), checkScope, (req, res) => {
         const user = buildUser(req);
-        res.render('faculty/report', { user, currentPage: 'report', pageTitle: 'Reports' });
+        const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const now = new Date();
+        const labels = [];
+        const monthMap = [];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            labels.push(monthNames[d.getMonth()]);
+            monthMap.push(String(d.getMonth() + 1).padStart(2, '0'));
+        }
+
+        Promise.all([
+            runQuery(
+                `SELECT strftime('%m', s.createdAt) as month, COUNT(*) as count
+                 FROM submissions s
+                 JOIN problems p ON p.id = s.problem_id
+                 WHERE p.faculty_id = ?
+                 GROUP BY strftime('%m', s.createdAt)`,
+                [user.id]
+            ),
+            runQuery(
+                `SELECT difficulty, COUNT(*) as count
+                 FROM problems
+                 WHERE faculty_id = ?
+                 GROUP BY difficulty`,
+                [user.id]
+            ),
+            getSingle(`SELECT COUNT(*) as count FROM problems WHERE faculty_id = ?`, [user.id]),
+            getSingle(`SELECT COUNT(*) as count FROM contests WHERE createdBy = ?`, [user.id]),
+            getSingle(
+                `SELECT COUNT(DISTINCT s.user_id) as count
+                 FROM submissions s
+                 JOIN problems p ON p.id = s.problem_id
+                 WHERE p.faculty_id = ?`,
+                [user.id]
+            )
+        ]).then(([monthlyRows, difficultyRows, problemsRow, contestsRow, activeStudentsRow]) => {
+            const monthlyByMonth = {};
+            (monthlyRows || []).forEach(r => { monthlyByMonth[r.month] = Number(r.count || 0); });
+            const participationTrend = monthMap.map(m => monthlyByMonth[m] || 0);
+
+            let easy = 0, medium = 0, hard = 0;
+            (difficultyRows || []).forEach(r => {
+                if (String(r.difficulty || '').toLowerCase() === 'easy') easy = Number(r.count || 0);
+                if (String(r.difficulty || '').toLowerCase() === 'medium') medium = Number(r.count || 0);
+                if (String(r.difficulty || '').toLowerCase() === 'hard') hard = Number(r.count || 0);
+            });
+
+            res.render('faculty/report.html', {
+                user,
+                currentPage: 'report',
+                pageTitle: 'Reports',
+                reportData: {
+                    labels,
+                    participationTrend,
+                    difficulty: [easy, medium, hard],
+                    problems: Number(problemsRow?.count || 0),
+                    contests: Number(contestsRow?.count || 0),
+                    activeStudents: Number(activeStudentsRow?.count || 0)
+                }
+            });
+        }).catch((err) => {
+            console.error('Faculty Report Error:', err);
+            res.render('faculty/report.html', {
+                user,
+                currentPage: 'report',
+                pageTitle: 'Reports',
+                reportData: {
+                    labels,
+                    participationTrend: [0,0,0,0,0,0],
+                    difficulty: [0,0,0],
+                    problems: 0,
+                    contests: 0,
+                    activeStudents: 0
+                }
+            });
+        });
     });
 
     // ==========================================
@@ -327,7 +609,7 @@ module.exports = (db) => {
     // ==========================================
     router.get('/help', requireRole(['faculty', 'hos', 'hod']), checkScope, (req, res) => {
         const user = buildUser(req);
-        res.render('faculty/help', { user, currentPage: 'help', pageTitle: 'Help & Support' });
+        res.render('faculty/help.html', { user, currentPage: 'help', pageTitle: 'Help & Support' });
     });
 
     // ==========================================
@@ -335,17 +617,17 @@ module.exports = (db) => {
     // ==========================================
     router.get('/settings', requireRole(['faculty', 'hos', 'hod']), checkScope, (req, res) => {
         const userSession = buildUser(req);
-        db.get(`SELECT * FROM users WHERE id = ?`, [userSession.id], (err, row) => {
+        db.get(`SELECT * FROM account_users WHERE id = ?`, [userSession.id], (err, row) => {
             if (err || !row) return res.redirect('/auth/login');
             
             // Fetch subjects
-            db.all(`SELECT subject FROM user_assignments WHERE user_id = ?`, [userSession.id], (err, subjects) => {
+            db.all(`SELECT subject FROM faculty_assignments WHERE user_id = ?`, [userSession.id], (err, subjects) => {
                 // Template expects some mapped aliases
                 row.name = row.fullName;
                 row.college = row.collegeName;
                 row.assignedSubjects = subjects ? subjects.map(s => s.subject) : [];
                 
-                res.render('faculty/settings', { user: row, success: req.query.success === 'true', currentPage: 'settings', pageTitle: 'Settings' });
+                res.render('faculty/settings.html', { user: row, success: req.query.success === 'true', currentPage: 'settings', pageTitle: 'Settings' });
             });
         });
     });
@@ -354,7 +636,7 @@ module.exports = (db) => {
         const userSession = buildUser(req);
         const { name, email, gender, mobile } = req.body;
         
-        db.run(`UPDATE users SET fullName = ?, email = ?, gender = ?, mobile = ? WHERE id = ?`,
+        db.run(`UPDATE account_users SET fullName = ?, email = ?, gender = ?, mobile = ? WHERE id = ?`,
             [name, email, gender, mobile, userSession.id],
             function(err) {
                 if (err) {
@@ -374,7 +656,7 @@ module.exports = (db) => {
     // Fetch students belonging to the faculty's college / department
     router.get('/api/students', requireRole(['faculty', 'hos', 'hod']), (req, res) => {
         const user = req.session.user;
-        let query = `SELECT id, fullName, email FROM users WHERE role = 'student' AND status = 'active' AND collegeName = ?`;
+        let query = `SELECT id, fullName, email FROM account_users WHERE role = 'student' AND status = 'active' AND collegeName = ?`;
         let params = [user.collegeName];
 
         if (user.role === 'hod') {
@@ -397,9 +679,10 @@ module.exports = (db) => {
         const user = req.session.user;
         try {
             const contests = await runQuery(
-                `SELECT c.*, u.fullName as creatorName, u.role as creatorRole
+                `SELECT c.*, u.fullName as creatorName, u.role as creatorRole, ap.fullName as approverName
                  FROM contests c
-                 LEFT JOIN users u ON c.createdBy = u.id
+                 LEFT JOIN account_users u ON c.createdBy = u.id
+                 LEFT JOIN account_users ap ON c.approved_by = ap.id
                  WHERE (
                      c.status IN ('accepted', 'upcoming') AND 
                      (c.collegeName = ? OR u.collegeName = ?) AND
@@ -409,7 +692,7 @@ module.exports = (db) => {
                          c.department = ? OR
                          u.role IN ('admin', 'superadmin')
                      )
-                 ) OR c.createdBy = ?
+            ) OR c.createdBy = ? OR (c.status = 'accepted' AND LOWER(COALESCE(u.role, '')) IN ('superadmin', 'admin'))
                  ORDER BY c.startDate DESC`,
                 [user.collegeName, user.collegeName, user.department, user.id]
             );
@@ -417,8 +700,10 @@ module.exports = (db) => {
             const problems = await runQuery(
                 `SELECT p.id, p.title 
                  FROM problems p 
-                 JOIN users u ON p.faculty_id = u.id 
-                 WHERE p.faculty_id = ? OR (p.status = 'accepted' AND u.collegeName = ? AND LOWER(p.visibility_scope) = 'global')`,
+                 LEFT JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id 
+                 WHERE p.faculty_id = ? 
+                    OR (p.status = 'accepted' AND u.collegeName = ? AND LOWER(p.visibility_scope) = 'global')
+                    OR (p.status IN ('accepted', 'active') AND LOWER(COALESCE(u.role, '')) IN ('superadmin', 'admin') AND LOWER(p.visibility_scope) = 'global')`,
                 [user.id, user.collegeName]
             );
 
@@ -430,7 +715,7 @@ module.exports = (db) => {
                 c.registrationEndDate = c.registrationEndDate || '';
             });
 
-            res.render('faculty/contest', {
+            res.render('faculty/contest.html', {
                 user,
                 contests,
                 problems,
@@ -448,9 +733,10 @@ module.exports = (db) => {
         const user = req.session.user;
         try {
             const contests = await runQuery(
-                `SELECT c.*, u.fullName as creatorName, u.role as creatorRole
+                `SELECT c.*, u.fullName as creatorName, u.role as creatorRole, ap.fullName as approverName
                  FROM contests c
-                 LEFT JOIN users u ON c.createdBy = u.id
+                 LEFT JOIN account_users u ON c.createdBy = u.id
+                 LEFT JOIN account_users ap ON c.approved_by = ap.id
                  WHERE (
                      c.status IN ('accepted', 'upcoming') AND 
                      (c.collegeName = ? OR u.collegeName = ?) AND
@@ -460,7 +746,7 @@ module.exports = (db) => {
                          c.department = ? OR
                          u.role IN ('admin', 'superadmin')
                      )
-                 ) OR c.createdBy = ?
+            ) OR c.createdBy = ? OR (c.status = 'accepted' AND LOWER(COALESCE(u.role, '')) IN ('superadmin', 'admin'))
                  ORDER BY c.id DESC`,
                 [user.collegeName, user.collegeName, user.department, user.id]
             );
@@ -475,13 +761,26 @@ module.exports = (db) => {
 
     router.post('/api/create-contest', requireRole(['faculty', 'hos', 'hod']), checkScope, (req, res) => {
         const user = req.session.user;
-        const { title, startDate, endDate, registrationEndDate, duration, eligibility, description, problems } = req.body;
+        const { title, startDate, endDate, registrationEndDate, deadline, eligibility, description, rulesAndDescription, guidelines, problems, subject } = req.body;
         if (!title || !startDate || !endDate) return res.json({ success: false, message: 'Title, start date and end date are required.' });
+        const computedDuration = computeDurationFromRange(startDate, endDate);
+        if (!computedDuration) return res.json({ success: false, message: 'End time must be after start time.' });
+
+        const creatorRole = String(user.role || '').toLowerCase();
+        const hosVerified = creatorRole === 'hos' || creatorRole === 'hod' ? 1 : 0;
+        const hodVerified = creatorRole === 'hod' ? 1 : 0;
+        const isAutoApproved = creatorRole === 'hod';
+        const status = isAutoApproved ? 'accepted' : 'pending';
+        const approvedBy = isAutoApproved ? user.id : null;
+        const approvedAt = isAutoApproved ? new Date().toISOString() : null;
+        const visibilityScope = creatorRole === 'hod' ? 'college' : 'college';
+        const scope = creatorRole === 'hod' ? 'college' : 'college';
+        const level = creatorRole === 'hod' ? 'college' : 'college';
+
         db.run(
-            `INSERT INTO contests (title, startDate, endDate, registrationEndDate, duration, eligibility, description, problems, createdBy, collegeName, status)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'upcoming')`,
-            [title, startDate, endDate, registrationEndDate || null, duration || null, eligibility || null, description || null,
-             JSON.stringify(problems || []), user.id, user.collegeName],
+            `INSERT INTO contests (title, startDate, endDate, registrationEndDate, deadline, duration, eligibility, description, rulesAndDescription, guidelines, problems, createdBy, created_by, collegeName, department, subject, visibility_scope, scope, level, status, hos_verified, hod_verified, isVerified, approved_by, approved_at, is_live, live_mode, live_user_ids, live_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [title, startDate, endDate, registrationEndDate || deadline || null, registrationEndDate || deadline || null, computedDuration, eligibility || null, description || null, rulesAndDescription || null, guidelines || '', JSON.stringify(problems || []), user.id, user.id, user.collegeName, user.department || '', subject || '', visibilityScope, scope, level, status, hosVerified, hodVerified, isAutoApproved ? 1 : 0, approvedBy, approvedAt, 0, 'manual_hold', '[]', null],
             function(err) {
                 if (err) { console.error('Create Contest Error:', err); return res.json({ success: false, message: err.message }); }
                 res.json({ success: true, id: this.lastID });
@@ -491,12 +790,13 @@ module.exports = (db) => {
 
     router.post('/api/update-contest', requireRole(['faculty', 'hos', 'hod']), checkScope, (req, res) => {
         const user = req.session.user;
-        const { id, title, startDate, endDate, registrationEndDate, duration, eligibility, description, problems } = req.body;
+        const { id, title, startDate, endDate, registrationEndDate, deadline, eligibility, description, rulesAndDescription, guidelines, problems, subject } = req.body;
+        const computedDuration = computeDurationFromRange(startDate, endDate);
+        if (!computedDuration) return res.json({ success: false, message: 'End time must be after start time.' });
         db.run(
-            `UPDATE contests SET title=?, startDate=?, endDate=?, registrationEndDate=?, duration=?, eligibility=?, description=?, problems=?
+            `UPDATE contests SET title=?, startDate=?, endDate=?, registrationEndDate=?, deadline=?, duration=?, eligibility=?, description=?, rulesAndDescription=?, guidelines=?, problems=?, subject=?
              WHERE id=? AND createdBy=?`,
-            [title, startDate, endDate, registrationEndDate || null, duration || null, eligibility || null, description || null,
-             JSON.stringify(problems || []), id, user.id],
+            [title, startDate, endDate, registrationEndDate || deadline || null, registrationEndDate || deadline || null, computedDuration, eligibility || null, description || null, rulesAndDescription || null, guidelines || '', JSON.stringify(problems || []), subject || '', id, user.id],
             function(err) {
                 if (err) { console.error('Update Contest Error:', err); return res.json({ success: false, message: err.message }); }
                 if (this.changes === 0) return res.json({ success: false, message: 'Contest not found or not authorized.' });
@@ -513,6 +813,108 @@ module.exports = (db) => {
             if (this.changes === 0) return res.json({ success: false, message: 'Contest not found or not authorized.' });
             res.json({ success: true });
         });
+    });
+
+    router.post('/api/live-contest', requireRole(['faculty', 'hos', 'hod']), checkScope, async (req, res) => {
+        const user = req.session.user;
+        const contestId = Number(req.body?.id);
+        const action = String(req.body?.action || 'live').toLowerCase();
+        const liveMode = String(req.body?.liveMode || 'all_students').toLowerCase();
+        const requestedIds = Array.isArray(req.body?.selectedUserIds) ? req.body.selectedUserIds : [];
+
+        if (!Number.isInteger(contestId) || contestId <= 0) {
+            return res.status(400).json({ success: false, message: 'Invalid contest id.' });
+        }
+
+        const run = (query, params = []) => new Promise((resolve, reject) => {
+            db.run(query, params, function(err) {
+                if (err) return reject(err);
+                resolve(this);
+            });
+        });
+        const all = (query, params = []) => new Promise((resolve, reject) => {
+            db.all(query, params, (err, rows) => {
+                if (err) return reject(err);
+                resolve(rows || []);
+            });
+        });
+        const get = (query, params = []) => new Promise((resolve, reject) => {
+            db.get(query, params, (err, row) => {
+                if (err) return reject(err);
+                resolve(row || null);
+            });
+        });
+
+        try {
+            const contest = await get(`SELECT id, status, createdBy, collegeName FROM contests WHERE id = ?`, [contestId]);
+            if (!contest || Number(contest.createdBy) !== Number(user.id)) {
+                return res.status(403).json({ success: false, message: 'Only contest creator can update live status.' });
+            }
+            if (String(contest.status || '').toLowerCase() !== 'accepted') {
+                return res.status(400).json({ success: false, message: 'Contest must be approved before going live.' });
+            }
+
+            if (action === 'unlive') {
+                await run(
+                    `UPDATE contests
+                     SET is_live = 0, live_mode = 'manual_hold', live_user_ids = '[]', live_at = NULL
+                     WHERE id = ? AND createdBy = ?`,
+                    [contestId, user.id]
+                );
+                return res.json({ success: true, message: 'Contest moved out of live mode.' });
+            }
+
+            if (!['all_students', 'selected_users'].includes(liveMode)) {
+                return res.status(400).json({ success: false, message: 'Invalid live mode.' });
+            }
+
+            let selectedUserIds = [];
+            if (liveMode === 'selected_users') {
+                const normalizedIds = [...new Set(
+                    requestedIds
+                        .map((value) => Number(value))
+                        .filter((value) => Number.isInteger(value) && value > 0)
+                )];
+                if (!normalizedIds.length) {
+                    return res.status(400).json({ success: false, message: 'Select at least one student for targeted live mode.' });
+                }
+
+                const placeholders = normalizedIds.map(() => '?').join(',');
+                const studentRows = await all(
+                    `SELECT id
+                     FROM account_users
+                     WHERE id IN (${placeholders})
+                       AND role = 'student'
+                       AND status = 'active'
+                       AND collegeName = ?`,
+                    [...normalizedIds, user.collegeName]
+                );
+                selectedUserIds = studentRows.map((row) => Number(row.id));
+                if (!selectedUserIds.length) {
+                    return res.status(400).json({ success: false, message: 'No valid target students found.' });
+                }
+            }
+
+            await run(
+                `UPDATE contests
+                 SET is_live = 1,
+                     live_mode = ?,
+                     live_user_ids = ?,
+                     live_at = ?
+                 WHERE id = ? AND createdBy = ?`,
+                [
+                    liveMode,
+                    liveMode === 'selected_users' ? JSON.stringify(selectedUserIds) : '[]',
+                    new Date().toISOString(),
+                    contestId,
+                    user.id
+                ]
+            );
+            return res.json({ success: true, message: 'Contest is now live for selected audience.' });
+        } catch (error) {
+            console.error('Live Contest Error:', error);
+            return res.status(500).json({ success: false, message: error.message || 'Failed to update live state.' });
+        }
     });
 
     return router;

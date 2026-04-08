@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile - HOS Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/css/shared.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Poppins', 'sans-serif'] },
+                    colors: { primary: { 50: '#E7F0FA', 200: '#7BA4D0', 400: '#2E5E99', 500: '#2E5E99', 600: '#0D2440' } }
+                }
+            }
+        };
+    </script>
+    <script src="/js/hos/theme.js"></script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 font-sans overflow-hidden">
+<div class="flex h-screen">
+    <%- include('partials/sidebar.html', { currentPage: currentPage }) %>
+
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-8 py-4 flex justify-end items-center gap-6">
+            <button id="themeToggleBtn" class="text-gray-500 dark:text-gray-400 hover:text-gray-800 transition-colors">
+                <i class="fas fa-moon text-xl"></i>
+            </button>
+            <button id="headerProfileBtn" class="flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                <div class="h-10 w-10 rounded-full bg-[#2E4B77] flex items-center justify-center text-white font-bold text-sm">
+                    <%= user.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2) %>
+                </div>
+                <span class="text-[#334155] dark:text-gray-200 font-semibold text-lg"><%= user.fullName %></span>
+            </button>
+        </header>
+
+        <main class="flex-1 px-8 py-6 overflow-y-auto">
+            <div class="grid grid-cols-12 gap-6">
+                <div class="col-span-12 lg:col-span-3 bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 p-6 flex flex-col items-center">
+                    <div class="w-32 h-32 rounded-3xl border-4 border-primary-50 dark:border-gray-700 shadow overflow-hidden bg-gray-100">
+                        <img class="w-full h-full object-cover" src="https://ui-avatars.com/api/?name=<%= encodeURIComponent(user.fullName || 'HOS') %>&background=2E5E99&color=fff" />
+                    </div>
+                    <h2 class="mt-8 text-xl font-bold dark:text-white"><%= user.fullName %></h2>
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mt-1"><%= user.post || 'Head of Studies' %></p>
+                    <div class="mt-8 w-full space-y-4 border-t border-gray-100 dark:border-gray-700 pt-6">
+                        <div class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400"><i class="fas fa-university text-primary-400 w-5"></i><span><%= user.collegeName || 'N/A' %></span></div>
+                        <div class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400"><i class="fas fa-envelope text-primary-400 w-5"></i><span><%= user.email || 'N/A' %></span></div>
+                        <div class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400"><i class="fas fa-layer-group text-primary-400 w-5"></i><span><%= user.department || 'N/A' %></span></div>
+                    </div>
+                    <div class="mt-10 w-full space-y-3">
+                        <a href="/hos/settings" class="block w-full text-center py-3 rounded-2xl border border-gray-200 dark:border-gray-700 dark:text-gray-300 font-bold text-xs hover:bg-gray-50 dark:hover:bg-gray-700">ACCOUNT SETTINGS</a>
+                        <a href="/auth/logout" class="block w-full text-center py-3 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-300 font-bold text-xs hover:bg-red-100 dark:hover:bg-red-900/30">LOG OUT</a>
+                    </div>
+                </div>
+
+                <div class="col-span-12 lg:col-span-9 flex flex-col gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-[2rem] p-6 border border-gray-200 dark:border-gray-700 flex items-center gap-4">
+                            <div class="p-3 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-600"><i class="fas fa-user-graduate text-xl"></i></div>
+                            <div><p class="text-xs font-bold text-gray-400 uppercase">Students</p><p class="text-2xl font-black dark:text-white"><%= profileStats?.students || 0 %></p></div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-[2rem] p-6 border border-gray-200 dark:border-gray-700 flex items-center gap-4">
+                            <div class="p-3 rounded-2xl bg-purple-50 dark:bg-purple-900/20 text-purple-600"><i class="fas fa-chalkboard-teacher text-xl"></i></div>
+                            <div><p class="text-xs font-bold text-gray-400 uppercase">Faculty</p><p class="text-2xl font-black dark:text-white"><%= profileStats?.faculty || 0 %></p></div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-[2rem] p-6 border border-gray-200 dark:border-gray-700 flex items-center gap-4">
+                            <div class="p-3 rounded-2xl bg-green-50 dark:bg-green-900/20 text-green-600"><i class="fas fa-book text-xl"></i></div>
+                            <div><p class="text-xs font-bold text-gray-400 uppercase">Active Students</p><p class="text-2xl font-black dark:text-white"><%= profileStats?.activeStudents || 0 %></p></div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-[2rem] p-6 border border-gray-200 dark:border-gray-700 flex items-center gap-4">
+                            <div class="p-3 rounded-2xl bg-orange-50 dark:bg-orange-900/20 text-orange-600"><i class="fas fa-bolt text-xl"></i></div>
+                            <div><p class="text-xs font-bold text-gray-400 uppercase">Contests</p><p class="text-2xl font-black dark:text-white"><%= profileStats?.contests || 0 %></p></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[380px]">
+                        <div class="bg-white dark:bg-gray-800 rounded-[2.5rem] p-8 border border-gray-200 dark:border-gray-700">
+                            <h3 class="font-bold text-gray-800 dark:text-white mb-6">Platform Usage</h3>
+                            <div class="relative h-[270px]"><canvas id="usageChart"></canvas></div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-[2.5rem] p-8 border border-gray-200 dark:border-gray-700">
+                            <h3 class="font-bold text-gray-800 dark:text-white mb-6">Performance Matrix</h3>
+                            <div class="relative h-[270px]"><canvas id="performanceChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const usageCtx = document.getElementById('usageChart');
+    const perfCtx = document.getElementById('performanceChart');
+    if (usageCtx) {
+        new Chart(usageCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Students', 'Faculty', 'Active Students', 'Contests'],
+                datasets: [{
+                    label: 'Count',
+                    data: [<%= profileStats?.students || 0 %>, <%= profileStats?.faculty || 0 %>, <%= profileStats?.activeStudents || 0 %>, <%= profileStats?.contests || 0 %>],
+                    backgroundColor: ['#60a5fa', '#a78bfa', '#34d399', '#fb923c']
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+    }
+    if (perfCtx) {
+        new Chart(perfCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Coverage', 'Engagement', 'Contests', 'Mentoring', 'Outcomes'],
+                datasets: [{
+                    label: 'HOS Matrix',
+                    data: [
+                        <%= (typeof profilePerformance !== 'undefined' && profilePerformance ? profilePerformance.coverage : 0) %>,
+                        <%= (typeof profilePerformance !== 'undefined' && profilePerformance ? profilePerformance.engagement : 0) %>,
+                        <%= (typeof profilePerformance !== 'undefined' && profilePerformance ? profilePerformance.contests : 0) %>,
+                        <%= (typeof profilePerformance !== 'undefined' && profilePerformance ? profilePerformance.mentoring : 0) %>,
+                        <%= (typeof profilePerformance !== 'undefined' && profilePerformance ? profilePerformance.outcomes : 0) %>
+                    ],
+                    backgroundColor: 'rgba(46, 94, 153, 0.2)',
+                    borderColor: '#2E5E99',
+                    borderWidth: 2
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+});
+</script>
+</body>
+</html>

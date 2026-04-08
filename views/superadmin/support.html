@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusCode - Support Tickets</title>
+    <link rel="shortcut icon" href="/campuscode-logo.jpeg" type="image/jpeg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        themeLightest: '#E7F0FA',
+                        themeLight: '#7BA4D0',
+                        themePrimary: '#2E5E99',
+                        themeDark: '#0D2440',
+                        darkSurface: '#1E293B',
+                        darkBg: '#0F172A'
+                    },
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #7BA4D0; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-themeLightest dark:bg-darkBg text-themeDark dark:text-gray-100 h-screen flex overflow-hidden p-4 gap-6 transition-colors duration-300">
+    <aside class="w-64 bg-white dark:bg-darkSurface rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between h-full z-20 relative overflow-hidden shrink-0 transition-colors duration-300">
+        <div class="z-10 flex flex-col h-full">
+            <div class="p-8 pb-4 flex items-center space-x-3 text-themeDark dark:text-white">
+                <div class="bg-gradient-to-br from-themePrimary to-themeDark text-white rounded-xl p-2.5 shadow-md">
+                    <img src="/campuscode-logo.jpeg" alt="CampusCode logo" class="w-5 h-5 object-contain">
+                </div>
+                <span class="text-2xl font-extrabold tracking-tight">CampusCode<span class="text-themePrimary dark:text-themeLight text-sm font-bold align-top ml-0.5">SA</span></span>
+            </div>
+            <nav class="space-y-2 px-4 mt-6 flex-1">
+                <a href="/superadmin/dashboard" class="group w-full flex items-center space-x-4 px-5 py-3.5 rounded-2xl text-themeLight dark:text-gray-400 hover:bg-themeLightest dark:hover:bg-gray-800 hover:text-themePrimary dark:hover:text-white transition-all font-semibold text-sm"><i class="fa-solid fa-building-columns text-lg"></i><span>Manage Colleges</span></a>
+                <a href="/superadmin/problems" class="group w-full flex items-center space-x-4 px-5 py-3.5 rounded-2xl text-themeLight dark:text-gray-400 hover:bg-themeLightest dark:hover:bg-gray-800 hover:text-themePrimary dark:hover:text-white transition-all font-semibold text-sm"><i class="fa-solid fa-code text-lg"></i><span>Manage Problems</span></a>
+                <a href="/superadmin/contest" class="group w-full flex items-center space-x-4 px-5 py-3.5 rounded-2xl text-themeLight dark:text-gray-400 hover:bg-themeLightest dark:hover:bg-gray-800 hover:text-themePrimary dark:hover:text-white transition-all font-semibold text-sm"><i class="fa-solid fa-trophy text-lg"></i><span>Manage Contests</span></a>
+                <a href="/superadmin/support" class="group w-full flex items-center space-x-4 px-5 py-3.5 rounded-2xl bg-themePrimary text-white shadow-md shadow-themePrimary/20 transition-all font-semibold text-sm transform translate-x-1"><i class="fa-solid fa-life-ring text-lg"></i><span>Support Tickets</span></a>
+                <a href="/forum/forum.html" class="group w-full flex items-center space-x-4 px-5 py-3.5 rounded-2xl text-themeLight dark:text-gray-400 hover:bg-themeLightest dark:hover:bg-gray-800 hover:text-themePrimary dark:hover:text-white transition-all font-semibold text-sm"><i class="fa-solid fa-comments text-lg"></i><span>Community Forum</span></a>
+            </nav>
+            <div class="p-4 mt-auto">
+                <a href="/auth/logout" class="mb-3 flex items-center space-x-3 px-4 py-3 rounded-2xl text-themeLight dark:text-gray-300 hover:bg-themeLightest dark:hover:bg-gray-800 transition"><i class="fa-solid fa-right-from-bracket"></i><span class="font-semibold text-sm">Logout</span></a>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        <header class="flex justify-between items-center py-4 px-2 z-10 shrink-0">
+            <div>
+                <h1 class="text-3xl font-extrabold text-themeDark dark:text-white tracking-tight">Support Tickets</h1>
+                <p class="text-sm font-medium text-themeLight dark:text-gray-400 mt-1">Resolve user issues across the platform.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <select id="statusFilter" class="px-3 py-2 rounded-xl border border-themeLight/40 dark:border-gray-700 bg-white dark:bg-darkSurface text-sm">
+                    <option value="all">All</option>
+                    <option value="open">Open</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="resolved">Resolved</option>
+                </select>
+                <button onclick="toggleTheme()" class="w-10 h-10 bg-white dark:bg-darkSurface rounded-full flex items-center justify-center text-themeLight dark:text-yellow-400 hover:text-themePrimary shadow-sm transition-all border border-transparent dark:border-gray-700">
+                    <i id="theme-toggle-dark-icon" class="fa-solid fa-moon dark:hidden"></i>
+                    <i id="theme-toggle-light-icon" class="fa-solid fa-sun hidden dark:block"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto pb-8 pr-2">
+            <div class="bg-white dark:bg-darkSurface rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-transparent dark:border-gray-800 p-1 transition-colors duration-300">
+                <div class="px-6 py-5 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-themeDark dark:text-white flex items-center"><span class="w-2 h-6 bg-themePrimary rounded-full mr-3"></span>Open Ticket Queue</h3>
+                    <span id="ticketCount" class="text-sm font-semibold text-themeLight dark:text-gray-400">Loading...</span>
+                </div>
+                <div class="px-4 pb-4 overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[960px]">
+                        <thead>
+                            <tr class="text-[11px] font-extrabold text-themeLight dark:text-gray-400 uppercase tracking-wider border-b border-themeLightest dark:border-gray-700">
+                                <th class="px-4 py-3">ID</th>
+                                <th class="px-4 py-3">User</th>
+                                <th class="px-4 py-3">Role</th>
+                                <th class="px-4 py-3">Subject</th>
+                                <th class="px-4 py-3">Category</th>
+                                <th class="px-4 py-3">Status</th>
+                                <th class="px-4 py-3">Reply</th>
+                                <th class="px-4 py-3 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ticketTableBody">
+                            <tr><td colspan="8" class="py-10 text-center text-gray-500 italic">Loading tickets...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+        }
+
+        function esc(value) {
+            return String(value || '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+        }
+
+        function statusBadge(status) {
+            const s = String(status || '').toLowerCase();
+            if (s === 'resolved') return '<span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">Resolved</span>';
+            if (s === 'in_progress') return '<span class="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-700">In Progress</span>';
+            return '<span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700">Open</span>';
+        }
+
+        async function updateTicket(id, nextStatus) {
+            const replyInput = document.getElementById(`reply-${id}`);
+            const reply = replyInput ? replyInput.value.trim() : '';
+            if (nextStatus === 'resolved' && !reply) {
+                alert('Please add a solution/reply before marking this ticket as resolved.');
+                if (replyInput) replyInput.focus();
+                return;
+            }
+            const res = await fetch(`/superadmin/api/support-tickets/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: nextStatus, reply })
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) {
+                alert(data.error || data.message || 'Failed to update ticket.');
+                return;
+            }
+            loadTickets();
+        }
+
+        async function loadTickets() {
+            const status = document.getElementById('statusFilter').value;
+            const tbody = document.getElementById('ticketTableBody');
+            const count = document.getElementById('ticketCount');
+            tbody.innerHTML = '<tr><td colspan="8" class="py-10 text-center text-gray-500 italic">Loading tickets...</td></tr>';
+            const res = await fetch(`/superadmin/api/support-tickets?status=${encodeURIComponent(status)}`);
+            const data = await res.json();
+            if (!res.ok || !data.success) {
+                tbody.innerHTML = '<tr><td colspan="8" class="py-10 text-center text-red-500">Failed to load tickets.</td></tr>';
+                count.textContent = '0 tickets';
+                return;
+            }
+            const tickets = data.tickets || [];
+            count.textContent = `${tickets.length} ticket${tickets.length === 1 ? '' : 's'}`;
+            if (!tickets.length) {
+                tbody.innerHTML = '<tr><td colspan="8" class="py-10 text-center text-gray-500 italic">No tickets found.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = tickets.map((t) => `
+                <tr class="border-b border-themeLightest dark:border-gray-700 align-top">
+                    <td class="px-4 py-3 font-semibold">#${t.id}</td>
+                    <td class="px-4 py-3">
+                        <div class="font-semibold">${esc(t.requester_name)}</div>
+                        <div class="text-xs text-gray-500">${esc(t.requester_email)}</div>
+                    </td>
+                    <td class="px-4 py-3 text-sm">${esc(t.requester_role)}</td>
+                    <td class="px-4 py-3">
+                        <div class="font-semibold">${esc(t.subject)}</div>
+                        <div class="text-xs text-gray-500 mt-1">${esc(t.details).slice(0, 80)}${String(t.details || '').length > 80 ? '...' : ''}</div>
+                    </td>
+                    <td class="px-4 py-3 text-sm">${esc(t.category)}</td>
+                    <td class="px-4 py-3">${statusBadge(t.status)}</td>
+                    <td class="px-4 py-3">
+                        <textarea id="reply-${t.id}" class="w-48 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-darkSurface text-sm" placeholder="Reply...">${esc(t.superadmin_reply || '')}</textarea>
+                    </td>
+                    <td class="px-4 py-3 text-right space-x-2">
+                        <button onclick="updateTicket(${t.id}, 'in_progress')" class="px-3 py-1.5 text-xs rounded-lg bg-amber-100 text-amber-700 font-semibold">In Progress</button>
+                        <button onclick="updateTicket(${t.id}, 'resolved')" class="px-3 py-1.5 text-xs rounded-lg bg-green-100 text-green-700 font-semibold">Resolve</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('statusFilter').addEventListener('change', loadTickets);
+            loadTickets();
+        });
+    </script>
+</body>
+</html>

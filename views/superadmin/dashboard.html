@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusCode - SuperAdmin Dashboard</title>
+    <link rel="shortcut icon" href="/campuscode-logo.jpeg" type="image/jpeg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        themeLightest: '#E7F0FA',
+                        themeLight: '#7BA4D0',
+                        themePrimary: '#2E5E99',
+                        themeDark: '#0D2440',
+                        darkSurface: '#1E293B',
+                        darkBg: '#0F172A'
+                    },
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #7BA4D0; border-radius: 10px; }
+        #modal-backdrop { transition: opacity 0.3s ease; }
+        #modal-content { transition: transform 0.3s ease, opacity 0.3s ease; }
+    </style>
+</head>
+<body class="bg-themeLightest dark:bg-darkBg text-themeDark dark:text-gray-100 h-screen flex overflow-hidden p-4 gap-6 transition-colors duration-300">
+    <aside class="w-64 bg-white dark:bg-darkSurface rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between h-full z-20 relative overflow-hidden shrink-0 transition-colors duration-300">
+        <div class="absolute -top-10 -left-10 w-32 h-32 bg-themeLightest dark:bg-themePrimary/20 rounded-full mix-blend-multiply filter blur-2xl opacity-70"></div>
+        <div class="z-10 flex flex-col h-full">
+            <div class="p-8 pb-4 flex items-center space-x-3 text-themeDark dark:text-white">
+                <div class="bg-gradient-to-br from-themePrimary to-themeDark text-white rounded-xl p-2.5 shadow-md">
+                    <img src="/campuscode-logo.jpeg" alt="CampusCode logo" class="w-5 h-5 object-contain">
+                </div>
+                <span class="text-2xl font-extrabold tracking-tight">CampusCode<span class="text-themePrimary dark:text-themeLight text-sm font-bold align-top ml-0.5">SA</span></span>
+            </div>
+
+            <nav class="space-y-2 px-4 mt-6 flex-1">
+                <p class="px-4 text-[10px] font-extrabold text-themeLight dark:text-gray-400 uppercase tracking-widest mb-3">Menu</p>
+                <a href="/superadmin/dashboard" class="group w-full flex items-center space-x-4 px-5 py-3.5 rounded-2xl bg-themePrimary text-white shadow-md shadow-themePrimary/20 transition-all font-semibold text-sm transform translate-x-1">
+                    <i class="fa-solid fa-building-columns text-lg"></i>
+                    <span>Manage Colleges</span>
+                </a>
+                <a href="/superadmin/problems" class="group w-full flex items-center space-x-4 px-5 py-3.5 rounded-2xl text-themeLight dark:text-gray-400 hover:bg-themeLightest dark:hover:bg-gray-800 hover:text-themePrimary dark:hover:text-white transition-all font-semibold text-sm">
+                    <i class="fa-solid fa-code text-lg transition-transform group-hover:scale-110"></i>
+                    <span>Manage Problems</span>
+                </a>
+                <a href="/superadmin/contest" class="group w-full flex items-center space-x-4 px-5 py-3.5 rounded-2xl text-themeLight dark:text-gray-400 hover:bg-themeLightest dark:hover:bg-gray-800 hover:text-themePrimary dark:hover:text-white transition-all font-semibold text-sm">
+                    <i class="fa-solid fa-trophy text-lg transition-transform group-hover:scale-110"></i>
+                    <span>Manage Contests</span>
+                </a>
+                <a href="/superadmin/support" class="group w-full flex items-center space-x-4 px-5 py-3.5 rounded-2xl text-themeLight dark:text-gray-400 hover:bg-themeLightest dark:hover:bg-gray-800 hover:text-themePrimary dark:hover:text-white transition-all font-semibold text-sm">
+                    <i class="fa-solid fa-life-ring text-lg transition-transform group-hover:scale-110"></i>
+                    <span>Support Tickets</span>
+                </a>
+                <a href="/forum/forum.html" class="group w-full flex items-center space-x-4 px-5 py-3.5 rounded-2xl text-themeLight dark:text-gray-400 hover:bg-themeLightest dark:hover:bg-gray-800 hover:text-themePrimary dark:hover:text-white transition-all font-semibold text-sm">
+                    <i class="fa-solid fa-comments text-lg transition-transform group-hover:scale-110"></i>
+                    <span>Community Forum</span>
+                </a>
+            </nav>
+
+            <div class="p-4 mt-auto">
+                <a href="/auth/logout" class="mb-3 flex items-center space-x-3 px-4 py-3 rounded-2xl text-themeLight dark:text-gray-300 hover:bg-themeLightest dark:hover:bg-gray-800 transition">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span class="font-semibold text-sm">Logout</span>
+                </a>
+                <div class="bg-themeLightest/50 dark:bg-gray-800 p-4 rounded-3xl border border-themeLight/10 dark:border-gray-700 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-themePrimary to-themeLight text-white flex items-center justify-center font-bold text-sm shadow-inner">
+                            <%= user.fullName.split(' ').filter(Boolean).slice(0,2).map(part => part[0]).join('').toUpperCase() %>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-sm font-bold text-themeDark dark:text-white leading-tight"><%= user.fullName %></span>
+                            <span class="text-[10px] font-semibold text-themePrimary dark:text-themeLight uppercase tracking-wider">SuperAdmin</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        <header class="flex justify-between items-center py-4 px-2 z-10 shrink-0">
+            <div>
+                <h1 class="text-3xl font-extrabold text-themeDark dark:text-white tracking-tight">Platform Overview</h1>
+                <p class="text-sm font-medium text-themeLight dark:text-gray-400 mt-1">Manage colleges, approvals, and platform access.</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button onclick="toggleTheme()" class="w-10 h-10 bg-white dark:bg-darkSurface rounded-full flex items-center justify-center text-themeLight dark:text-yellow-400 hover:text-themePrimary shadow-sm transition-all border border-transparent dark:border-gray-700">
+                    <i id="theme-toggle-dark-icon" class="fa-solid fa-moon dark:hidden"></i>
+                    <i id="theme-toggle-light-icon" class="fa-solid fa-sun hidden dark:block"></i>
+                </button>
+                <button class="w-10 h-10 bg-white dark:bg-darkSurface rounded-full flex items-center justify-center text-themeLight dark:text-gray-300 hover:text-themePrimary shadow-sm transition-all border border-transparent dark:border-gray-700"><i class="fa-solid fa-bell"></i></button>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto pb-8 pr-2 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white dark:bg-darkSurface rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] flex flex-col justify-between border border-white dark:border-gray-800">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-12 h-12 rounded-2xl bg-themeLightest dark:bg-themePrimary/20 text-themePrimary dark:text-themeLight flex items-center justify-center text-xl"><i class="fa-solid fa-university"></i></div>
+                    </div>
+                    <div>
+                        <p id="stat-total-colleges" class="text-4xl font-extrabold text-themeDark dark:text-white mb-1"><i class="fas fa-circle-notch fa-spin text-sm text-gray-400"></i></p>
+                        <p class="text-sm font-semibold text-themeLight dark:text-gray-400">Registered Colleges</p>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-darkSurface rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] flex flex-col justify-between border border-white dark:border-gray-800">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-12 h-12 rounded-2xl bg-[#FFF9E6] dark:bg-yellow-900/30 text-[#FFAA00] flex items-center justify-center text-xl"><i class="fa-solid fa-user-clock"></i></div>
+                    </div>
+                    <div>
+                        <p id="stat-pending-admins" class="text-4xl font-extrabold text-themeDark dark:text-white mb-1">0</p>
+                        <p class="text-sm font-semibold text-themeLight dark:text-gray-400">Pending Requests</p>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-themePrimary to-[#1A3A5F] dark:from-themePrimary dark:to-gray-900 rounded-[2rem] p-6 shadow-lg flex flex-col justify-between text-white relative overflow-hidden">
+                    <i class="fa-solid fa-shield-check absolute -right-4 -bottom-4 text-8xl opacity-10"></i>
+                    <div class="flex justify-between items-start mb-4 relative z-10">
+                        <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-xl"><i class="fa-solid fa-server"></i></div>
+                        <span class="flex items-center space-x-1.5 bg-white/20 backdrop-blur text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                            <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div><span>Online</span>
+                        </span>
+                    </div>
+                    <div class="relative z-10">
+                        <p class="text-3xl font-extrabold mb-1">Active</p>
+                        <p class="text-sm font-medium text-themeLightest/80">Platform Access Status</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-darkSurface rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-transparent dark:border-gray-800 p-1 transition-colors duration-300">
+                <div class="px-6 py-5 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-themeDark dark:text-white flex items-center">
+                        <span class="w-2 h-6 bg-themePrimary rounded-full mr-3"></span>Authorized Institutions
+                    </h3>
+                    <button onclick="openModal()" class="bg-themePrimary hover:bg-themeDark dark:hover:bg-themeLight text-white text-sm font-bold px-5 py-2.5 rounded-full shadow-md transition-all flex items-center">
+                        <i class="fa-solid fa-plus mr-2"></i> Add College
+                    </button>
+                </div>
+                <div class="px-4 pb-4 overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[700px]">
+                        <thead>
+                            <tr class="text-[11px] font-extrabold text-themeLight dark:text-gray-400 uppercase tracking-wider border-b border-themeLightest dark:border-gray-700">
+                                <th class="px-4 py-3">ID</th>
+                                <th class="px-4 py-3">Institution Name</th>
+                                <th class="px-4 py-3">Administrator</th>
+                                <th class="px-4 py-3 text-center">Status</th>
+                                <th class="px-4 py-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="college-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-darkSurface rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-transparent dark:border-gray-800 p-1 transition-colors duration-300">
+                <div class="px-6 py-5 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-themeDark dark:text-white flex items-center">
+                        <span class="w-2 h-6 bg-yellow-500 rounded-full mr-3"></span>Pending College Registrations
+                    </h3>
+                </div>
+                <div class="px-4 pb-4 overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[700px]">
+                        <thead>
+                            <tr class="text-[11px] font-extrabold text-themeLight dark:text-gray-400 uppercase tracking-wider border-b border-themeLightest dark:border-gray-700">
+                                <th class="px-4 py-3">Applicant Name</th>
+                                <th class="px-4 py-3">Email</th>
+                                <th class="px-4 py-3">College Name</th>
+                                <th class="px-4 py-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pendingAdminsTableBody">
+                            <tr><td colspan="4" class="py-8 text-center text-gray-500 italic">Loading requests...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="collegeModal" class="fixed inset-0 z-50 hidden items-center justify-center">
+        <div id="modal-backdrop" onclick="closeModal()" class="absolute inset-0 bg-themeDark/40 dark:bg-black/60 backdrop-blur-sm opacity-0"></div>
+        <div id="modal-content" class="relative bg-white dark:bg-darkSurface rounded-3xl shadow-2xl w-full max-w-md p-8 transform scale-95 opacity-0 border border-transparent dark:border-gray-700">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-extrabold text-themeDark dark:text-white">Add College</h2>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-themeLightest dark:bg-gray-800 text-themeDark dark:text-gray-300 hover:text-red-500 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form id="collegeForm" onsubmit="saveCollege(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-extrabold text-themeLight dark:text-gray-400 uppercase tracking-wider mb-2">Institution Name</label>
+                    <input type="text" id="collegeName" required placeholder="e.g. Bharat Institute of Technology"
+                        class="w-full px-4 py-3 rounded-xl bg-themeLightest/50 dark:bg-gray-800 border border-transparent dark:border-gray-700 focus:border-themePrimary focus:bg-white dark:focus:bg-darkSurface focus:ring-0 text-sm font-semibold text-themeDark dark:text-white outline-none transition-all placeholder-themeLight/50">
+                </div>
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal()" class="px-5 py-2.5 rounded-full text-sm font-bold text-themeLight dark:text-gray-400 hover:bg-themeLightest dark:hover:bg-gray-800 transition-colors">Cancel</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-full text-sm font-bold bg-themePrimary text-white hover:bg-themeDark dark:hover:bg-themeLight shadow-md transition-all">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadColleges();
+            fetchPendingAdmins();
+        });
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        async function fetchPendingAdmins() {
+            const tbody = document.getElementById('pendingAdminsTableBody');
+            const pendingCountEl = document.getElementById('stat-pending-admins');
+            try {
+                const response = await fetch('/superadmin/api/pending-admins');
+                const data = await response.json();
+
+                if (!data.success) {
+                    pendingCountEl.innerText = '0';
+                    tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-red-500">Error loading requests</td></tr>`;
+                    return;
+                }
+
+                pendingCountEl.innerText = data.pendingAdmins.length;
+                if (data.pendingAdmins.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-gray-500 italic">No pending registrations at the moment.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = data.pendingAdmins.map(admin => `
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/20 transition">
+                        <td class="py-4 px-4 text-gray-900 dark:text-gray-200 font-medium">${admin.fullName}</td>
+                        <td class="py-4 px-4 text-gray-500 dark:text-gray-400">${admin.email}</td>
+                        <td class="py-4 px-4 text-themePrimary dark:text-blue-400 font-semibold">${admin.collegeName}</td>
+                        <td class="py-4 px-4 text-right space-x-2">
+                            <button onclick="approveAdmin(${admin.id}, '${admin.collegeName.replace(/'/g, "\\'")}')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-sm transition shadow-sm">
+                                <i class="fas fa-check"></i> Approve
+                            </button>
+                            <button onclick="rejectAdmin(${admin.id})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-sm transition shadow-sm">
+                                <i class="fas fa-times"></i> Reject
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error("Error fetching pending admins:", error);
+                pendingCountEl.innerText = '0';
+                tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-red-500">Failed to connect to server.</td></tr>`;
+            }
+        }
+
+        async function approveAdmin(adminId, collegeName) {
+            if (!confirm('Are you sure you want to approve this college registration?')) return;
+            try {
+                const response = await fetch(`/superadmin/api/approve-admin/${adminId}`, { method: 'POST' });
+                const data = await response.json();
+                if (data.success) {
+                    await fetch('/superadmin/api/colleges', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: collegeName })
+                    });
+                    alert('College registration approved successfully!');
+                    fetchPendingAdmins();
+                    loadColleges();
+                } else {
+                    alert('Error: ' + (data.error || data.message));
+                }
+            } catch (error) {
+                console.error('Approval error:', error);
+                alert('Failed to approve request.');
+            }
+        }
+
+        async function rejectAdmin(adminId) {
+            if (!confirm('Are you sure you want to reject this registration request?')) return;
+            try {
+                const response = await fetch(`/superadmin/api/reject-admin/${adminId}`, { method: 'DELETE' });
+                const data = await response.json();
+                if (data.success) {
+                    alert('Registration request rejected.');
+                    fetchPendingAdmins();
+                } else {
+                    alert('Error: ' + (data.error || data.message));
+                }
+            } catch (error) {
+                console.error('Rejection error:', error);
+                alert('Failed to reject request.');
+            }
+        }
+
+        async function loadColleges() {
+            const tableBody = document.getElementById('college-table-body');
+            const totalCollegesEl = document.getElementById('stat-total-colleges');
+            try {
+                const response = await fetch('/superadmin/api/colleges');
+                const data = await response.json();
+                if (!data.success) throw new Error(data.error || "API failed");
+
+                const colleges = data.colleges || [];
+                totalCollegesEl.innerText = colleges.length;
+                tableBody.innerHTML = '';
+
+                if (colleges.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-gray-500 italic">No colleges registered yet.</td></tr>`;
+                    return;
+                }
+
+                colleges.forEach((college) => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-50 dark:hover:bg-gray-800/20 transition';
+                    row.innerHTML = `
+                        <td class="py-4 px-4 text-gray-500 dark:text-gray-400 font-mono">#${college.id}</td>
+                        <td class="py-4 px-4 font-medium text-gray-900 dark:text-white">${college.name}</td>
+                        <td class="py-4 px-4 text-gray-500 dark:text-gray-400">${college.collegeAdmin || college.adminNames || 'Not Assigned'}</td>
+                        <td class="py-4 px-4 text-center">
+                            <span class="bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                                ${college.status || 'Active'}
+                            </span>
+                        </td>
+                        <td class="py-4 px-4 text-right space-x-2">
+                            <a href="/college/admin/dashboard?college=${encodeURIComponent(college.name)}" class="text-blue-500 hover:text-blue-700 transition bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg" title="Manage College Dashboard">
+                                <i class="fas fa-external-link-alt"></i> Manage
+                            </a>
+                            <button onclick="deleteCollege(${college.id})" class="text-red-500 hover:text-red-700 transition bg-red-50 dark:bg-red-900/20 p-2 rounded-lg" title="Remove College">
+                                <i class="fas fa-trash-alt"></i> Remove
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Fetch error:', error);
+                totalCollegesEl.innerText = 'Error';
+                tableBody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-red-500">Failed to load data. Ensure you are logged in as Superadmin.</td></tr>`;
+            }
+        }
+
+        function openModal() {
+            const modal = document.getElementById('collegeModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            requestAnimationFrame(() => {
+                document.getElementById('modal-backdrop').classList.remove('opacity-0');
+                const content = document.getElementById('modal-content');
+                content.classList.remove('scale-95', 'opacity-0');
+            });
+            document.getElementById('collegeForm').reset();
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('collegeModal');
+            document.getElementById('modal-backdrop').classList.add('opacity-0');
+            const content = document.getElementById('modal-content');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 220);
+        }
+
+        async function saveCollege(e) {
+            e.preventDefault();
+            const name = document.getElementById('collegeName').value.trim();
+            try {
+                const response = await fetch('/superadmin/api/colleges', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    closeModal();
+                    loadColleges();
+                } else {
+                    alert('Error adding college: ' + result.error);
+                }
+            } catch (error) {
+                console.error("Save error:", error);
+                alert('Network error while saving college.');
+            }
+        }
+
+        async function deleteCollege(id) {
+            if (!confirm("Are you sure you want to permanently delete this college?")) return;
+            try {
+                const response = await fetch(`/superadmin/api/colleges/${id}`, { method: 'DELETE' });
+                const result = await response.json();
+                if (result.success) {
+                    loadColleges();
+                } else {
+                    alert('Error deleting college: ' + result.error);
+                }
+            } catch (error) {
+                console.error("Delete error:", error);
+            }
+        }
+    </script>
+</body>
+</html>

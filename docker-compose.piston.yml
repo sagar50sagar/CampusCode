@@ -1,0 +1,8 @@
+services:
+  piston-api:
+    image: ghcr.io/engineer-man/piston:latest
+    container_name: piston_api
+    privileged: true
+    ports:
+      - "2000:2000"
+    restart: unless-stopped

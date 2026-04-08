@@ -144,6 +144,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 // Clone problem to bookmarked tab if it exists
                 if (problemId) {
                     addToBookmarkedTab(problemRow);
+                    saveBookmarkState(problemId, true);
                 }
             } else {
                 // Unbookmark the problem
@@ -153,6 +154,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 // Remove from bookmarked tab
                 if (problemId) {
                     removeFromBookmarkedTab(problemId);
+                    saveBookmarkState(problemId, false);
                 }
             }
         }
@@ -216,6 +218,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
 
                     showToast('Removed from bookmarks', 'info');
+                    saveBookmarkState(problemId, false);
                 }, 300);
             }
         }
@@ -264,9 +267,54 @@ document.addEventListener("DOMContentLoaded", function () {
 
             setTimeout(() => {
                 bookmarkedRow.remove();
+                if (!bookmarkedTable.querySelector('tr[data-problem-id]')) {
+                    bookmarkedTable.innerHTML = '<tr><td colspan="3" class="py-8 text-center text-gray-500 dark:text-gray-400">No bookmarked problems.</td></tr>';
+                }
             }, 300);
         }
     }
+
+    async function saveBookmarkState(problemId, isBookmarked) {
+        try {
+            const id = parseInt(problemId, 10);
+            if (!id) return;
+            if (isBookmarked) {
+                await fetch('/college/hod/api/problem-bookmarks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ problemId: id })
+                });
+                return;
+            }
+            await fetch(`/college/hod/api/problem-bookmarks/${id}`, { method: 'DELETE' });
+        } catch (e) {
+            console.error('Error saving bookmark state', e);
+        }
+    }
+
+    async function initBookmarks() {
+        try {
+            const res = await fetch('/college/hod/api/problem-bookmarks');
+            if (!res.ok) return;
+            const payload = await res.json();
+            const bookmarks = Array.isArray(payload?.data) ? payload.data.map((value) => Number(value)) : [];
+            if (!bookmarks.length) return;
+            const allProblemsRows = document.querySelectorAll('#all-problems table tbody tr[data-problem-id]');
+            allProblemsRows.forEach((row) => {
+                const id = parseInt(row.dataset.problemId, 10);
+                if (!bookmarks.includes(id)) return;
+                const icon = row.querySelector('.bookmark-btn i');
+                if (icon) {
+                    icon.classList.remove('far');
+                    icon.classList.add('fas', 'text-yellow-400');
+                }
+                addToBookmarkedTab(row);
+            });
+        } catch (e) {
+            console.error('Error init bookmarks', e);
+        }
+    }
+    initBookmarks();
 
     // Toast notification helper
     function showToast(message, type = 'info') {
@@ -2113,13 +2161,21 @@ document.addEventListener("DOMContentLoaded", function () {
     } catch (error) {
     }
 
-    // Force Dashboard View on Load
-    showSection('section-dashboard');
+    // Force Dashboard View on Load (safe even if helper is missing)
+    if (typeof window.showSection === 'function') {
+        window.showSection('section-dashboard');
+    } else {
+        const dashboardSection = document.getElementById('section-dashboard');
+        if (dashboardSection) {
+            document.querySelectorAll('.content-section').forEach((sec) => sec.classList.add('hidden'));
+            dashboardSection.classList.remove('hidden');
+        }
+    }
 
 });
 
 /* --- Reports Section Logic --- */
-const reportData = {
+var reportData = window.__hodReportData || (window.__hodReportData = {
     Students: {
         headers: ["Name", "ID", "Program", "Year", "Branch", "Score"],
         rows: [
@@ -2148,7 +2204,7 @@ const reportData = {
         ],
         config: { format: 'XLSX', color: 'bg-blue-500' }
     }
-};
+});
 
 window.initReportUI = function () {
     const type = document.getElementById('reportType').value;
@@ -2253,23 +2309,23 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-const btnExportProblems = document.getElementById('btn-export-problem-report'); // Placeholder if button exists
-const exportProblemsModal = document.getElementById('exportProblemsModal');
-const closeProblemsModalBtn = document.getElementById('closeProblemsModal');
-const probTableBody = document.getElementById('probTableBody');
-const probTableHeadRow = document.getElementById('probTableHeadRow');
-const probColumnSelectionList = document.getElementById('probColumnSelectionList');
-const selectAllProbColumnsBtn = document.getElementById('selectAllProbColumns');
-const probSearchInput = document.getElementById('probSearchInput');
-const probFilterSubject = document.getElementById('probFilterSubject');
-const probFilterDifficulty = document.getElementById('probFilterDifficulty');
-const probPreviewCount = document.getElementById('probPreviewCount');
-const btnDownloadProblemsPDF = document.getElementById('btnDownloadProblemsPDF');
+var btnExportProblems = document.getElementById('btn-export-problem-report'); // Placeholder if button exists
+var exportProblemsModal = document.getElementById('exportProblemsModal');
+var closeProblemsModalBtn = document.getElementById('closeProblemsModal');
+var probTableBody = document.getElementById('probTableBody');
+var probTableHeadRow = document.getElementById('probTableHeadRow');
+var probColumnSelectionList = document.getElementById('probColumnSelectionList');
+var selectAllProbColumnsBtn = document.getElementById('selectAllProbColumns');
+var probSearchInput = document.getElementById('probSearchInput');
+var probFilterSubject = document.getElementById('probFilterSubject');
+var probFilterDifficulty = document.getElementById('probFilterDifficulty');
+var probPreviewCount = document.getElementById('probPreviewCount');
+var btnDownloadProblemsPDF = document.getElementById('btnDownloadProblemsPDF');
 
-let allProbData = [];
-let displayedProbData = [];
+var allProbData = [];
+var displayedProbData = [];
 
-const probExportColumns = [
+var probExportColumns = [
     { id: 'title', label: 'Title', selected: true },
     { id: 'subject', label: 'Subject', selected: true },
     { id: 'difficulty', label: 'Difficulty', selected: true },
@@ -2448,24 +2504,24 @@ if (exportProblemsModal) {
     }
 }
 
-const exportContestModal = document.getElementById('exportContestModal');
-const closeContestModalBtn = document.getElementById('closeContestModal');
-const contestTableBody = document.getElementById('contestTableBody');
-const contestTableHeadRow = document.getElementById('contestTableHeadRow');
-const contestColumnSelectionList = document.getElementById('contestColumnSelectionList');
-const selectAllContestColumnsBtn = document.getElementById('selectAllContestColumns');
-const contestSearchInput = document.getElementById('contestSearchInput');
-const contestFilterSubject = document.getElementById('contestFilterSubject');
-const contestStartDate = document.getElementById('contestStartDate');
-const contestEndDate = document.getElementById('contestEndDate');
-const contestSortSelect = document.getElementById('contestSortSelect');
-const contestPreviewCount = document.getElementById('contestPreviewCount');
-const btnDownloadContestPDF = document.getElementById('btnDownloadContestPDF');
+var exportContestModal = document.getElementById('exportContestModal');
+var closeContestModalBtn = document.getElementById('closeContestModal');
+var contestTableBody = document.getElementById('contestTableBody');
+var contestTableHeadRow = document.getElementById('contestTableHeadRow');
+var contestColumnSelectionList = document.getElementById('contestColumnSelectionList');
+var selectAllContestColumnsBtn = document.getElementById('selectAllContestColumns');
+var contestSearchInput = document.getElementById('contestSearchInput');
+var contestFilterSubject = document.getElementById('contestFilterSubject');
+var contestStartDate = document.getElementById('contestStartDate');
+var contestEndDate = document.getElementById('contestEndDate');
+var contestSortSelect = document.getElementById('contestSortSelect');
+var contestPreviewCount = document.getElementById('contestPreviewCount');
+var btnDownloadContestPDF = document.getElementById('btnDownloadContestPDF');
 
-let allContestData = [];
-let displayedContestData = [];
+var allContestData = [];
+var displayedContestData = [];
 
-const contestExportColumns = [
+var contestExportColumns = [
     { id: 'title', label: 'Title', selected: true },
     { id: 'subject', label: 'Subject', selected: true },
     { id: 'teacher', label: 'Teacher', selected: true },
@@ -3846,4 +3902,3 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 });
-

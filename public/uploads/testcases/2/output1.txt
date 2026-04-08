@@ -1,0 +1,28 @@
+# Student Rank:
+Instead of directly using level use class based ranking.
+6 ranks
+    S = (15000+) elite coders generally need exponentially high XP.
+        only  few in the entire system
+    A = (5001 - 10000)
+    B = (3001 - 5000)
+    C = (1600 - 3000)
+    D = (501 - 1500)
+    E = (0XP - 500XP)
+    
+solving only easy problems should not be enough to max or jump classes, should solve mix of all sort of problems.
+
+# contest
+Each contest is ranked (E to S).
+To join a contest (system level), enough XP should be achieved, means an E rank user can only participate in E or D rank contest.
+users can only join lower or one rank above their class.
+## fields of contest
+title
+discription
+problems
+class
+prize (not mendatory)
+guidelines
+starting and ending time
+
+# NOTE:
+* every user should be able to view contest created by superadmin

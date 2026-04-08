@@ -1,0 +1,646 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Problem - CampusCode</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- CodeMirror 5 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/default.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode:'class',
+      theme:{ extend:{ fontFamily:{ sans:['Poppins','sans-serif'], mono:['JetBrains Mono','monospace'] }, colors:{ primary:{ 50:'#E7F0FA',500:'#1E4A7A',600:'#0D2440' } } } }
+    };
+  </script>
+  <style>
+    ::-webkit-scrollbar{width:6px;height:6px} ::-webkit-scrollbar-track{background:transparent} ::-webkit-scrollbar-thumb{background:#7ba4d0;border-radius:3px}
+    .sidebar{transition:width .3s cubic-bezier(.4,0,.2,1);overflow:hidden}
+    .sidebar.collapsed .nav-item{justify-content:center;padding-left:0;padding-right:0}
+    .sidebar.collapsed .nav-item i{margin-right:0;font-size:1.25rem}
+    .sidebar.collapsed .nav-item span,.sidebar.collapsed .bottom-menu span{display:none}
+    .sidebar.collapsed .bottom-menu .nav-item{justify-content:center}
+    .nav-item{transition:all .2s ease;position:relative;display:flex;align-items:center;padding:.75rem 1rem;margin-bottom:.25rem;color:#374151;border-radius:.5rem;cursor:pointer;white-space:nowrap}
+    .nav-item:hover{background-color:#f3f4f6}
+    .dark .nav-item{color:#d1d5db}
+    .dark .nav-item:hover{background-color:#374151}
+    .nav-item.active{background-color:#d0e1f5;color:#1e4a7a}
+    .dark .nav-item.active{background-color:#1e4a7a;color:#fff}
+    .nav-item.active::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);height:60%;width:4px;background-color:#2e5e99;border-radius:0 4px 4px 0}
+    .dark .nav-item.active::before{background-color:#60a5fa}
+    .nav-item i{width:1.5rem;text-align:center;margin-right:.75rem;font-size:1.1rem;flex-shrink:0}
+    .nav-item span{font-size:.875rem;font-weight:500}
+    .CodeMirror { height: 100% !important; font-family: 'JetBrains Mono', monospace !important; font-size: 14px !important; }
+    .code-area { height: calc(100vh - 360px); min-height: 300px; }
+    .diff-easy{background:#dcfce7;color:#166534} .diff-medium{background:#fef9c3;color:#854d0e} .diff-hard{background:#fee2e2;color:#991b1b}
+    .dark .diff-easy{background:#14532d;color:#86efac} .dark .diff-medium{background:#78350f;color:#fde68a} .dark .diff-hard{background:#7f1d1d;color:#fca5a5}
+    .tc-pass{border-left:3px solid #22c55e; background:#f0fdf4} .tc-fail{border-left:3px solid #ef4444; background:#fef2f2}
+    .dark .tc-pass{background:#14532d20} .dark .tc-fail{background:#7f1d1d20}
+    .tab-btn.active{border-bottom:2px solid #1E4A7A;color:#1E4A7A;font-weight:600}
+    .dark .tab-btn.active{border-bottom-color:#60a5fa;color:#60a5fa}
+    #outputPanel pre { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+  </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200">
+  <div class="flex h-screen overflow-hidden">
+    <aside id="mainSidebar" class="sidebar hidden w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 flex-col h-screen flex-shrink-0 transition-colors duration-200 z-50">
+      <div class="p-6 flex-shrink-0 flex items-center justify-between h-[88px]">
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2 overflow-hidden whitespace-nowrap">
+          <i class="fas fa-code text-primary-500 text-2xl flex-shrink-0"></i>
+          <span id="sidebarLogoText" class="transition-all duration-300 opacity-100 w-auto">CampusCode</span>
+        </h1>
+        <button id="sidebarToggleBtn" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary-500 transition-colors focus:outline-none">
+          <i class="fas fa-chevron-left transition-transform duration-300"></i>
+        </button>
+      </div>
+      <nav class="flex-1 px-4 space-y-1 overflow-y-auto mt-2">
+        <a href="/student/dashboard" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="/student/problems" class="nav-item active"><i class="fas fa-tasks"></i><span>Problems</span></a>
+        <a href="/student/contests" class="nav-item"><i class="fas fa-trophy"></i><span>Contests</span></a>
+        <a href="/forum/forum.html" class="nav-item"><i class="fas fa-comments"></i><span>Community</span></a>
+        <a href="/student/stats" class="nav-item"><i class="fas fa-list"></i><span>Stats</span></a>
+        <a href="/student/report" class="nav-item"><i class="fas fa-chart-pie"></i><span>Report</span></a>
+        <a href="/student/profile" class="nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+      </nav>
+      <div class="p-4 space-y-1 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0 bottom-menu">
+        <a href="/student/support" class="nav-item"><i class="far fa-question-circle"></i><span>Help & Support</span></a>
+        <button id="sidebarProfileBtn" class="nav-item w-full text-left"><i class="fas fa-id-card"></i><span>Profile Card</span></button>
+      </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <header class="bg-white dark:bg-gray-800 shadow-sm transition-colors duration-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+          <div class="flex-1 max-w-2xl ml-4 flex items-center gap-4">
+            <a id="backToListLink" href="/student/problems" class="text-sm text-gray-500 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white transition whitespace-nowrap"><i class="fas fa-arrow-left mr-2"></i>Back to Problems</a>
+            <h1 id="headerLogoText" class="text-xl font-bold text-gray-800 dark:text-white hidden transition-all duration-300 opacity-0 transform -translate-x-2 whitespace-nowrap">CampusCode</h1>
+            <div class="relative flex items-center w-full">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fas fa-search text-gray-400"></i></div>
+              <input type="text" class="block w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all" placeholder="Search problems, contests, tags..." />
+            </div>
+          </div>
+          <div class="ml-4 flex items-center gap-3">
+            <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-transform active:scale-95"><i id="themeIcon" class="fas fa-moon text-xl"></i></button>
+            <div class="relative">
+              <button id="notificationBtn" class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none">
+                <i class="fas fa-bell text-xl"></i>
+                <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-800"></span>
+              </button>
+            </div>
+            <button id="headerProfileBtn" class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              <div id="headerAvatar" class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm">?</div>
+              <span id="headerName" class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block">Profile</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-8 py-3">
+        <div class="flex items-center gap-3">
+          <h1 id="problemTitle" class="text-lg font-semibold text-gray-800 dark:text-white truncate max-w-[380px]">Loading...</h1>
+          <span id="diffBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold"></span>
+          <span id="pointsBadge" class="text-xs text-gray-500 dark:text-gray-400 font-medium"></span>
+        </div>
+      </div>
+
+      <div class="flex flex-1 overflow-hidden">
+
+    <!-- LEFT: Problem Description -->
+    <div class="w-1/2 border-r border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden bg-white dark:bg-gray-800">
+      <!-- Tabs -->
+      <div class="flex border-b border-gray-200 dark:border-gray-700 px-4 pt-2 gap-4 flex-shrink-0">
+        <button class="tab-btn active pb-2 text-sm text-gray-600 dark:text-gray-300 transition" onclick="switchTab('description', this)">Description</button>
+        <button class="tab-btn pb-2 text-sm text-gray-600 dark:text-gray-300 transition" onclick="switchTab('submissions', this)">My Submissions</button>
+      </div>
+
+      <!-- Description Tab -->
+      <div id="tab-description" class="flex-1 overflow-y-auto p-6 space-y-6">
+        <div id="problemMeta" class="hidden">
+          <div class="flex flex-wrap gap-2 mb-4" id="tagsList"></div>
+        </div>
+
+        <div>
+          <h2 class="text-base font-semibold text-gray-800 dark:text-white mb-3">Problem Statement</h2>
+          <div id="problemDesc" class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">Loading...</div>
+        </div>
+
+        <div id="inputFmtSection">
+          <h3 class="font-semibold text-gray-800 dark:text-white text-sm mb-2">Input Format</h3>
+          <div id="inputFmt" class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap"></div>
+        </div>
+
+        <div id="outputFmtSection">
+          <h3 class="font-semibold text-gray-800 dark:text-white text-sm mb-2">Output Format</h3>
+          <div id="outputFmt" class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap"></div>
+        </div>
+
+        <div id="constraintsSection">
+          <h3 class="font-semibold text-gray-800 dark:text-white text-sm mb-2">Constraints</h3>
+          <div id="constraints" class="text-sm font-mono text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg whitespace-pre-wrap"></div>
+        </div>
+
+        <div id="sampleSection">
+          <h3 class="font-semibold text-gray-800 dark:text-white text-sm mb-3">Sample Test Cases</h3>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <p class="text-xs text-gray-500 mb-1 font-medium">Input</p>
+              <pre id="sampleInput" class="text-sm font-mono bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 p-3 rounded-lg overflow-auto max-h-32 text-gray-800 dark:text-gray-200 whitespace-pre-wrap"></pre>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500 mb-1 font-medium">Expected Output</p>
+              <pre id="sampleOutput" class="text-sm font-mono bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 p-3 rounded-lg overflow-auto max-h-32 text-gray-800 dark:text-gray-200 whitespace-pre-wrap"></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submissions Tab -->
+      <div id="tab-submissions" class="flex-1 overflow-y-auto p-6 hidden">
+        <h2 class="text-base font-semibold text-gray-800 dark:text-white mb-4">My Submissions</h2>
+        <div id="submissionsContainer">
+          <div class="text-sm text-gray-500 text-center py-8">Click "My Submissions" after submitting code to see history</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Code Editor & Output -->
+    <div class="w-1/2 flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden">
+      
+      <!-- Editor Toolbar -->
+      <div class="flex items-center gap-3 px-4 py-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+        <select id="languageSelect" class="text-sm px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500">
+          <option value="python">Python</option>
+          <option value="cpp">C++</option>
+          <option value="c">C</option>
+          <option value="java">Java</option>
+        </select>
+        <div class="flex-1"></div>
+        <button id="runBtn" onclick="runCode()" class="px-4 py-1.5 text-sm font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg transition flex items-center gap-2">
+          <i class="fas fa-play text-green-500"></i> Run
+        </button>
+        <button id="submitBtn" onclick="submitCode()" class="px-4 py-1.5 text-sm font-medium bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition flex items-center gap-2">
+          <i class="fas fa-paper-plane"></i> Submit
+        </button>
+      </div>
+
+      <!-- CodeMirror Editor -->
+      <div class="code-area overflow-hidden flex-shrink-0">
+        <textarea id="codeEditor"></textarea>
+      </div>
+
+      <!-- Output Panel -->
+      <div class="flex-1 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden">
+        <div class="flex items-center gap-3 px-4 py-2 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
+          <span class="text-sm font-semibold text-gray-800 dark:text-white">Output</span>
+          <div id="statusBadge" class="hidden"></div>
+          <div class="flex-1"></div>
+          <button onclick="clearOutput()" class="text-xs text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times"></i> Clear</button>
+        </div>
+        <div id="outputPanel" class="flex-1 overflow-y-auto p-4 text-sm">
+          <p class="text-gray-400 dark:text-gray-500 text-sm">Run or submit your code to see the output here.</p>
+        </div>
+      </div>
+
+    </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="profileOverlay" class="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+    <div class="w-[340px] bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden">
+      <div class="bg-[#1E4A7A] dark:bg-[#0f2a4a] relative pt-8 pb-16 px-6 text-center">
+        <button id="closeProfileOverlay" class="absolute top-4 right-4 text-white/70 hover:text-white"><i class="fas fa-times text-lg"></i></button>
+        <div class="absolute left-1/2 bottom-[-45px] -translate-x-1/2">
+          <div class="w-24 h-24 rounded-full bg-[#1E4A7A] p-1">
+            <div class="w-full h-full rounded-full bg-[#1E4A7A] flex items-center justify-center text-white text-4xl font-normal border-4 border-white dark:border-gray-800"><span id="profileAvatarLarge">S</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="pt-14 pb-6 px-6 text-center">
+        <h2 id="profileName" class="text-xl font-bold text-gray-900 dark:text-white">Student</h2>
+        <div class="flex flex-col items-center mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <span class="flex items-center gap-1"><i class="fas fa-users text-xs"></i> <span id="profileCollege">-</span></span>
+          <span id="profileEmail">-</span>
+        </div>
+        <div class="flex justify-between mt-6 px-2">
+          <div class="text-center">
+            <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Solved</div>
+            <div id="profileSolved" class="text-xl font-bold text-gray-900 dark:text-white mt-1">0</div>
+          </div>
+          <div class="text-center border-l border-r border-gray-100 dark:border-gray-700 px-4">
+            <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Rank</div>
+            <div id="profileRank" class="text-xl font-bold text-gray-900 dark:text-white mt-1">#-</div>
+          </div>
+          <div class="text-center">
+            <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Points</div>
+            <div id="profilePoints" class="text-xl font-bold text-gray-900 dark:text-white mt-1">0</div>
+          </div>
+        </div>
+        <div class="h-px bg-gray-100 dark:bg-gray-700 my-6"></div>
+        <div class="space-y-1">
+          <a id="profilePageLink" href="/student/profile" class="nav-item"><i class="fas fa-id-card"></i><span>My Profile</span></a>
+          <a href="/student/profile" class="nav-item"><i class="fas fa-pen"></i><span>Edit Profile</span></a>
+          <a href="/student/report" class="nav-item"><i class="fas fa-chart-pie"></i><span>Report</span></a>
+          <a href="/student/stats" class="nav-item"><i class="fas fa-list"></i><span>Stats</span></a>
+          <a href="/auth/logout" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
+            <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center"><i class="fas fa-sign-out-alt"></i></div>
+            <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="notificationDropdown" class="fixed top-16 right-6 z-50 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 hidden">
+    <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+      <h3 class="font-semibold text-gray-800 dark:text-white">Notifications</h3>
+      <span class="text-xs text-primary-500 cursor-pointer hover:underline">Mark all read</span>
+    </div>
+    <div class="p-2">
+      <div class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer">
+        <p class="text-sm text-gray-800 dark:text-gray-200 font-medium">Problem Update</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400">Keep practicing to improve your rank.</p>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Theme
+  (function(){
+    const t = localStorage.getItem('theme');
+    if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)) document.documentElement.classList.add('dark');
+  })();
+  function toggleTheme() {
+    const isDark = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme', isDark?'dark':'light');
+    document.getElementById('themeIcon').className = isDark?'fas fa-sun text-sm':'fas fa-moon text-sm';
+    editor.setOption('theme', isDark?'dracula':'default');
+  }
+
+  const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+  const mainSidebar = document.getElementById('mainSidebar');
+  const sidebarLogoText = document.getElementById('sidebarLogoText');
+  const headerLogoText = document.getElementById('headerLogoText');
+  sidebarToggleBtn.addEventListener('click', () => {
+    const toggleIcon = sidebarToggleBtn.querySelector('i');
+    mainSidebar.classList.toggle('collapsed');
+    if (mainSidebar.classList.contains('collapsed')) {
+      mainSidebar.classList.replace('w-64', 'w-20');
+      toggleIcon.style.transform = 'rotate(180deg)';
+      sidebarLogoText.style.opacity = '0';
+      sidebarLogoText.style.width = '0px';
+      headerLogoText.classList.remove('hidden');
+      setTimeout(() => headerLogoText.classList.remove('opacity-0', '-translate-x-2'), 50);
+    } else {
+      mainSidebar.classList.replace('w-20', 'w-64');
+      toggleIcon.style.transform = 'rotate(0deg)';
+      sidebarLogoText.style.opacity = '1';
+      sidebarLogoText.style.width = 'auto';
+      headerLogoText.classList.add('opacity-0', '-translate-x-2');
+      setTimeout(() => headerLogoText.classList.add('hidden'), 300);
+    }
+  });
+
+  // Problem ID
+  const problemId = window.location.pathname.split('/').pop();
+  const pageParams = new URLSearchParams(window.location.search);
+  const contestId = pageParams.get('contestId');
+  if (contestId) {
+    const backLink = document.getElementById('backToListLink');
+    backLink.href = `/student/contests/${encodeURIComponent(contestId)}`;
+    backLink.innerHTML = '<i class="fas fa-arrow-left mr-2"></i>Back to Contest';
+  }
+  let problemData = null;
+  let currentUserRole = 'student';
+
+  function getRoleRoutes(role) {
+    const normalized = String(role || '').toLowerCase();
+    if (normalized === 'faculty') {
+      return { role: normalized, home: '/faculty/dashboard', problems: '/faculty/problem', contests: '/faculty/contest', profile: '/faculty/profile' };
+    }
+    if (normalized === 'hos') {
+      return { role: normalized, home: '/hos/dashboard', problems: '/hos/problem', contests: '/hos/contest', profile: '/hos/profile' };
+    }
+    if (normalized === 'hod') {
+      return { role: normalized, home: '/college/hod/dashboard', problems: '/college/hod/problem', contests: '/college/hod/contest', profile: '/college/hod/profile' };
+    }
+    return { role: 'student', home: '/student/dashboard', problems: '/student/problems', contests: '/student/contests', profile: '/student/profile' };
+  }
+
+  // CodeMirror init
+  const editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
+    mode: 'python',
+    theme: document.documentElement.classList.contains('dark') ? 'dracula' : 'default',
+    lineNumbers: true,
+    indentUnit: 4,
+    tabSize: 4,
+    lineWrapping: true,
+    autofocus: true,
+    matchBrackets: true,
+    autoCloseBrackets: true,
+    extraKeys: { Tab: cm => cm.execCommand('indentMore') }
+  });
+
+  // Default template per language
+  const templates = {
+    python: '# Read input from stdin and print your answer\ns = input().strip()\nprint(s)\n',
+    cpp: '#include<bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    // your code\n    return 0;\n}',
+    c: '#include<stdio.h>\n\nint main() {\n    // your code\n    return 0;\n}',
+    java: 'import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        // your code\n    }\n}'
+  };
+
+  const langMode = { python:'python', cpp:'text/x-c++src', c:'text/x-csrc', java:'text/x-java' };
+
+  document.getElementById('languageSelect').addEventListener('change', function() {
+    const lang = this.value;
+    editor.setOption('mode', langMode[lang]);
+    editor.setValue(templates[lang]);
+  });
+  editor.setValue(templates['python']);
+
+  // Tab switching
+  function switchTab(name, el) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('[id^="tab-"]').forEach(t => t.classList.add('hidden'));
+    document.getElementById('tab-' + name).classList.remove('hidden');
+    if(name === 'submissions') loadSubmissionHistory();
+  }
+
+  // Load problem
+  async function loadProblem() {
+    try {
+      const r = await fetch(`/api/problems/${problemId}`);
+      const d = await r.json();
+      if(!d.success) { document.getElementById('problemDesc').textContent = 'Problem not found'; return; }
+      
+      problemData = d.problem;
+      const p = problemData;
+
+      document.title = `${p.title} - CampusCode`;
+      document.getElementById('problemTitle').textContent = p.title;
+
+      const diffC = (p.difficulty||'Easy').toLowerCase() === 'easy' ? 'diff-easy' : (p.difficulty||'').toLowerCase() === 'medium' ? 'diff-medium' : 'diff-hard';
+      document.getElementById('diffBadge').className = `px-2.5 py-0.5 rounded-full text-xs font-bold ${diffC}`;
+      document.getElementById('diffBadge').textContent = p.difficulty || 'Easy';
+      document.getElementById('pointsBadge').textContent = `${p.points || 50} XP`;
+
+      document.getElementById('problemDesc').textContent = p.description || '';
+      document.getElementById('sampleInput').textContent = p.sample_input || '(No sample input)';
+      document.getElementById('sampleOutput').textContent = p.sample_output || '(No sample output)';
+
+      if(p.input_format) document.getElementById('inputFmt').textContent = p.input_format;
+      else document.getElementById('inputFmtSection').classList.add('hidden');
+
+      if(p.output_format) document.getElementById('outputFmt').textContent = p.output_format;
+      else document.getElementById('outputFmtSection').classList.add('hidden');
+
+      if(p.constraints) document.getElementById('constraints').textContent = p.constraints;
+      else document.getElementById('constraintsSection').classList.add('hidden');
+
+      if(p.tags) {
+        const tl = document.getElementById('tagsList');
+        tl.innerHTML = p.tags.split(',').filter(t=>t.trim()).map(t=>`<span style="background:#e0e7ff;color:#3730a3;font-size:10px;padding:2px 8px;border-radius:9999px">${t.trim()}</span>`).join('');
+        document.getElementById('problemMeta').classList.remove('hidden');
+      }
+
+    } catch(e) {
+      document.getElementById('problemDesc').textContent = 'Error loading problem';
+    }
+  }
+
+  async function loadUser() {
+    try {
+      const r = await fetch('/api/forum/me');
+      const d = await r.json();
+      if (!d.success) return;
+      const routes = getRoleRoutes(d.user.role);
+      currentUserRole = routes.role;
+      const fullName = d.user.fullName || 'Student';
+      const initials = fullName.split(' ').filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase() || 'S';
+      document.getElementById('headerName').textContent = fullName;
+      document.getElementById('headerAvatar').textContent = initials;
+      document.getElementById('profileName').textContent = fullName;
+      document.getElementById('profileAvatarLarge').textContent = initials.charAt(0);
+      document.getElementById('profileCollege').textContent = d.user.collegeName || '-';
+      document.getElementById('profileEmail').textContent = d.user.email || '-';
+      const solved = Number(d.user.problems_solved ?? d.user.solvedCount ?? 0);
+      const points = Number(d.user.xp ?? d.user.points ?? 0);
+      let rank = String(d.user.global_rank ?? d.user.rank ?? '#-').trim();
+      if (rank && rank !== '#-' && !rank.startsWith('#')) rank = `#${rank}`;
+      if (!rank) rank = '#-';
+      document.getElementById('profileSolved').textContent = solved;
+      document.getElementById('profileRank').textContent = rank;
+      document.getElementById('profilePoints').textContent = points;
+
+      const backLink = document.getElementById('backToListLink');
+      if (!contestId && backLink) {
+        backLink.href = routes.problems;
+      } else if (contestId && backLink) {
+        backLink.href = routes.role === 'student' ? `/student/contests/${encodeURIComponent(contestId)}` : routes.contests;
+        backLink.innerHTML = '<i class="fas fa-arrow-left mr-2"></i>Back to Contest';
+      }
+
+      const profilePageLink = document.getElementById('profilePageLink');
+      if (profilePageLink) profilePageLink.href = routes.profile;
+    } catch (e) {}
+  }
+
+  const profileOverlay = document.getElementById('profileOverlay');
+  function openProfileOverlay() {
+    profileOverlay.classList.remove('hidden');
+  }
+
+  document.getElementById('headerProfileBtn').addEventListener('click', openProfileOverlay);
+  document.getElementById('sidebarProfileBtn').addEventListener('click', openProfileOverlay);
+  const notificationBtn = document.getElementById('notificationBtn');
+  const notificationDropdown = document.getElementById('notificationDropdown');
+  if (notificationBtn && notificationDropdown) {
+    notificationBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      notificationDropdown.classList.toggle('hidden');
+    });
+    document.addEventListener('click', (event) => {
+      if (!notificationDropdown.contains(event.target) && !notificationBtn.contains(event.target)) {
+        notificationDropdown.classList.add('hidden');
+      }
+    });
+  }
+
+  function closeProfileOverlay() {
+    profileOverlay.classList.add('hidden');
+  }
+
+  document.getElementById('closeProfileOverlay').addEventListener('click', closeProfileOverlay);
+  profileOverlay.addEventListener('click', (event) => {
+    if (event.target === profileOverlay) closeProfileOverlay();
+  });
+
+  // Run code (sample input)
+  async function runCode() {
+    const code = editor.getValue();
+    const lang = document.getElementById('languageSelect').value;
+    const btn = document.getElementById('runBtn');
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running...';
+    setOutput('<p class="text-gray-500 dark:text-gray-400"><i class="fas fa-spinner fa-spin mr-2"></i>Executing code...</p>');
+
+    try {
+      const r = await fetch(`/api/problems/${problemId}/run`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, language: lang })
+      });
+      const d = await r.json();
+      
+      if(d.success) {
+        const trimmedOutput = (d.output || '').trim();
+        let html = '<div class="space-y-2">';
+        html += '<p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">Standard Output</p>';
+        html += `<pre class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 text-gray-800 dark:text-gray-200 font-mono text-xs overflow-auto">${escHtml(d.output || '(empty output)')}</pre>`;
+        if(!trimmedOutput && !d.stderr) {
+          html += `
+            <div class="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 p-3 text-amber-800 dark:text-amber-200">
+              <p class="text-xs font-semibold mb-1">Your code ran, but it did not print anything.</p>
+              <p class="text-xs leading-relaxed">This runner checks standard output. Read from stdin and use <code>print(...)</code> to show the final answer. Defining a function alone will return empty output.</p>
+            </div>
+          `;
+        }
+        if(d.stderr) {
+          html += `<p class="text-xs font-semibold text-red-500 mt-3 mb-1">Errors / Warnings</p>`;
+          html += `<pre class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 text-red-700 dark:text-red-300 font-mono text-xs overflow-auto">${escHtml(d.stderr)}</pre>`;
+        }
+        html += '</div>';
+        setOutput(html);
+      } else {
+        setOutput(`<p class="text-red-500">Error: ${d.message}</p>`);
+      }
+    } catch(e) {
+      setOutput(`<p class="text-red-500">Network error: ${e.message}</p>`);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-play text-green-500"></i> Run';
+    }
+  }
+
+  // Submit code
+  async function submitCode() {
+    const code = editor.getValue();
+    const lang = document.getElementById('languageSelect').value;
+    const btn = document.getElementById('submitBtn');
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Judging...';
+    setOutput('<p class="text-gray-500 dark:text-gray-400"><i class="fas fa-spinner fa-spin mr-2"></i>Running against all test cases...</p>');
+    document.getElementById('statusBadge').className = 'hidden';
+
+    try {
+      const r = await fetch(`/api/problems/${problemId}/submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, language: lang, contestId: contestId || null })
+      });
+      const d = await r.json();
+      if (!r.ok || !d.success) {
+        throw new Error(d.message || d.error || `Submission failed (${r.status})`);
+      }
+
+      const badge = document.getElementById('statusBadge');
+      badge.classList.remove('hidden');
+      
+      if(d.status === 'accepted') {
+        badge.innerHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
+          <i class="fas fa-check mr-1"></i>Accepted â€” +${d.pointsEarned} XP</span>`;
+      } else {
+        badge.innerHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">
+          <i class="fas fa-times mr-1"></i>Wrong Answer (${d.passed}/${d.total} passed)</span>`;
+      }
+
+      // Render test case results
+      let html = '<div class="space-y-2">';
+      html += `<div class="flex items-center gap-2 mb-4">
+        <span class="text-sm font-semibold text-gray-800 dark:text-gray-200">Test Cases: ${d.passed}/${d.total} Passed</span>
+      </div>`;
+      
+      if(d.results && d.results.length) {
+        d.results.forEach(tc => {
+          html += `<div class="rounded-lg p-3 ${tc.passed ? 'tc-pass' : 'tc-fail'}">
+            <div class="flex items-center gap-2 mb-1">
+              <i class="fas fa-${tc.passed ? 'check text-green-600' : 'times text-red-600'} text-xs"></i>
+              <span class="text-xs font-semibold ${tc.passed ? 'text-green-700' : 'text-red-700'}">Test Case ${tc.testCase} ${tc.passed ? 'â€” Passed' : 'â€” Failed'}</span>
+            </div>`;
+          if(!tc.passed && tc.expected !== undefined) {
+            html += `<div class="grid grid-cols-2 gap-2 mt-2">
+              <div><p class="text-xs text-gray-500 mb-1">Expected</p><pre class="font-mono text-xs bg-white dark:bg-gray-800 p-2 rounded overflow-auto max-h-20">${escHtml(tc.expected)}</pre></div>
+              <div><p class="text-xs text-gray-500 mb-1">Your Output</p><pre class="font-mono text-xs bg-white dark:bg-gray-800 p-2 rounded overflow-auto max-h-20">${escHtml(tc.actual||'')}</pre></div>
+            </div>`;
+          }
+          if(tc.stderr) html += `<pre class="mt-1 font-mono text-xs text-red-600 max-h-16 overflow-auto">${escHtml(tc.stderr)}</pre>`;
+          html += '</div>';
+        });
+      }
+      html += '</div>';
+      setOutput(html);
+
+    } catch(e) {
+      setOutput(`<p class="text-red-500">Submission error: ${e.message}</p>`);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit';
+    }
+  }
+
+  async function loadSubmissionHistory() {
+    const container = document.getElementById('submissionsContainer');
+    container.innerHTML = '<p class="text-sm text-gray-500 text-center py-4"><i class="fas fa-spinner fa-spin"></i> Loading...</p>';
+    
+    try {
+      const r = await fetch(`/api/problems/${problemId}/submissions`);
+      const d = await r.json();
+      
+      if(!d.success || d.submissions.length === 0) {
+        container.innerHTML = '<p class="text-sm text-gray-500 text-center py-8">No submissions yet. Write your solution!</p>';
+        return;
+      }
+
+      container.innerHTML = d.submissions.map(s => {
+        const color = s.status === 'accepted' ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400';
+        const icon = s.status === 'accepted' ? 'fa-check-circle' : 'fa-times-circle';
+        const label = s.status === 'accepted' ? 'Accepted' : 'Wrong Answer';
+        return `<div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700 last:border-0">
+          <div class="flex items-center gap-3">
+            <i class="fas ${icon} ${color}"></i>
+            <div>
+              <p class="text-sm font-medium ${color}">${label}</p>
+              <p class="text-xs text-gray-400">${s.language.toUpperCase()} Â· ${new Date(s.createdAt).toLocaleString()}</p>
+            </div>
+          </div>
+          ${s.points_earned > 0 ? `<span class="text-xs text-primary-500 dark:text-blue-400 font-bold">+${s.points_earned} XP</span>` : ''}
+        </div>`;
+      }).join('');
+    } catch(e) {
+      container.innerHTML = `<p class="text-red-500 text-sm">Failed to load submissions</p>`;
+    }
+  }
+
+  function setOutput(html) { document.getElementById('outputPanel').innerHTML = html; }
+  function clearOutput() { setOutput('<p class="text-gray-400 dark:text-gray-500 text-sm">Output cleared.</p>'); document.getElementById('statusBadge').className='hidden'; }
+  function escHtml(s) { return (s||'').replace(/[&<>'"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+
+  loadUser();
+  loadProblem();
+</script>
+</body>
+</html>
+
+
+
+

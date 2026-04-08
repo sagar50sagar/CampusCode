@@ -1,388 +1,949 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CampusCode - Master Competitive Programming</title>
-    <link rel="shortcut icon" href="/images/logo.png" type="image/x-icon">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: { extend: { colors: { primary: '#1E4A7A', darkBg: '#0f172a', darkCard: '#1e293b' } } }
-        }
-    </script>
-    <script>
-        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    </script>
-    
-    <style>
-        .auth-container { background-color: #fff; border-radius: 1.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); position: relative; overflow: hidden; width: 900px; max-width: 100%; min-height: 550px; }
-        .dark .auth-container { background-color: #1e293b; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); }
-        .form-container { position: absolute; top: 0; height: 100%; transition: all 0.6s ease-in-out; }
-        .sign-in-container { left: 0; width: 50%; z-index: 2; }
-        .auth-container.right-panel-active .sign-in-container { transform: translateX(100%); }
-        .sign-up-container { left: 0; width: 50%; opacity: 0; z-index: 1; }
-        .auth-container.right-panel-active .sign-up-container { transform: translateX(100%); opacity: 1; z-index: 5; animation: show 0.6s; }
-        @keyframes show { 0%, 49.99% { opacity: 0; z-index: 1; } 50%, 100% { opacity: 1; z-index: 5; } }
-        .overlay-container { position: absolute; top: 0; left: 50%; width: 50%; height: 100%; overflow: hidden; transition: transform 0.6s ease-in-out; z-index: 100; }
-        .auth-container.right-panel-active .overlay-container { transform: translateX(-100%); }
-        .overlay { background: linear-gradient(to right, #1E4A7A, #2a6bb0); background-repeat: no-repeat; background-size: cover; background-position: 0 0; color: #FFFFFF; position: relative; left: -100%; height: 100%; width: 200%; transform: translateX(0); transition: transform 0.6s ease-in-out; }
-        .auth-container.right-panel-active .overlay { transform: translateX(50%); }
-        .overlay-panel { position: absolute; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 0 40px; text-align: center; top: 0; height: 100%; width: 50%; transform: translateX(0); transition: transform 0.6s ease-in-out; }
-        .overlay-left { transform: translateX(-20%); }
-        .auth-container.right-panel-active .overlay-left { transform: translateX(0); }
-        .overlay-right { right: 0; transform: translateX(0); }
-        .auth-container.right-panel-active .overlay-right { transform: translateX(20%); }
-        
-        .step-hidden { display: none; }
-    </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CampusCode — Code Your Way To The Top 1%</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Bricolage+Grotesque:wght@400;600;800;900&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  darkMode:"class",
+  theme:{extend:{
+    fontFamily:{
+      display:["Bricolage Grotesque","sans-serif"],
+      body:["Space Grotesk","sans-serif"],
+      mono:["JetBrains Mono","monospace"]
+    },
+    colors:{
+      cloud:"#EEF4FB",
+      steel:"#6B9AC4",
+      navy:"#1A4A8A",
+      midnight:"#08172E",
+      accent:"#00C2FF",
+      glow:"#4FACFE"
+    }
+  }}
+};
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;font-family:"Space Grotesk",sans-serif;}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#1A4A8A;border-radius:10px;}
+
+/* Progress bar */
+#pbar{position:fixed;top:0;left:0;height:2px;width:0;z-index:9999;background:linear-gradient(90deg,#00C2FF,#4FACFE,#1A4A8A);}
+
+/* Noise texture */
+.noise{position:relative;}
+.noise::before{content:"";position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.04;}
+
+/* Grid bg */
+.grid-bg{background-image:linear-gradient(rgba(106,154,196,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(106,154,196,.08) 1px,transparent 1px);background-size:60px 60px;}
+.dark .grid-bg{background-image:linear-gradient(rgba(106,154,196,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(106,154,196,.05) 1px,transparent 1px);}
+
+/* Text gradient */
+.text-grad{background:linear-gradient(135deg,#4FACFE 0%,#00C2FF 40%,#1A4A8A 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.text-grad-warm{background:linear-gradient(135deg,#f8c96a 0%,#f6a623 60%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+/* Animated code typing */
+.tw-text{display:inline-block;width:0;white-space:nowrap;overflow:hidden;border-right:3px solid #00C2FF;animation:tw 2.6s steps(12,end) .6s forwards,blink .7s step-end infinite;}
+@keyframes tw{to{width:100%;}}
+@keyframes blink{50%{border-color:transparent;}}
+
+/* Reveal animations */
+.rv{opacity:0;transform:translateY(28px);transition:.7s cubic-bezier(.22,.97,.39,1);}
+.rv.in{opacity:1;transform:translateY(0);}
+.rv-l{opacity:0;transform:translateX(-30px);transition:.7s cubic-bezier(.22,.97,.39,1);}
+.rv-l.in{opacity:1;transform:translateX(0);}
+.rv-r{opacity:0;transform:translateX(30px);transition:.7s cubic-bezier(.22,.97,.39,1);}
+.rv-r.in{opacity:1;transform:translateX(0);}
+
+/* Floating animation */
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
+@keyframes floatB{0%,100%{transform:translateY(0) rotate(-2deg);}50%{transform:translateY(-8px) rotate(2deg);}}
+.float{animation:float 5s ease-in-out infinite;}
+.float-b{animation:floatB 6s ease-in-out infinite;}
+
+/* Pulse glow */
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 20px rgba(0,194,255,.2);}50%{box-shadow:0 0 50px rgba(0,194,255,.5);}}
+.pulse-glow{animation:pulseGlow 2.5s ease-in-out infinite;}
+
+/* Code window */
+.code-win{background:#0d1117;border:1px solid rgba(106,154,196,.18);}
+
+/* Stat counter animation */
+@keyframes countUp{from{opacity:0;transform:scale(.7);}to{opacity:1;transform:scale(1);}}
+.count-in{animation:countUp .6s cubic-bezier(.34,1.56,.64,1) forwards;}
+
+/* Card hover */
+.feature-card{transition:all .35s cubic-bezier(.22,.97,.39,1);}
+.feature-card:hover{transform:translateY(-6px);border-color:rgba(0,194,255,.4);}
+.feature-card:hover .card-icon{transform:scale(1.1) rotate(-5deg);}
+.card-icon{transition:transform .35s cubic-bezier(.34,1.56,.64,1);}
+
+/* Step connector */
+.step-line{background:linear-gradient(180deg,#00C2FF,transparent);}
+
+/* Tag pill */
+.tag{display:inline-flex;align-items:center;gap:6px;padding:.3rem .85rem;border-radius:999px;font-size:.72rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;}
+
+/* Testimonial card */
+.testi-card{transition:all .35s ease;}
+.testi-card:hover{transform:translateY(-4px);}
+
+/* Mobile menu */
+#mob{display:none;}
+#mob.open{display:flex;}
+
+/* Auth Modal */
+#authBox{position:relative;overflow:hidden;border-radius:1.25rem;width:100%;max-width:900px;height:600px;background:#fff;box-shadow:0 40px 100px rgba(8,23,46,.6);}
+.dark #authBox{background:#071322;}
+.ac-form{position:absolute;top:0;bottom:0;left:0;width:58%;overflow-y:auto;display:flex;flex-direction:column;justify-content:center;padding:2.5rem;transition:transform .65s cubic-bezier(.68,-.55,.27,1.55),opacity .45s ease;}
+#panelLogin{z-index:2;transform:translateX(0);opacity:1;}
+#panelSignup{z-index:1;transform:translateX(137%);opacity:0;pointer-events:none;}
+#authBox.active #panelLogin{transform:translateX(-137%);opacity:0;pointer-events:none;}
+#authBox.active #panelSignup{transform:translateX(0);opacity:1;z-index:5;pointer-events:auto;}
+#authOverlayPanel{position:absolute;top:0;right:0;bottom:0;width:42%;z-index:200;overflow:hidden;border-radius:0 1.25rem 1.25rem 0;transition:transform .65s cubic-bezier(.68,-.55,.27,1.55);}
+#authOverlayInner{width:200%;height:100%;display:flex;transform:translateX(0);transition:transform .65s cubic-bezier(.68,-.55,.27,1.55);background:linear-gradient(145deg,#1A4A8A 0%,#08172E 60%,#000c1a 100%);}
+.ac-ovp{width:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:2rem;}
+.ac-input{width:100%;padding:.82rem 1rem;border-radius:.75rem;border:1.5px solid transparent;background:#f0f4f8;color:#0f172a;outline:none;font-family:"Space Grotesk",sans-serif;font-size:.9rem;transition:all .2s;}
+.ac-input:focus{border-color:#1A4A8A;box-shadow:0 0 0 3px rgba(26,74,138,.15);}
+.dark .ac-input{background:#0f2035;color:#daeeff;border-color:rgba(106,154,196,.2);}
+.dark .ac-input:focus{border-color:#00C2FF;box-shadow:0 0 0 3px rgba(0,194,255,.12);}
+.ac-btn{width:100%;border:none;border-radius:.75rem;padding:.9rem 1rem;color:#fff;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:linear-gradient(135deg,#00C2FF,#1A4A8A);cursor:pointer;font-family:"Space Grotesk",sans-serif;transition:opacity .2s,transform .15s;font-size:.88rem;}
+.ac-btn:hover{opacity:.9;transform:scale(1.01);}
+.ac-btn:disabled{opacity:.6;cursor:not-allowed;}
+.ac-ovbtn{border:2px solid rgba(255,255,255,.6);background:transparent;color:#fff;border-radius:.75rem;padding:.72rem 2.2rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;font-family:"Space Grotesk",sans-serif;transition:all .25s;}
+.ac-ovbtn:hover{background:rgba(255,255,255,.12);border-color:#fff;}
+.ac-link{background:none;border:none;color:#00C2FF;font-weight:700;text-decoration:underline;cursor:pointer;font-family:"Space Grotesk",sans-serif;}
+.dark .ac-link{color:#4FACFE;}
+.step-hidden{display:none!important;}
+.ac-error{color:#ef4444;font-size:.74rem;}
+
+/* Marquee */
+.marquee-wrap{overflow:hidden;}
+.marquee-inner{display:flex;gap:2rem;animation:marqueeX 25s linear infinite;}
+@keyframes marqueeX{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+
+/* Glowing orbs */
+.orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;}
+
+/* Code line highlight */
+@keyframes lineHighlight{0%{background-color:transparent;}50%{background-color:rgba(0,194,255,.08);}100%{background-color:transparent;}}
+.hl{animation:lineHighlight 2.5s ease-in-out infinite;}
+
+@media(max-width:700px){
+  #authBox{height:auto;background:transparent;box-shadow:none;}
+  .ac-form{position:static;width:100%;display:none;background:#fff;border-radius:1rem;box-shadow:0 12px 40px rgba(8,23,46,.25);padding:1.5rem;transform:none!important;opacity:1!important;pointer-events:auto!important;}
+  .dark .ac-form{background:#071322;}
+  #panelLogin{display:flex;}
+  #authBox.active #panelLogin{display:none;}
+  #authBox.active #panelSignup{display:flex;}
+  #panelSignup{display:none;}
+  #authOverlayPanel{display:none!important;}
+}
+</style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans transition-colors duration-300 dark:bg-darkBg dark:text-gray-200">
+<body class="bg-cloud text-midnight dark:bg-midnight dark:text-cloud overflow-x-hidden transition-colors duration-300">
+<div id="pbar"></div>
 
-    <nav class="fixed w-full z-40 top-0 bg-white/80 dark:bg-darkCard/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 transition-colors">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex-shrink-0 flex items-center gap-2 cursor-pointer">
-                    <i class="fas fa-code text-primary dark:text-blue-400 text-2xl"></i>
-                    <span class="font-bold text-xl tracking-tight text-gray-900 dark:text-white">CampusCode</span>
-                </div>
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="#features" class="text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-blue-400 font-medium transition">Features</a>
-                    <a href="/college-register" class="text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-blue-400 font-medium transition">For Institutions</a>
-                    <button onclick="toggleTheme()" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full p-2 transition">
-                        <i id="theme-toggle-light-icon" class="fas fa-sun hidden"></i>
-                        <i id="theme-toggle-dark-icon" class="fas fa-moon hidden"></i>
-                    </button>
-                    <button onclick="openAuthModal(false)" class="text-primary dark:text-white font-medium hover:opacity-80 transition">Log In</button>
-                    <button onclick="openAuthModal(true)" class="bg-primary hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium shadow-md transition transform hover:-translate-y-0.5">Get Started</button>
-                </div>
-            </div>
+<!-- NAVBAR -->
+<nav id="navbar" class="fixed top-0 inset-x-0 z-50 bg-cloud/80 dark:bg-midnight/85 backdrop-blur-2xl border-b border-navy/10 dark:border-steel/10 px-4 py-3 transition-all duration-300">
+  <div class="max-w-7xl mx-auto flex items-center gap-3">
+    <a href="#" class="flex items-center gap-2.5 shrink-0 mr-4 no-underline group">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-navy to-midnight flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+        <span class="font-mono font-bold text-white text-sm">&lt;/&gt;</span>
+      </div>
+      <span class="font-display font-extrabold text-lg tracking-tight text-midnight dark:text-cloud">CampusCode</span>
+    </a>
+    <div class="hidden md:flex items-center gap-1">
+      <a href="#features" class="text-sm font-medium text-midnight/70 dark:text-cloud/70 px-3 py-2 rounded-lg hover:bg-navy/8 dark:hover:bg-steel/10 transition-colors hover:text-navy dark:hover:text-steel">Features</a>
+      <a href="#how-it-works" class="text-sm font-medium text-midnight/70 dark:text-cloud/70 px-3 py-2 rounded-lg hover:bg-navy/8 dark:hover:bg-steel/10 transition-colors hover:text-navy dark:hover:text-steel">How It Works</a>
+      <a href="#testimonials" class="text-sm font-medium text-midnight/70 dark:text-cloud/70 px-3 py-2 rounded-lg hover:bg-navy/8 dark:hover:bg-steel/10 transition-colors hover:text-navy dark:hover:text-steel">Stories</a>
+      <a href="#about" class="text-sm font-medium text-midnight/70 dark:text-cloud/70 px-3 py-2 rounded-lg hover:bg-navy/8 dark:hover:bg-steel/10 transition-colors hover:text-navy dark:hover:text-steel">About</a>
+    </div>
+    <div class="hidden md:flex items-center gap-2 ml-auto">
+      <button onclick="openAuth('login')" class="text-sm font-semibold text-midnight dark:text-cloud/80 px-4 py-2 rounded-lg hover:bg-navy/8 dark:hover:bg-steel/10 transition-colors border border-navy/20 dark:border-steel/20 bg-transparent cursor-pointer">Login</button>
+      <button onclick="openAuth('register')" class="text-sm font-bold text-white bg-gradient-to-br from-navy to-midnight px-5 py-2.5 rounded-xl shadow-lg cursor-pointer border-none hover:shadow-[0_0_20px_rgba(0,194,255,.3)] transition-all">Get Started →</button>
+    </div>
+    <button onclick="toggleTheme()" class="w-9 h-9 rounded-xl flex items-center justify-center bg-navy/8 dark:bg-steel/10 text-navy dark:text-steel border-none cursor-pointer hover:scale-110 transition-transform" id="themeBtn">☽</button>
+    <button onclick="toggleMob()" class="md:hidden w-9 h-9 rounded-xl flex items-center justify-center bg-navy/8 dark:bg-steel/10 text-navy dark:text-steel border-none cursor-pointer">☰</button>
+  </div>
+  <div id="mob" class="flex-col gap-1 px-1 pb-4 mt-2 md:hidden border-t border-steel/20">
+    <a href="#features" onclick="closeMob()" class="block text-sm font-medium text-midnight dark:text-cloud/80 px-3 py-2.5 rounded-lg hover:bg-navy/10 transition-colors">Features</a>
+    <a href="#how-it-works" onclick="closeMob()" class="block text-sm font-medium text-midnight dark:text-cloud/80 px-3 py-2.5 rounded-lg hover:bg-navy/10 transition-colors">How It Works</a>
+    <a href="#testimonials" onclick="closeMob()" class="block text-sm font-medium text-midnight dark:text-cloud/80 px-3 py-2.5 rounded-lg hover:bg-navy/10 transition-colors">Stories</a>
+    <a href="#about" onclick="closeMob()" class="block text-sm font-medium text-midnight dark:text-cloud/80 px-3 py-2.5 rounded-lg hover:bg-navy/10 transition-colors">About</a>
+    <div class="flex gap-2 mt-2">
+      <button onclick="closeMob();openAuth('login')" class="flex-1 text-sm font-medium text-navy dark:text-steel border border-navy/25 dark:border-steel/25 rounded-xl py-2.5 bg-transparent cursor-pointer">Login</button>
+      <button onclick="closeMob();openAuth('register')" class="flex-1 text-sm font-bold text-white bg-gradient-to-br from-navy to-midnight rounded-xl py-2.5 cursor-pointer border-none">Get Started</button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="min-h-screen flex items-center pt-28 pb-24 px-4 relative overflow-hidden grid-bg">
+  <!-- Orbs -->
+  <div class="orb w-96 h-96 bg-navy/20 dark:bg-navy/30 top-20 -right-24"></div>
+  <div class="orb w-72 h-72 bg-accent/10 bottom-12 -left-16"></div>
+  <div class="orb w-48 h-48 bg-steel/20 top-1/2 left-1/3"></div>
+
+  <div class="max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-16 items-center relative z-10">
+    <div class="rv-l">
+      <div class="tag bg-navy/10 dark:bg-steel/10 border border-navy/20 dark:border-steel/20 text-navy dark:text-accent mb-6">
+        <span class="w-2 h-2 rounded-full bg-accent inline-block animate-pulse"></span>
+        Public Beta · 5,000+ Students Enrolled
+      </div>
+      <h1 class="font-display font-black leading-[1.05] tracking-tight mb-6 text-midnight dark:text-cloud" style="font-size:clamp(2.6rem,5vw,4rem)">
+        Code Your Way<br/>To The&nbsp;<span class="tw-text text-grad">Top 1%</span>
+      </h1>
+      <p class="text-base leading-relaxed max-w-[480px] mb-8 text-midnight/60 dark:text-cloud/60">CampusCode unites Students, Faculty, HODs and Administrators in one powerful coding ecosystem — built for Indian colleges, designed for world-class outcomes.</p>
+      
+      <!-- Trust badges -->
+      <div class="flex flex-wrap gap-3 mb-8">
+        <div class="flex items-center gap-2 bg-white/70 dark:bg-midnight/40 border border-steel/20 rounded-full px-3 py-1.5 text-xs font-semibold text-midnight/70 dark:text-cloud/60">
+          <span class="text-green-500">✓</span> Free for Students
         </div>
-    </nav>
-
-    <main class="pt-24 pb-16 lg:pt-32 lg:pb-24 overflow-hidden relative">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-            <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-6">
-                Master Competitive <br class="hidden md:block">
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400">Programming Together</span>
-            </h1>
-            <p class="mt-4 max-w-2xl mx-auto text-xl text-gray-500 dark:text-gray-400 mb-10">
-                The ultimate platform for colleges to host contests, track student progress, and build a thriving coding culture on campus.
-            </p>
-            <div class="flex flex-col sm:flex-row justify-center gap-4">
-                <button onclick="openAuthModal(true)" class="bg-primary hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-bold text-lg shadow-lg transition transform hover:-translate-y-1">
-                    Join Your College
-                </button>
-                <a href="/college-register" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 px-8 py-3 rounded-lg font-bold text-lg shadow-sm transition">
-                    Register Institution
-                </a>
-            </div>
+        <div class="flex items-center gap-2 bg-white/70 dark:bg-midnight/40 border border-steel/20 rounded-full px-3 py-1.5 text-xs font-semibold text-midnight/70 dark:text-cloud/60">
+          <span class="text-green-500">✓</span> AI-Powered Hints
         </div>
-        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-blue-100 dark:bg-blue-900/20 blur-3xl opacity-50 pointer-events-none"></div>
-        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-72 h-72 rounded-full bg-primary/10 dark:bg-primary/20 blur-3xl opacity-50 pointer-events-none"></div>
-    </main>
-
-    <section id="features" class="py-16 bg-white dark:bg-darkCard transition-colors">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16"><h2 class="text-3xl font-bold text-gray-900 dark:text-white">Why Choose CampusCode?</h2></div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="p-6 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700">
-                    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 text-primary dark:text-blue-400 rounded-xl flex items-center justify-center text-xl mb-4"><i class="fas fa-trophy"></i></div>
-                    <h3 class="text-xl font-bold mb-2 dark:text-white">Host Contests</h3>
-                    <p class="text-gray-500 dark:text-gray-400">Easily create and manage algorithmic coding competitions for your students.</p>
-                </div>
-                <div class="p-6 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700">
-                    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 text-primary dark:text-blue-400 rounded-xl flex items-center justify-center text-xl mb-4"><i class="fas fa-chart-line"></i></div>
-                    <h3 class="text-xl font-bold mb-2 dark:text-white">Track Progress</h3>
-                    <p class="text-gray-500 dark:text-gray-400">Detailed analytics and leaderboards to monitor student performance over time.</p>
-                </div>
-                <div class="p-6 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700">
-                    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 text-primary dark:text-blue-400 rounded-xl flex items-center justify-center text-xl mb-4"><i class="fas fa-users-cog"></i></div>
-                    <h3 class="text-xl font-bold mb-2 dark:text-white">Role Management</h3>
-                    <p class="text-gray-500 dark:text-gray-400">Dedicated dashboards for Admins, Faculty, and Students to streamline workflows.</p>
-                </div>
-            </div>
+        <div class="flex items-center gap-2 bg-white/70 dark:bg-midnight/40 border border-steel/20 rounded-full px-3 py-1.5 text-xs font-semibold text-midnight/70 dark:text-cloud/60">
+          <span class="text-green-500">✓</span> Placement Prep
         </div>
-    </section>
+      </div>
 
-    <div id="authModal" class="fixed inset-0 z-50 hidden opacity-0 transition-opacity duration-300">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeAuthModal()"></div>
-        
-        <div class="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
-            <div class="pointer-events-auto relative">
-                <button onclick="closeAuthModal()" class="absolute -top-4 -right-4 md:-top-6 md:-right-6 z-[101] bg-white dark:bg-gray-800 text-gray-500 hover:text-red-500 rounded-full w-10 h-10 flex items-center justify-center shadow-lg border border-gray-200 dark:border-gray-700 transition">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
+      <div class="flex flex-wrap items-center gap-3">
+        <button onclick="openAuth('register')" class="inline-flex items-center gap-2 text-sm font-bold text-white bg-gradient-to-br from-navy to-midnight px-7 py-3.5 rounded-xl shadow-xl hover:shadow-[0_0_30px_rgba(0,194,255,.35)] transition-all hover:scale-[1.02] border-none cursor-pointer">
+          Join as Student <span>→</span>
+        </button>
+        <a href="#how-it-works" class="inline-flex items-center gap-2 text-sm font-semibold text-navy dark:text-steel border-2 border-navy/30 dark:border-steel/30 px-6 py-3 rounded-xl hover:bg-navy/5 transition-colors">
+          See How It Works ↓
+        </a>
+      </div>
 
-                <div class="auth-container" id="authContainer">
-                    
-                    <div class="form-container sign-up-container bg-white dark:bg-darkCard">
-                        <form id="signupForm" class="flex flex-col items-center justify-center h-full px-8 md:px-12 text-center w-full">
-                            
-                            <div id="signup-step-1" class="w-full">
-                                <h2 class="font-bold text-3xl mb-4 text-gray-900 dark:text-white">Create Account</h2>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Join your college on CampusCode</p>
-                                
-                                <div class="w-full space-y-3">
-                                    <input type="text" id="su_name" name="name" placeholder="Full Name" required class="w-full bg-gray-100 dark:bg-gray-700 border-none p-3.5 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:outline-none transition">
-                                    <input type="email" id="su_email" name="email" placeholder="Email Address" required class="w-full bg-gray-100 dark:bg-gray-700 border-none p-3.5 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:outline-none transition">
-                                    <input type="password" id="su_password" name="password" placeholder="Password" required class="w-full bg-gray-100 dark:bg-gray-700 border-none p-3.5 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:outline-none transition">
-                                    <select id="su_role" name="role" required class="w-full bg-gray-100 dark:bg-gray-700 border-none p-3.5 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:outline-none transition appearance-none cursor-pointer">
-                                        <option value="" disabled selected>Select your Role</option>
-                                        <option value="student">Student</option>
-                                        <option value="faculty">Faculty</option>
-                                    </select>
-                                    <select id="su_college" name="collegeName" required class="w-full bg-gray-100 dark:bg-gray-700 border-none p-3.5 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:outline-none transition appearance-none cursor-pointer">
-                                        <option value="" disabled selected>Loading colleges...</option>
-                                    </select>
-                                </div>
-                                
-                                <p id="su_error" class="text-red-500 text-xs mt-3 hidden"></p>
-                                <button type="button" onclick="triggerSignupOTP()" id="btnSendSignupOTP" class="rounded-lg border border-primary bg-primary text-white text-sm font-bold py-3.5 px-12 mt-6 uppercase tracking-wider transition-transform transform hover:scale-105 shadow-md w-full">Send OTP to Email</button>
-                            </div>
-
-                            <div id="signup-step-2" class="w-full step-hidden">
-                                <button type="button" onclick="backToSignupStep1()" class="text-sm text-gray-500 hover:text-primary mb-4 self-start flex items-center gap-1"><i class="fas fa-arrow-left"></i> Back</button>
-                                <h2 class="font-bold text-3xl mb-4 text-gray-900 dark:text-white">Verify Email</h2>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Enter the 6-digit code sent to your email.</p>
-                                
-                                <input type="text" name="otp" id="su_otp" placeholder="Enter OTP" maxlength="6" required class="w-full bg-gray-100 dark:bg-gray-700 border-none p-3.5 rounded-lg text-gray-900 dark:text-white text-center font-bold tracking-[0.5em] focus:ring-2 focus:ring-primary focus:outline-none transition mb-4">
-                                
-                                <p id="su_verify_error" class="text-red-500 text-xs mb-3 hidden"></p>
-                                <button type="submit" id="btnCompleteRegistration" class="rounded-lg border border-green-600 bg-green-600 text-white text-sm font-bold py-3.5 px-12 uppercase tracking-wider transition-transform transform hover:scale-105 shadow-md w-full">Complete Registration</button>
-                            </div>
-
-                        </form>
-                    </div>
-
-                    <div class="form-container sign-in-container bg-white dark:bg-darkCard">
-                        <form action="/auth/login" method="POST" class="flex flex-col items-center justify-center h-full px-8 md:px-12 text-center">
-                            <div class="mb-8">
-                                <i class="fas fa-code text-primary dark:text-blue-400 text-4xl mb-2"></i>
-                                <h2 class="font-bold text-3xl text-gray-900 dark:text-white">Welcome Back</h2>
-                            </div>
-                            
-                            <div class="w-full space-y-4">
-                                <input type="email" name="email" placeholder="Email Address" required class="w-full bg-gray-100 dark:bg-gray-700 border-none p-3.5 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:outline-none transition">
-                                <input type="password" name="password" placeholder="Password" required class="w-full bg-gray-100 dark:bg-gray-700 border-none p-3.5 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:outline-none transition">
-                            </div>
-                            
-                            <a href="#" class="text-gray-500 dark:text-gray-400 text-sm mt-4 hover:text-primary dark:hover:text-blue-400 transition">Forgot your password?</a>
-                            <button type="submit" class="rounded-lg border border-primary bg-primary text-white text-sm font-bold py-3.5 px-12 mt-6 uppercase tracking-wider transition-transform transform hover:scale-105 shadow-md w-full">Sign In</button>
-                        </form>
-                    </div>
-
-                    <div class="overlay-container hidden md:block">
-                        <div class="overlay">
-                            <div class="overlay-panel overlay-left">
-                                <h2 class="font-bold text-4xl mb-4">Hello, Friend!</h2>
-                                <p class="text-lg font-light mb-8 px-6">Enter your details and pick up right where you left off.</p>
-                                <button class="bg-transparent border-2 border-white text-white rounded-lg text-sm font-bold py-3 px-12 uppercase tracking-wider transition-transform transform hover:scale-105" id="signInBtn">Sign In</button>
-                            </div>
-                            <div class="overlay-panel overlay-right">
-                                <h2 class="font-bold text-4xl mb-4">New Here?</h2>
-                                <p class="text-lg font-light mb-8 px-6">Sign up to join your college's coding platform.</p>
-                                <button class="bg-transparent border-2 border-white text-white rounded-lg text-sm font-bold py-3 px-12 uppercase tracking-wider transition-transform transform hover:scale-105" id="signUpBtn">Sign Up</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="md:hidden mt-4 text-center bg-white dark:bg-darkCard p-4 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800">
-                    <p class="text-gray-600 dark:text-gray-400 mb-2" id="mobileText">Don't have an account?</p>
-                    <button id="mobileToggleBtn" class="text-primary dark:text-blue-400 font-bold hover:underline">Sign Up instead</button>
-                </div>
-            </div>
+      <!-- Social proof -->
+      <div class="flex items-center gap-3 mt-8">
+        <div class="flex -space-x-2">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-navy to-steel border-2 border-cloud dark:border-midnight flex items-center justify-center text-white text-xs font-bold">A</div>
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-steel to-accent border-2 border-cloud dark:border-midnight flex items-center justify-center text-white text-xs font-bold">R</div>
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-midnight to-navy border-2 border-cloud dark:border-midnight flex items-center justify-center text-white text-xs font-bold">S</div>
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-navy border-2 border-cloud dark:border-midnight flex items-center justify-center text-white text-xs font-bold">P</div>
         </div>
+        <p class="text-xs text-midnight/50 dark:text-cloud/50"><span class="font-bold text-midnight dark:text-cloud">1,200+</span> students joined this month</p>
+      </div>
     </div>
 
-    <script>
-        // --- Modal & Sliding Logic ---
-        const authModal = document.getElementById('authModal');
-        const authContainer = document.getElementById('authContainer');
-        const signUpBtn = document.getElementById('signUpBtn');
-        const signInBtn = document.getElementById('signInBtn');
+    <!-- Code Window -->
+    <div class="rv-r float">
+      <div class="code-win w-full max-w-[500px] ml-auto rounded-2xl overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,.4)] pulse-glow">
+        <!-- Titlebar -->
+        <div class="bg-[#161b22] flex items-center gap-2 px-4 py-3 border-b border-steel/10">
+          <span class="w-3 h-3 rounded-full bg-[#ff5f57] cursor-pointer hover:brightness-110"></span>
+          <span class="w-3 h-3 rounded-full bg-[#febc2e]"></span>
+          <span class="w-3 h-3 rounded-full bg-[#28c840]"></span>
+          <div class="ml-3 flex items-center gap-2">
+            <span class="text-[11px] text-[#6e7681] font-mono">campus_challenge.py</span>
+            <span class="text-[9px] bg-[#238636] text-white px-1.5 py-0.5 rounded font-bold">LIVE</span>
+          </div>
+          <span class="ml-auto text-[11px] text-[#6e7681]">Python 3.11</span>
+        </div>
+        <!-- Code -->
+        <div class="px-5 py-4 font-mono text-[13px] leading-7">
+          <div class="text-[#6e7681]"># 🎯 Daily Challenge: Two Sum · Difficulty: Easy</div>
+          <div class="text-[#6e7681]"># Points: +50 XP · Deadline: 11:59 PM</div>
+          <div>&nbsp;</div>
+          <div><span class="text-[#ff7b72]">def</span> <span class="text-[#d2a8ff]">two_sum</span><span class="text-[#c9d1d9]">(nums, target):</span></div>
+          <div class="hl"><span class="text-[#c9d1d9]">&nbsp;&nbsp;seen = </span><span class="text-[#79c0ff]">{}</span></div>
+          <div><span class="text-[#ff7b72]">&nbsp;&nbsp;for</span> <span class="text-[#c9d1d9]">i, num</span> <span class="text-[#ff7b72]">in</span> <span class="text-[#79c0ff]">enumerate</span><span class="text-[#c9d1d9]">(nums):</span></div>
+          <div><span class="text-[#c9d1d9]">&nbsp;&nbsp;&nbsp;&nbsp;diff = target - num</span></div>
+          <div><span class="text-[#ff7b72]">&nbsp;&nbsp;&nbsp;&nbsp;if</span> <span class="text-[#c9d1d9]">diff </span><span class="text-[#ff7b72]">in</span><span class="text-[#c9d1d9]"> seen:</span></div>
+          <div><span class="text-[#ff7b72]">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return</span> <span class="text-[#c9d1d9]">[seen[diff], i]</span></div>
+          <div><span class="text-[#c9d1d9]">&nbsp;&nbsp;&nbsp;&nbsp;seen[num] = i</span></div>
+        </div>
+        <!-- Output -->
+        <div class="bg-[#010409] px-5 py-3 border-t border-steel/10 space-y-1.5">
+          <div class="flex items-center gap-3">
+            <span class="text-[10px] text-[#3d444d] font-mono uppercase tracking-wider">Output</span>
+            <span class="text-[12px] text-[#79c0ff] font-mono">[0, 1]</span>
+            <span class="ml-auto text-[11px] text-[#3fb950] font-semibold">✓ Accepted</span>
+          </div>
+          <div class="flex items-center gap-4 text-[10px] text-[#6e7681] font-mono">
+            <span>Runtime: 42ms</span>
+            <span>Memory: 14.3 MB</span>
+            <span class="text-[#f8c96a]">+50 XP earned</span>
+          </div>
+        </div>
+        <!-- Leaderboard mini -->
+        <div class="bg-[#0d1117] px-5 py-3 border-t border-steel/10">
+          <div class="text-[10px] text-[#6e7681] font-mono uppercase tracking-wider mb-2">🏆 Today's Leaderboard</div>
+          <div class="space-y-1">
+            <div class="flex items-center gap-2 text-[11px]">
+              <span class="text-[#f8c96a]">1.</span><span class="text-[#c9d1d9]">Arjun S.</span><span class="ml-auto text-[#3fb950] font-mono">2,840 XP</span>
+            </div>
+            <div class="flex items-center gap-2 text-[11px]">
+              <span class="text-[#c9d1d9]">2.</span><span class="text-[#c9d1d9]">Priya K.</span><span class="ml-auto text-[#79c0ff] font-mono">2,610 XP</span>
+            </div>
+            <div class="flex items-center gap-2 text-[11px] bg-[#1c2128] rounded px-1.5">
+              <span class="text-[#c9d1d9]">3.</span><span class="text-[#c9d1d9]">You</span><span class="ml-auto text-[#d2a8ff] font-mono">2,540 XP</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-        function openAuthModal(isSignUp = false) {
-            authModal.classList.remove('hidden');
-            setTimeout(() => { authModal.classList.remove('opacity-0'); }, 10);
-            if (isSignUp) authContainer.classList.add("right-panel-active");
-            else authContainer.classList.remove("right-panel-active");
+<!-- MARQUEE / TECH STRIP -->
+<div class="py-5 border-y border-steel/15 bg-white/50 dark:bg-midnight/50 overflow-hidden">
+  <div class="marquee-inner whitespace-nowrap text-sm font-semibold text-midnight/40 dark:text-cloud/30 select-none">
+    <span class="mx-6">Python</span><span class="mx-2 text-accent">✦</span>
+    <span class="mx-6">Java</span><span class="mx-2 text-accent">✦</span>
+    <span class="mx-6">C++</span><span class="mx-2 text-accent">✦</span>
+    <span class="mx-6">Data Structures</span><span class="mx-2 text-accent">✦</span>
+    <span class="mx-6">Algorithms</span><span class="mx-2 text-accent">✦</span>
+    <span class="mx-6">Dynamic Programming</span><span class="mx-2 text-accent">✦</span>
+    <span class="mx-6">Graphs</span><span class="mx-2 text-accent">✦</span>
+    <span class="mx-6">Trees</span><span class="mx-2 text-accent">✦</span>
+    <span class="mx-6">SQL</span><span class="mx-2 text-accent">✦</span>
+    <span class="mx-6">System Design</span><span class="mx-2 text-accent">✦</span>
+    <span class="mx-6">JavaScript</span><span class="mx-2 text-accent">✦</span>
+    <span class="mx-6">React</span><span class="mx-2 text-accent">✦</span>
+    <!-- Duplicate for seamless -->
+    <span class="mx-6">Python</span><span class="mx-2 text-accent">✦</span>
+    <span class="mx-6">Java</span><span class="mx-2 text-accent">✦</span>
+    <span class="mx-6">C++</span><span class="mx-2 text-accent">✦</span>
+    <span class="mx-6">Data Structures</span><span class="mx-2 text-accent">✦</span>
+    <span class="mx-6">Algorithms</span><span class="mx-2 text-accent">✦</span>
+    <span class="mx-6">Dynamic Programming</span><span class="mx-2 text-accent">✦</span>
+    <span class="mx-6">Graphs</span><span class="mx-2 text-accent">✦</span>
+    <span class="mx-6">Trees</span><span class="mx-2 text-accent">✦</span>
+    <span class="mx-6">SQL</span><span class="mx-2 text-accent">✦</span>
+    <span class="mx-6">System Design</span><span class="mx-2 text-accent">✦</span>
+    <span class="mx-6">JavaScript</span><span class="mx-2 text-accent">✦</span>
+    <span class="mx-6">React</span><span class="mx-2 text-accent">✦</span>
+  </div>
+</div>
+
+<!-- STATS -->
+<section id="about" class="py-20 px-4 relative overflow-hidden">
+  <div class="orb w-80 h-80 bg-navy/10 dark:bg-navy/20 -right-20 top-0"></div>
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-14 rv">
+      <div class="tag bg-navy/10 dark:bg-steel/10 border border-navy/20 dark:border-steel/20 text-navy dark:text-accent mb-4">Our Impact</div>
+      <h2 class="font-display font-black tracking-tight text-3xl sm:text-4xl mb-4 text-midnight dark:text-cloud">Where Academia Meets<br/><span class="text-grad">Real-World Engineering</span></h2>
+      <p class="text-midnight/60 dark:text-cloud/60 max-w-xl mx-auto text-base">CampusCode closes the gap between theory and industry expectations — with measurable coding outcomes that get students placed.</p>
+    </div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-5">
+      <div class="rv bg-gradient-to-br from-navy to-midnight rounded-2xl p-7 text-white group hover:scale-[1.03] transition-transform cursor-default">
+        <div class="text-4xl font-display font-black mb-1 stat-num" data-target="5000" data-suffix="+">0</div>
+        <p class="text-sm opacity-70">Active Students</p>
+        <div class="mt-4 text-xs opacity-50 group-hover:opacity-80 transition-opacity">Across 200+ colleges</div>
+      </div>
+      <div class="rv bg-gradient-to-br from-navy/80 to-midnight rounded-2xl p-7 text-white group hover:scale-[1.03] transition-transform cursor-default" style="transition-delay:.1s">
+        <div class="text-4xl font-display font-black mb-1 stat-num" data-target="200" data-suffix="+">0</div>
+        <p class="text-sm opacity-70">Colleges Onboarded</p>
+        <div class="mt-4 text-xs opacity-50 group-hover:opacity-80 transition-opacity">Tier-1 to Tier-3</div>
+      </div>
+      <div class="rv bg-gradient-to-br from-navy/70 to-midnight rounded-2xl p-7 text-white group hover:scale-[1.03] transition-transform cursor-default" style="transition-delay:.2s">
+        <div class="text-4xl font-display font-black mb-1 stat-num" data-target="1200000" data-suffix="+">0</div>
+        <p class="text-sm opacity-70">Code Submissions</p>
+        <div class="mt-4 text-xs opacity-50 group-hover:opacity-80 transition-opacity">1.2M+ and counting</div>
+      </div>
+      <div class="rv bg-gradient-to-br from-navy/60 to-midnight rounded-2xl p-7 text-white group hover:scale-[1.03] transition-transform cursor-default" style="transition-delay:.3s">
+        <div class="text-4xl font-display font-black mb-1 stat-num" data-target="3800" data-suffix="+">0</div>
+        <p class="text-sm opacity-70">Contests Hosted</p>
+        <div class="mt-4 text-xs opacity-50 group-hover:opacity-80 transition-opacity">Monthly + special events</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES / ROLES -->
+<section id="features" class="py-20 px-4 bg-white/40 dark:bg-midnight/50">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-14 rv">
+      <div class="tag bg-navy/10 dark:bg-steel/10 border border-navy/20 dark:border-steel/20 text-navy dark:text-accent mb-4">Roles & Capabilities</div>
+      <h2 class="font-display font-black tracking-tight text-3xl sm:text-4xl text-midnight dark:text-cloud">One Platform, <span class="text-grad">Every Role</span></h2>
+      <p class="text-midnight/60 dark:text-cloud/60 max-w-xl mx-auto text-base mt-4">Designed from the ground up for every stakeholder in your college's coding journey.</p>
+    </div>
+    <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-5">
+      <div class="feature-card rv rounded-2xl p-6 border border-steel/20 bg-white/80 dark:bg-midnight/60 relative overflow-hidden group" style="transition-delay:.0s">
+        <div class="card-icon w-12 h-12 rounded-xl bg-gradient-to-br from-navy/20 to-accent/20 flex items-center justify-center text-2xl mb-4">🎓</div>
+        <h3 class="font-display font-bold text-lg mb-2 text-midnight dark:text-cloud">Student</h3>
+        <ul class="text-sm text-midnight/65 dark:text-cloud/65 space-y-1.5">
+          <li class="flex items-start gap-1.5"><span class="text-accent mt-0.5">✓</span> Daily challenges & streaks</li>
+          <li class="flex items-start gap-1.5"><span class="text-accent mt-0.5">✓</span> AI-powered hints & code review</li>
+          <li class="flex items-start gap-1.5"><span class="text-accent mt-0.5">✓</span> College & open contests</li>
+          <li class="flex items-start gap-1.5"><span class="text-accent mt-0.5">✓</span> XP, badges & leaderboards</li>
+          <li class="flex items-start gap-1.5"><span class="text-accent mt-0.5">✓</span> Placement-ready roadmap</li>
+        </ul>
+        <div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-accent to-navy opacity-0 group-hover:opacity-100 transition-opacity rounded-b-2xl"></div>
+      </div>
+      <div class="feature-card rv rounded-2xl p-6 border border-steel/20 bg-white/80 dark:bg-midnight/60 relative overflow-hidden group" style="transition-delay:.1s">
+        <div class="card-icon w-12 h-12 rounded-xl bg-gradient-to-br from-navy/20 to-accent/20 flex items-center justify-center text-2xl mb-4">👨‍🏫</div>
+        <h3 class="font-display font-bold text-lg mb-2 text-midnight dark:text-cloud">Faculty</h3>
+        <ul class="text-sm text-midnight/65 dark:text-cloud/65 space-y-1.5">
+          <li class="flex items-start gap-1.5"><span class="text-accent mt-0.5">✓</span> Create timed assignments</li>
+          <li class="flex items-start gap-1.5"><span class="text-accent mt-0.5">✓</span> Auto-graded submissions</li>
+          <li class="flex items-start gap-1.5"><span class="text-accent mt-0.5">✓</span> Student progress tracking</li>
+          <li class="flex items-start gap-1.5"><span class="text-accent mt-0.5">✓</span> Plagiarism detection</li>
+          <li class="flex items-start gap-1.5"><span class="text-accent mt-0.5">✓</span> Batch performance reports</li>
+        </ul>
+        <div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-accent to-navy opacity-0 group-hover:opacity-100 transition-opacity rounded-b-2xl"></div>
+      </div>
+      <div class="feature-card rv rounded-2xl p-6 border border-steel/20 bg-white/80 dark:bg-midnight/60 relative overflow-hidden group" style="transition-delay:.2s">
+        <div class="card-icon w-12 h-12 rounded-xl bg-gradient-to-br from-navy/20 to-accent/20 flex items-center justify-center text-2xl mb-4">📊</div>
+        <h3 class="font-display font-bold text-lg mb-2 text-midnight dark:text-cloud">Head of Dept.</h3>
+        <ul class="text-sm text-midnight/65 dark:text-cloud/65 space-y-1.5">
+          <li class="flex items-start gap-1.5"><span class="text-accent mt-0.5">✓</span> Department-wide analytics</li>
+          <li class="flex items-start gap-1.5"><span class="text-accent mt-0.5">✓</span> Faculty oversight panel</li>
+          <li class="flex items-start gap-1.5"><span class="text-accent mt-0.5">✓</span> Semester reports & exports</li>
+          <li class="flex items-start gap-1.5"><span class="text-accent mt-0.5">✓</span> At-risk student alerts</li>
+          <li class="flex items-start gap-1.5"><span class="text-accent mt-0.5">✓</span> Curriculum alignment tools</li>
+        </ul>
+        <div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-accent to-navy opacity-0 group-hover:opacity-100 transition-opacity rounded-b-2xl"></div>
+      </div>
+      <div class="feature-card rv rounded-2xl p-6 border border-steel/20 bg-white/80 dark:bg-midnight/60 relative overflow-hidden group" style="transition-delay:.3s">
+        <div class="card-icon w-12 h-12 rounded-xl bg-gradient-to-br from-navy/20 to-accent/20 flex items-center justify-center text-2xl mb-4">🏛️</div>
+        <h3 class="font-display font-bold text-lg mb-2 text-midnight dark:text-cloud">Administrator</h3>
+        <ul class="text-sm text-midnight/65 dark:text-cloud/65 space-y-1.5">
+          <li class="flex items-start gap-1.5"><span class="text-accent mt-0.5">✓</span> Institution-wide dashboard</li>
+          <li class="flex items-start gap-1.5"><span class="text-accent mt-0.5">✓</span> Role & access management</li>
+          <li class="flex items-start gap-1.5"><span class="text-accent mt-0.5">✓</span> Multi-department oversight</li>
+          <li class="flex items-start gap-1.5"><span class="text-accent mt-0.5">✓</span> Placement stats & reports</li>
+          <li class="flex items-start gap-1.5"><span class="text-accent mt-0.5">✓</span> Custom branding options</li>
+        </ul>
+        <div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-accent to-navy opacity-0 group-hover:opacity-100 transition-opacity rounded-b-2xl"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how-it-works" class="py-24 px-4 relative overflow-hidden">
+  <div class="orb w-96 h-96 bg-navy/10 dark:bg-accent/5 -left-20 top-1/3"></div>
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-16 rv">
+      <div class="tag bg-navy/10 dark:bg-steel/10 border border-navy/20 dark:border-steel/20 text-navy dark:text-accent mb-4">Simple Onboarding</div>
+      <h2 class="font-display font-black tracking-tight text-3xl sm:text-4xl text-midnight dark:text-cloud">Get Started in <span class="text-grad">3 Minutes</span></h2>
+    </div>
+    <div class="grid md:grid-cols-3 gap-8 relative">
+      <!-- Step connector line (desktop) -->
+      <div class="hidden md:block absolute top-10 left-[22%] right-[22%] h-px bg-gradient-to-r from-navy/30 via-accent/50 to-navy/30"></div>
+      
+      <div class="rv text-center relative" style="transition-delay:.0s">
+        <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-navy to-midnight flex items-center justify-center text-white text-3xl mx-auto mb-5 shadow-xl hover:scale-110 transition-transform cursor-default">
+          01
+        </div>
+        <h3 class="font-display font-bold text-lg mb-2 text-midnight dark:text-cloud">Sign Up</h3>
+        <p class="text-sm text-midnight/60 dark:text-cloud/60">Create your free account in seconds. Verify your college email and choose your role.</p>
+      </div>
+      <div class="rv text-center relative" style="transition-delay:.15s">
+        <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-navy to-midnight flex items-center justify-center text-white text-3xl mx-auto mb-5 shadow-xl hover:scale-110 transition-transform cursor-default">
+          02
+        </div>
+        <h3 class="font-display font-bold text-lg mb-2 text-midnight dark:text-cloud">Join Your College</h3>
+        <p class="text-sm text-midnight/60 dark:text-cloud/60">Connect to your institution's workspace. Your faculty assignments and leaderboard await.</p>
+      </div>
+      <div class="rv text-center relative" style="transition-delay:.3s">
+        <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-accent/80 to-navy flex items-center justify-center text-white text-3xl mx-auto mb-5 shadow-xl hover:scale-110 transition-transform cursor-default">
+          03
+        </div>
+        <h3 class="font-display font-bold text-lg mb-2 text-midnight dark:text-cloud">Start Coding</h3>
+        <p class="text-sm text-midnight/60 dark:text-cloud/60">Solve daily challenges, earn XP, climb the leaderboard, and build your coding portfolio.</p>
+      </div>
+    </div>
+
+    <!-- CTA inside how it works -->
+    <div class="rv text-center mt-14">
+      <button onclick="openAuth('register')" class="inline-flex items-center gap-2 text-sm font-bold text-white bg-gradient-to-br from-navy to-midnight px-8 py-4 rounded-xl shadow-xl hover:shadow-[0_0_30px_rgba(0,194,255,.3)] transition-all hover:scale-[1.02] border-none cursor-pointer">
+        Start Your Coding Journey →
+      </button>
+      <p class="text-xs text-midnight/40 dark:text-cloud/40 mt-3">No credit card required. Free forever for students.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PLACEMENT FEATURES -->
+<section class="py-20 px-4 bg-gradient-to-br from-navy to-midnight text-white relative overflow-hidden">
+  <div class="orb w-80 h-80 bg-accent/10 top-0 right-0"></div>
+  <div class="orb w-64 h-64 bg-white/5 bottom-0 left-10"></div>
+  <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-14 items-center relative z-10">
+    <div class="rv-l">
+      <div class="tag bg-white/10 border border-white/20 text-white/80 mb-6">Placement Ready</div>
+      <h2 class="font-display font-black text-3xl sm:text-4xl leading-tight mb-6">
+        Built to Get You <span class="text-grad-warm">Placed at</span><br/>Top Companies
+      </h2>
+      <p class="text-white/65 leading-relaxed mb-8 max-w-lg">CampusCode's placement track mirrors real interview rounds at product-based companies — from DSA to system design to mock interviews.</p>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-white/8 rounded-xl p-4 border border-white/10 hover:border-white/25 transition-colors">
+          <div class="text-2xl mb-2">🎯</div>
+          <div class="font-bold text-sm mb-1">Topic-wise Tracks</div>
+          <div class="text-xs text-white/55">Arrays → DP → Graphs</div>
+        </div>
+        <div class="bg-white/8 rounded-xl p-4 border border-white/10 hover:border-white/25 transition-colors">
+          <div class="text-2xl mb-2">🤖</div>
+          <div class="font-bold text-sm mb-1">AI Code Review</div>
+          <div class="text-xs text-white/55">Instant feedback & hints</div>
+        </div>
+        <div class="bg-white/8 rounded-xl p-4 border border-white/10 hover:border-white/25 transition-colors">
+          <div class="text-2xl mb-2">🏆</div>
+          <div class="font-bold text-sm mb-1">Mock Contests</div>
+          <div class="text-xs text-white/55">Weekly timed assessments</div>
+        </div>
+        <div class="bg-white/8 rounded-xl p-4 border border-white/10 hover:border-white/25 transition-colors">
+          <div class="text-2xl mb-2">📈</div>
+          <div class="font-bold text-sm mb-1">Progress Reports</div>
+          <div class="text-xs text-white/55">Share with recruiters</div>
+        </div>
+      </div>
+    </div>
+    <div class="rv-r">
+      <!-- Skill radar visualization (CSS only) -->
+      <div class="bg-white/5 border border-white/15 rounded-2xl p-6 float-b">
+        <div class="text-sm font-bold text-white/70 mb-4 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+          Your Skill Progress
+        </div>
+        <div class="space-y-3">
+          <div>
+            <div class="flex justify-between text-xs text-white/60 mb-1"><span>Data Structures</span><span class="font-bold text-white">82%</span></div>
+            <div class="h-2 bg-white/10 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-accent to-glow rounded-full" style="width:82%;animation:growBar 1.5s ease-out .3s both"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs text-white/60 mb-1"><span>Algorithms</span><span class="font-bold text-white">75%</span></div>
+            <div class="h-2 bg-white/10 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-accent to-glow rounded-full" style="width:75%;animation:growBar 1.5s ease-out .5s both"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs text-white/60 mb-1"><span>Dynamic Programming</span><span class="font-bold text-white">58%</span></div>
+            <div class="h-2 bg-white/10 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-accent to-glow rounded-full" style="width:58%;animation:growBar 1.5s ease-out .7s both"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs text-white/60 mb-1"><span>Graphs & Trees</span><span class="font-bold text-white">64%</span></div>
+            <div class="h-2 bg-white/10 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-accent to-glow rounded-full" style="width:64%;animation:growBar 1.5s ease-out .9s both"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs text-white/60 mb-1"><span>System Design</span><span class="font-bold text-white">40%</span></div>
+            <div class="h-2 bg-white/10 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-accent to-glow rounded-full" style="width:40%;animation:growBar 1.5s ease-out 1.1s both"></div></div>
+          </div>
+        </div>
+        <div class="mt-5 pt-4 border-t border-white/10 flex items-center justify-between">
+          <div class="text-xs text-white/50">Overall Placement Readiness</div>
+          <div class="text-lg font-display font-black text-accent">64%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <style>@keyframes growBar{from{width:0;}}</style>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials" class="py-20 px-4 relative overflow-hidden">
+  <div class="orb w-72 h-72 bg-navy/10 right-0 top-1/4"></div>
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-14 rv">
+      <div class="tag bg-navy/10 dark:bg-steel/10 border border-navy/20 dark:border-steel/20 text-navy dark:text-accent mb-4">Student Stories</div>
+      <h2 class="font-display font-black tracking-tight text-3xl sm:text-4xl text-midnight dark:text-cloud">What Our <span class="text-grad">Students Say</span></h2>
+    </div>
+    <div class="grid md:grid-cols-3 gap-5">
+      <div class="testi-card rv bg-white/80 dark:bg-midnight/60 border border-steel/20 rounded-2xl p-6 relative" style="transition-delay:.0s">
+        <div class="text-3xl mb-4">"</div>
+        <p class="text-sm text-midnight/70 dark:text-cloud/65 leading-relaxed mb-5">CampusCode's daily challenges helped me crack TCS NQT with a 98 percentile. The AI hints never give away the answer — they make you think.</p>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-navy to-accent flex items-center justify-center text-white font-bold">A</div>
+          <div>
+            <div class="font-bold text-sm text-midnight dark:text-cloud">Arjun Sharma</div>
+            <div class="text-xs text-midnight/50 dark:text-cloud/50">CSE, SRMIST · Placed at TCS</div>
+          </div>
+        </div>
+        <div class="absolute top-5 right-5 flex gap-0.5">
+          <span class="text-yellow-400 text-xs">★★★★★</span>
+        </div>
+      </div>
+      <div class="testi-card rv bg-white/80 dark:bg-midnight/60 border border-steel/20 rounded-2xl p-6 relative" style="transition-delay:.12s">
+        <div class="text-3xl mb-4">"</div>
+        <p class="text-sm text-midnight/70 dark:text-cloud/65 leading-relaxed mb-5">As a faculty member, I can finally track which students are actually coding and who needs help. The plagiarism detection alone saves hours every week.</p>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-steel to-midnight flex items-center justify-center text-white font-bold">D</div>
+          <div>
+            <div class="font-bold text-sm text-midnight dark:text-cloud">Dr. Deepika Nair</div>
+            <div class="text-xs text-midnight/50 dark:text-cloud/50">Associate Prof., VJTI Mumbai</div>
+          </div>
+        </div>
+        <div class="absolute top-5 right-5 flex gap-0.5">
+          <span class="text-yellow-400 text-xs">★★★★★</span>
+        </div>
+      </div>
+      <div class="testi-card rv bg-white/80 dark:bg-midnight/60 border border-steel/20 rounded-2xl p-6 relative" style="transition-delay:.24s">
+        <div class="text-3xl mb-4">"</div>
+        <p class="text-sm text-midnight/70 dark:text-cloud/65 leading-relaxed mb-5">I went from solving 0 problems to being in the top 100 of my college leaderboard in 6 weeks. The streak system is genuinely addictive.</p>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-navy flex items-center justify-center text-white font-bold">P</div>
+          <div>
+            <div class="font-bold text-sm text-midnight dark:text-cloud">Priya Krishnan</div>
+            <div class="text-xs text-midnight/50 dark:text-cloud/50">IT, Amrita University</div>
+          </div>
+        </div>
+        <div class="absolute top-5 right-5 flex gap-0.5">
+          <span class="text-yellow-400 text-xs">★★★★★</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INSTITUTION CTA -->
+<section class="py-20 px-4 bg-white/40 dark:bg-midnight/50">
+  <div class="max-w-4xl mx-auto">
+    <div class="rv bg-gradient-to-br from-navy to-midnight rounded-3xl p-10 text-white text-center relative overflow-hidden">
+      <div class="orb w-64 h-64 bg-accent/10 -top-16 -right-10"></div>
+      <div class="orb w-48 h-48 bg-white/5 -bottom-10 -left-10"></div>
+      <div class="relative z-10">
+        <div class="tag bg-white/10 border border-white/20 text-white/80 mb-6 mx-auto">For Institutions</div>
+        <h2 class="font-display font-black text-3xl sm:text-4xl mb-4">Register Your College<br/>on CampusCode</h2>
+        <p class="text-white/65 max-w-xl mx-auto mb-8">Give your students a competitive edge. Get detailed analytics, faculty tools, and a private leaderboard for your institution — all free to start.</p>
+        <div class="flex flex-wrap gap-4 justify-center">
+          <a href="/college-register" class="inline-flex items-center gap-2 text-sm font-bold text-midnight bg-white px-7 py-3.5 rounded-xl shadow-xl hover:scale-[1.02] transition-all">
+            Register Institution →
+          </a>
+          <a href="mailto:partnerships@campuscode.in" class="inline-flex items-center gap-2 text-sm font-semibold text-white border-2 border-white/40 px-6 py-3 rounded-xl hover:border-white/80 transition-colors">
+            Contact Sales
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="bg-midnight text-cloud px-4 pt-14 pb-8 border-t border-steel/10">
+  <div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
+      <div class="col-span-2 md:col-span-1">
+        <div class="flex items-center gap-2.5 mb-4">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-navy to-midnight flex items-center justify-center border border-steel/20">
+            <span class="font-mono font-bold text-white text-sm">&lt;/&gt;</span>
+          </div>
+          <span class="font-display font-extrabold text-lg">CampusCode</span>
+        </div>
+        <p class="text-xs text-cloud/40 leading-relaxed">Bridging India's college-to-industry coding gap, one submission at a time.</p>
+      </div>
+      <div>
+        <div class="text-xs font-bold text-cloud/40 uppercase tracking-widest mb-4">Product</div>
+        <div class="space-y-2.5">
+          <a href="#features" class="block text-sm text-cloud/60 hover:text-cloud transition-colors">Features</a>
+          <a href="#how-it-works" class="block text-sm text-cloud/60 hover:text-cloud transition-colors">How It Works</a>
+          <a href="/college-register" class="block text-sm text-cloud/60 hover:text-cloud transition-colors">For Colleges</a>
+        </div>
+      </div>
+      <div>
+        <div class="text-xs font-bold text-cloud/40 uppercase tracking-widest mb-4">Company</div>
+        <div class="space-y-2.5">
+          <a href="#about" class="block text-sm text-cloud/60 hover:text-cloud transition-colors">About</a>
+          <a href="mailto:hello@campuscode.in" class="block text-sm text-cloud/60 hover:text-cloud transition-colors">Contact</a>
+          <a href="#" class="block text-sm text-cloud/60 hover:text-cloud transition-colors">Blog</a>
+        </div>
+      </div>
+      <div>
+        <div class="text-xs font-bold text-cloud/40 uppercase tracking-widest mb-4">Legal</div>
+        <div class="space-y-2.5">
+          <a href="#" class="block text-sm text-cloud/60 hover:text-cloud transition-colors">Privacy Policy</a>
+          <a href="#" class="block text-sm text-cloud/60 hover:text-cloud transition-colors">Terms of Use</a>
+        </div>
+      </div>
+    </div>
+    <div class="border-t border-steel/10 pt-6 flex flex-wrap items-center justify-between gap-3">
+      <p class="text-xs text-cloud/30">© 2026 CampusCode. All rights reserved.</p>
+      <p class="text-xs text-cloud/25">Made with ❤️ for Indian Engineering Students</p>
+    </div>
+  </div>
+</footer>
+
+<!-- AUTH MODAL -->
+<div id="authModal" class="fixed inset-0 z-[2000] hidden opacity-0 transition-opacity duration-300">
+  <div class="absolute inset-0 bg-black/70 backdrop-blur-md" onclick="closeAuthModal()"></div>
+  <div class="absolute inset-0 flex items-center justify-center p-4 sm:p-6 pointer-events-none">
+    <div class="pointer-events-auto relative w-full max-w-[900px]">
+      <button onclick="closeAuthModal()" class="absolute -top-4 -right-4 z-[300] w-10 h-10 rounded-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-xl text-gray-500 hover:text-red-500 transition-all flex items-center justify-center cursor-pointer text-sm">✕</button>
+      <div id="authBox">
+        <!-- LOGIN PANEL -->
+        <div id="panelLogin" class="ac-form">
+          <form action="/auth/login" method="POST" class="w-full flex flex-col gap-4">
+            <div class="text-center mb-2">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-navy to-midnight mx-auto mb-3 flex items-center justify-center">
+                <span class="font-mono font-bold text-white">&lt;/&gt;</span>
+              </div>
+              <h2 class="font-display font-black text-2xl text-gray-900 dark:text-white">Welcome Back</h2>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Sign in to your CampusCode account</p>
+            </div>
+            <input type="email" name="email" placeholder="Email Address" required class="ac-input"/>
+            <input type="password" name="password" placeholder="Password" required class="ac-input"/>
+            <button type="submit" class="ac-btn">Sign In →</button>
+            <p class="text-center text-sm text-gray-500 dark:text-gray-400">Don't have an account? <button type="button" onclick="acGoSignup()" class="ac-link">Sign Up</button></p>
+          </form>
+        </div>
+
+        <!-- SIGNUP PANEL -->
+        <div id="panelSignup" class="ac-form">
+          <form id="signupForm" class="w-full flex flex-col gap-3">
+            <div id="su-step1" class="w-full flex flex-col gap-3">
+              <div class="text-center mb-1">
+                <h2 class="font-display font-black text-2xl text-gray-900 dark:text-white">Create Account</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Join your college on CampusCode</p>
+              </div>
+              <input type="text" id="su_name" name="name" placeholder="Full Name" required class="ac-input"/>
+              <input type="email" id="su_email" name="email" placeholder="College Email Address" required class="ac-input"/>
+              <input type="password" id="su_pw" name="password" placeholder="Create Password" required class="ac-input"/>
+              <select id="su_role" name="role" required class="ac-input">
+                <option value="" disabled selected>Select your Role</option>
+                <option value="individual">Individual (No College)</option>
+                <option value="student">Student</option>
+                <option value="faculty">Faculty</option>
+              </select>
+              <select id="su_college" name="collegeName" class="ac-input">
+                <option value="" selected>Optional: Skip college selection</option>
+              </select>
+              <p id="su_error" class="ac-error hidden"></p>
+              <button type="button" id="btnSendOTP" onclick="acSendOTP()" class="ac-btn">Send OTP to Email →</button>
+              <p class="text-center text-sm text-gray-500 dark:text-gray-400">Already have an account? <button type="button" onclick="acGoLogin()" class="ac-link">Sign In</button></p>
+            </div>
+            <div id="su-step2" class="w-full flex-col gap-4" style="display:none">
+              <button type="button" onclick="acBackStep1()" class="text-sm text-gray-500 bg-transparent border-none cursor-pointer text-left">← Back</button>
+              <div class="text-center">
+                <h2 class="font-display font-black text-2xl text-gray-900 dark:text-white">Verify Email</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Enter the 6-digit code sent to your email</p>
+              </div>
+              <input type="text" id="su_otp" name="otp" maxlength="6" required class="ac-input text-center font-mono font-black tracking-[.5em] text-xl"/>
+              <button type="submit" id="btnComplete" class="ac-btn">Complete Registration ✓</button>
+              <button type="button" id="btnResend" onclick="acResendOTP()" class="ac-link text-sm">Resend OTP</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- OVERLAY PANEL -->
+        <div id="authOverlayPanel">
+          <div id="authOverlayInner">
+            <div class="ac-ovp">
+              <div class="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center font-mono font-bold text-white text-xl mb-4">&lt;/&gt;</div>
+              <h2 id="overlayTitle" class="font-display font-black text-3xl mb-3">New Here?</h2>
+              <p id="overlayDesc" class="text-white/65 text-sm leading-relaxed mb-8 px-2">Sign up and join your college coding platform today.</p>
+              <button id="overlaySwitchBtn" onclick="acGoSignup()" class="ac-ovbtn">Sign Up</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Mobile toggle strip -->
+      <div class="sm:hidden mt-3 bg-white dark:bg-[#071322] rounded-xl p-4 text-center shadow-lg border border-gray-100 dark:border-slate-800">
+        <p id="mobTxt" class="text-sm text-gray-500 dark:text-gray-400 mb-1">Don't have an account?</p>
+        <button onclick="acMobToggle()" id="mobBtn" class="ac-link text-sm">Sign Up instead</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Theme
+let dark = false;
+if(localStorage.theme==="dark"||(!("theme" in localStorage)&&window.matchMedia("(prefers-color-scheme: dark)").matches)){
+  document.documentElement.classList.add("dark"); dark = true;
+}
+function toggleTheme(){
+  dark=!dark;
+  document.documentElement.classList.toggle("dark",dark);
+  localStorage.theme=dark?"dark":"light";
+  document.getElementById("themeBtn").textContent=dark?"☀":"☽";
+}
+if(dark) document.getElementById("themeBtn").textContent="☀";
+
+// Nav
+function toggleMob(){document.getElementById("mob").classList.toggle("open");}
+function closeMob(){document.getElementById("mob").classList.remove("open");}
+
+// Progress bar
+const pbar=document.getElementById("pbar");
+const navbar=document.getElementById("navbar");
+window.addEventListener("scroll",()=>{
+  pbar.style.width=(window.scrollY/(document.body.scrollHeight-window.innerHeight)*100)+"%";
+  navbar.classList.toggle("shadow-[0_4px_30px_rgba(8,23,46,.15)]",window.scrollY>50);
+},{passive:true});
+
+// Reveal on scroll
+const revObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){e.target.classList.add("in");revObs.unobserve(e.target);}
+  });
+},{threshold:0.1});
+document.querySelectorAll(".rv,.rv-l,.rv-r").forEach(el=>revObs.observe(el));
+
+// Staggered delays for feature cards
+document.querySelectorAll(".feature-card").forEach((c,i)=>c.style.transitionDelay=(i*0.09)+"s");
+
+// Stat counter animation
+const statObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const el=e.target;
+      const target=parseInt(el.dataset.target);
+      const suffix=el.dataset.suffix||"";
+      let start=0;
+      const dur=1800;
+      const step=16;
+      const inc=target/(dur/step);
+      const timer=setInterval(()=>{
+        start=Math.min(start+inc,target);
+        if(target>=1000000) el.textContent=(start/1000000).toFixed(1)+"M"+suffix;
+        else if(target>=1000) el.textContent=Math.floor(start/1000)+(target>=1000?"k":"")+suffix;
+        else el.textContent=Math.floor(start)+suffix;
+        if(start>=target){
+          if(target>=1000000) el.textContent="1.2M+";
+          else if(target>=1000) el.textContent=(target/1000)+"k+";
+          else el.textContent=target+suffix;
+          clearInterval(timer);
         }
+      },step);
+      statObs.unobserve(el);
+    }
+  });
+},{threshold:0.4});
+document.querySelectorAll(".stat-num").forEach(el=>statObs.observe(el));
 
-        function closeAuthModal() {
-            authModal.classList.add('opacity-0');
-            setTimeout(() => { authModal.classList.add('hidden'); }, 300);
-            backToSignupStep1(); // Reset signup form if closed
-        }
+// Fix stat display
+document.querySelectorAll(".stat-num").forEach(el=>{
+  const t=parseInt(el.dataset.target),s=el.dataset.suffix||"";
+  if(t>=1000000) el.textContent="0";
+  else if(t>=1000) el.textContent="0";
+  else el.textContent="0";
+});
 
-        document.addEventListener('keydown', function(event) {
-            if (event.key === "Escape" && !authModal.classList.contains('hidden')) closeAuthModal(); 
-        });
+// Auth Modal
+const _modal=document.getElementById("authModal");
+const _authBox=document.getElementById("authBox");
+window.openAuth=(mode)=>openAuthModal(mode==="register");
 
-        signUpBtn.addEventListener('click', () => { authContainer.classList.add("right-panel-active"); });
-        signInBtn.addEventListener('click', () => { authContainer.classList.remove("right-panel-active"); });
+function openAuthModal(signup){
+  _modal.classList.remove("hidden");
+  requestAnimationFrame(()=>_modal.classList.remove("opacity-0"));
+  _authBox.classList.toggle("active",!!signup);
+  updateAuthModeUI();updateMobStrip();
+  document.body.style.overflow="hidden";
+}
+function closeAuthModal(){
+  _modal.classList.add("opacity-0");
+  document.body.style.overflow="";
+  setTimeout(()=>{_modal.classList.add("hidden");acBackStep1();},300);
+}
+function acGoSignup(){_authBox.classList.add("active");updateAuthModeUI();updateMobStrip();}
+function acGoLogin(){_authBox.classList.remove("active");updateAuthModeUI();updateMobStrip();}
+function acMobToggle(){_authBox.classList.toggle("active");updateAuthModeUI();updateMobStrip();}
 
-        // --- Multi-Step Signup Logic ---
-        const step1 = document.getElementById('signup-step-1');
-        const step2 = document.getElementById('signup-step-2');
-        const errorText = document.getElementById('su_error');
-        const verifyErrorText = document.getElementById('su_verify_error');
+function updateAuthModeUI(){
+  const su=_authBox.classList.contains("active");
+  const title=document.getElementById("overlayTitle");
+  const desc=document.getElementById("overlayDesc");
+  const btn=document.getElementById("overlaySwitchBtn");
+  if(!title||!desc||!btn)return;
+  if(su){title.textContent="Hello, Friend!";desc.textContent="Pick up right where you left off.";btn.textContent="Sign In";btn.onclick=acGoLogin;}
+  else{title.textContent="New Here?";desc.textContent="Sign up and join your college coding platform today.";btn.textContent="Sign Up";btn.onclick=acGoSignup;}
+}
+function updateMobStrip(){
+  const su=_authBox.classList.contains("active");
+  const t=document.getElementById("mobTxt"),b=document.getElementById("mobBtn");
+  if(t)t.textContent=su?"Already have an account?":"Don't have an account?";
+  if(b)b.textContent=su?"Sign In instead":"Sign Up instead";
+}
 
-        async function triggerSignupOTP() {
-            const name = document.getElementById('su_name').value;
-            const email = document.getElementById('su_email').value;
-            const password = document.getElementById('su_password').value;
-            const role = document.getElementById('su_role').value;
-            const college = document.getElementById('su_college').value;
-            const btn = document.getElementById('btnSendSignupOTP');
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&!_modal.classList.contains("hidden"))closeAuthModal();
+});
 
-            if (!name || !email || !password || !role || !college) {
-                errorText.innerText = "Please fill in all fields.";
-                errorText.classList.remove('hidden');
-                return;
-            }
+async function acSendOTP(){
+  const name=document.getElementById("su_name").value.trim();
+  const email=document.getElementById("su_email").value.trim();
+  const password=document.getElementById("su_pw").value;
+  const role=document.getElementById("su_role").value;
+  const college=document.getElementById("su_college").value;
+  const error=document.getElementById("su_error");
+  const btn=document.getElementById("btnSendOTP");
+  error.classList.add("hidden");
+  const collegeRequired=role==="faculty";
+  if(!name||!email||!password||!role||(collegeRequired&&!college)){
+    error.textContent=collegeRequired?"Please fill all fields.":"Please fill all required fields.";
+    error.classList.remove("hidden");return;
+  }
+  btn.disabled=true;btn.textContent="Sending OTP...";
+  try{
+    const res=await fetch("/auth/send-signup-otp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email})});
+    const data=await res.json();
+    if(data.success){
+      document.getElementById("su-step1").classList.add("step-hidden");
+      document.getElementById("su-step2").style.display="flex";
+    }else{error.textContent=data.message||"Failed to send OTP.";error.classList.remove("hidden");}
+  }catch(err){error.textContent="Network error. Please try again.";error.classList.remove("hidden");}
+  finally{btn.disabled=false;btn.textContent="Send OTP to Email →";}
+}
 
-            errorText.classList.add('hidden');
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Sending OTP...';
-            btn.disabled = true;
+function acBackStep1(){
+  document.getElementById("su-step1").classList.remove("step-hidden");
+  document.getElementById("su-step2").style.display="none";
+  document.getElementById("su_otp").value="";
+}
 
-            try {
-                const response = await fetch('/auth/send-signup-otp', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: email })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    step1.classList.add('step-hidden');
-                    step2.classList.remove('step-hidden');
-                } else {
-                    errorText.innerText = result.message || "Failed to send OTP.";
-                    errorText.classList.remove('hidden');
-                }
-            } catch (err) {
-                errorText.innerText = "Network error. Try again.";
-                errorText.classList.remove('hidden');
-            } finally {
-                btn.innerHTML = "Send OTP to Email";
-                btn.disabled = false;
-            }
-        }
+async function acResendOTP(){
+  const btn=document.getElementById("btnResend");
+  btn.disabled=true;btn.textContent="Sending...";
+  try{
+    await fetch("/auth/send-signup-otp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:document.getElementById("su_email").value.trim()})});
+    btn.textContent="Sent ✓";
+    setTimeout(()=>{btn.disabled=false;btn.textContent="Resend OTP";},3000);
+  }catch(err){btn.disabled=false;btn.textContent="Resend OTP";}
+}
 
-        function backToSignupStep1() {
-            step2.classList.add('step-hidden');
-            step1.classList.remove('step-hidden');
-            document.getElementById('su_otp').value = '';
-            verifyErrorText.classList.add('hidden');
-        }
+document.getElementById("signupForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const btn=document.getElementById("btnComplete");
+  btn.disabled=true;btn.textContent="Registering...";
+  const payload={
+    name:document.getElementById("su_name").value.trim(),
+    email:document.getElementById("su_email").value.trim(),
+    password:document.getElementById("su_pw").value,
+    role:document.getElementById("su_role").value,
+    collegeName:document.getElementById("su_college").value,
+    otp:document.getElementById("su_otp").value.trim()
+  };
+  try{
+    const response=await fetch("/auth/signup",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    const html=await response.text();
+    document.open();document.write(html);document.close();
+  }catch(err){
+    btn.disabled=false;btn.textContent="Complete Registration ✓";
+    const error=document.getElementById("su_error");
+    error.textContent="Registration failed. Please try again.";
+    error.classList.remove("hidden");
+  }
+});
 
-        // FIXED SIGNUP SUBMISSION: Capture all data from step 1 and step 2
-        document.getElementById('signupForm').addEventListener('submit', async function(e) {
-            e.preventDefault(); // Stop standard form submission
-            
-            const btn = document.getElementById('btnCompleteRegistration');
-            const originalText = btn.innerText;
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Registering...';
-            btn.disabled = true;
-            verifyErrorText.classList.add('hidden');
-
-            const payload = {
-                name: document.getElementById('su_name').value,
-                email: document.getElementById('su_email').value,
-                password: document.getElementById('su_password').value,
-                role: document.getElementById('su_role').value,
-                collegeName: document.getElementById('su_college').value,
-                otp: document.getElementById('su_otp').value
-            };
-
-            try {
-                const response = await fetch('/auth/signup', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                // If it's a redirect to login, it worked!
-                if (response.redirected) {
-                    window.location.href = response.url;
-                    return;
-                }
-                
-                // Handle JSON errors
-                const contentType = response.headers.get("content-type");
-                if (contentType && contentType.indexOf("application/json") !== -1) {
-                    const result = await response.json();
-                    if (!result.success) {
-                        verifyErrorText.innerText = result.message || "Invalid OTP or Registration Failed.";
-                        verifyErrorText.classList.remove('hidden');
-                        btn.innerHTML = originalText;
-                        btn.disabled = false;
-                        return;
-                    }
-                }
-                
-                // Fallback success
-                alert("Registration successful! Please sign in.");
-                window.location.reload();
-                
-            } catch (err) {
-                verifyErrorText.innerText = "Network error. Please try again.";
-                verifyErrorText.classList.remove('hidden');
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        });
-
-        // --- Fetch Colleges ---
-        document.addEventListener('DOMContentLoaded', async () => {
-            const selectElement = document.getElementById('su_college');
-            try {
-                const response = await fetch('/api/public/colleges');
-                const data = await response.json();
-                
-                if (data.success && data.colleges.length > 0) {
-                    selectElement.innerHTML = '<option value="" disabled selected>Select your College</option>';
-                    data.colleges.forEach(college => {
-                        const option = document.createElement('option');
-                        option.value = college.name;
-                        option.textContent = college.name;
-                        selectElement.appendChild(option);
-                    });
-                } else {
-                    selectElement.innerHTML = '<option value="" disabled selected>No colleges available</option>';
-                }
-            } catch (error) {
-                selectElement.innerHTML = '<option value="" disabled selected>Error loading colleges</option>';
-            }
-        });
-
-        // --- Theme Toggle ---
-        function toggleTheme() {
-            document.getElementById('theme-toggle-dark-icon').classList.toggle('hidden');
-            document.getElementById('theme-toggle-light-icon').classList.toggle('hidden');
-            if (localStorage.theme === 'light') {
-                document.documentElement.classList.add('dark');
-                localStorage.theme = 'dark';
-            } else {
-                document.documentElement.classList.remove('dark');
-                localStorage.theme = 'light';
-            }
-        }
-        if (document.documentElement.classList.contains('dark')) {
-            document.getElementById('theme-toggle-light-icon').classList.remove('hidden');
-        } else {
-            document.getElementById('theme-toggle-dark-icon').classList.remove('hidden');
-        }
-    </script>
+document.addEventListener("DOMContentLoaded",async()=>{
+  updateAuthModeUI();updateMobStrip();
+  const select=document.getElementById("su_college");
+  try{
+    const response=await fetch("/api/public/colleges");
+    const data=await response.json();
+    if(data.success&&data.colleges.length){
+      select.innerHTML="<option value='' selected>Optional: Skip college selection</option>";
+      data.colleges.forEach(college=>{
+        const option=document.createElement("option");
+        option.value=college.name;option.textContent=college.name;
+        select.appendChild(option);
+      });
+    }
+  }catch(e){select.innerHTML="<option value='' selected>Could not load colleges</option>";}
+});
+</script>
 </body>
 </html>

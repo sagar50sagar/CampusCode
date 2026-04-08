@@ -1,0 +1,613 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pending Contests Approval - HOS Dashboard</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/shared.css">
+    <link rel="stylesheet" href="/css/hos/style.css">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ["Poppins", "sans-serif"] },
+                    colors: {
+                        primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" },
+                        dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" }
+                    },
+                },
+            },
+        };
+    </script>
+
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .dark ::-webkit-scrollbar-track {
+            background: #111827;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #7ba4d0;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2e5e99;
+        }
+
+        .sidebar.collapsed {
+            width: 5rem;
+        }
+
+        .sidebar.collapsed .nav-item span {
+            display: none;
+        }
+
+        .sidebar.collapsed .bottom-menu span {
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        select.status-dropdown {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+
+        @keyframes pulse-warning {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .conflict-badge {
+            animation: pulse-warning 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    
+    /* Global Sidebar Collapse overrides */
+    .sidebar.collapsed {
+        width: 5rem !important; /* w-20 equivalent */
+    }
+    .sidebar.collapsed nav a, .sidebar.collapsed .p-4 a {
+        justify-content: center !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        width: 100% !important;
+    }
+    .sidebar.collapsed nav a span, .sidebar.collapsed .p-4 a span {
+        display: none !important;
+    }
+    .sidebar.collapsed nav a i, .sidebar.collapsed .p-4 a i {
+        margin-right: 0 !important;
+        font-size: 1.25rem !important;
+    }
+    .sidebar.collapsed #sidebarLogoText {
+        display: none !important;
+    }
+
+  </style>
+    <script src="/js/hos/theme.js"></script>
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200">
+    <div class="flex h-screen overflow-hidden">
+        <%- include('partials/sidebar.html', { currentPage: currentPage }) %>
+
+        <div class="flex-1 overflow-y-auto">
+            <header class="bg-white dark:bg-gray-800 shadow-sm transition-colors duration-200 sticky top-0 z-40">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+                    <div class="flex-1 max-w-2xl ml-4 flex items-center gap-4">
+                        <h1 id="headerLogoText"
+                            class="text-xl font-bold text-gray-800 dark:text-white hidden transition-all duration-300 opacity-0 transform -translate-x-2 whitespace-nowrap">
+                            CampusCode
+                        </h1>
+
+                        <div class="relative flex items-center w-full">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                            <input type="text" id="globalSearch"
+                                class="block w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
+                                placeholder="Search contests..." />
+                        </div>
+                    </div>
+
+                    <div class="ml-4 flex items-center gap-3">
+                        <button id="themeToggleBtn"
+                            class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none transition-transform active:scale-95">
+                            <i class="fas fa-moon text-xl"></i>
+                        </button>
+                        <div class="relative">
+                            <button id="notificationBtn"
+                                class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none">
+                                <i class="fas fa-bell text-xl"></i>
+                                <span
+                                    class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-800"></span>
+                            </button>
+                        </div>
+                        <button id="headerProfileBtn"
+                            class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <div
+                                class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm">
+                                <%= user.fullName.split(' ').map(n => n[0]).join('') %></div>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block"><%= user.fullName %></span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div class="mb-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                                <i class="fas fa-hourglass-half text-pink-500"></i>
+                                Pending Contests Approval
+                            </h1>
+                            <p class="text-gray-600 dark:text-gray-400 mt-1">Review and approve contests submitted by
+                                faculty members</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <a href="/hos/contest"
+                                class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
+                                <i class="fas fa-arrow-left"></i>
+                                Back to Contests
+                            </a>
+                            <button id="btnBulkApprove"
+                                class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
+                                <i class="fas fa-check-double"></i>
+                                Bulk Approve
+                            </button>
+                            <button id="btnExportData"
+                                class="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
+                                <i class="fas fa-download"></i>
+                                Export
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-100 dark:border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Total Pending
+                                </p>
+                                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-1" id="statTotal"><%= contestStats.total %></h3>
+                            </div>
+                            <div class="p-3 bg-pink-500/10 rounded-lg">
+                                <i class="fas fa-hourglass-half text-pink-500 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-100 dark:border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Approved</p>
+                                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-1" id="statApproved"><%= contestStats.approved %></h3>
+                            </div>
+                            <div class="p-3 bg-green-500/10 rounded-lg">
+                                <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-100 dark:border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Rejected</p>
+                                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-1" id="statRejected"><%= contestStats.rejected %></h3>
+                            </div>
+                            <div class="p-3 bg-red-500/10 rounded-lg">
+                                <i class="fas fa-times-circle text-red-500 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-100 dark:border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Upcoming</p>
+                                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-1" id="statUpcoming"><%= contestStats.upcoming %></h3>
+                            </div>
+                            <div class="p-3 bg-blue-500/10 rounded-lg">
+                                <i class="fas fa-calendar-alt text-blue-500 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-100 dark:border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Conflicts</p>
+                                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-1" id="statConflicts">0</h3>
+                            </div>
+                            <div class="p-3 bg-orange-500/10 rounded-lg">
+                                <i class="fas fa-exclamation-triangle text-orange-500 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters and Table Container -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+
+                    <!-- Tabs -->
+                    <div class="flex border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+                        <button
+                            class="approval-tab active px-6 py-4 text-sm font-medium text-primary-600 dark:text-primary-400 border-b-2 border-primary-500 focus:outline-none whitespace-nowrap"
+                            data-tab="all">
+                            <i class="fas fa-list mr-2"></i>All Contests <span
+                                class="ml-2 px-2 py-0.5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-xs"><%= contests.length %></span>
+                        </button>
+                        <button
+                            class="approval-tab px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none whitespace-nowrap"
+                            data-tab="approved">
+                            <i class="fas fa-check mr-2"></i>Approved <span
+                                class="ml-2 px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-xs"><%= contestStats.approved %></span>
+                        </button>
+                        <button
+                            class="approval-tab px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none whitespace-nowrap"
+                            data-tab="rejected">
+                            <i class="fas fa-times mr-2"></i>Rejected <span
+                                class="ml-2 px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-xs"><%= contestStats.rejected %></span>
+                        </button>
+                        <button
+                            class="approval-tab px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none whitespace-nowrap"
+                            data-tab="active">
+                            <i class="fas fa-play mr-2"></i>Active <span
+                                class="ml-2 px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-xs"><%= contestStats.upcoming %></span>
+                        </button>
+                        <button
+                            class="approval-tab px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none whitespace-nowrap"
+                            data-tab="conflicts">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>Conflicts <span
+                                class="ml-2 px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-xs">0</span>
+                        </button>
+                    </div>
+
+                    <!-- Filters Bar -->
+                    <div class="p-4 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                            <div>
+                                <label
+                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Subject</label>
+                                <select id="filterSubject"
+                                    class="w-full text-sm border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
+                                    <option value="">All Subjects</option>
+                                    <% dropdownData.subjects.forEach(s => { %>
+                                        <option value="<%= s %>"><%= s %></option>
+                                    <% }) %>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Contest
+                                    Type</label>
+                                <select id="filterType"
+                                    class="w-full text-sm border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
+                                    <option value="">All Types</option>
+                                    <option value="practice">Practice</option>
+                                    <option value="assessment">Assessment</option>
+                                    <option value="competition">Competition</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Start
+                                    Date From</label>
+                                <input type="date" id="filterDateFrom"
+                                    class="w-full text-sm border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Start
+                                    Date To</label>
+                                <input type="date" id="filterDateTo"
+                                    class="w-full text-sm border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Approved
+                                    By HOS</label>
+                                <select id="filterApprovedBy"
+                                    class="w-full text-sm border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
+                                    <option value="">All</option>
+                                    <option value="yes">Yes</option>
+                                    <option value="no">No - Pending</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between mt-4">
+                            <div class="flex gap-2">
+                                <button id="btnApplyFilters"
+                                    class="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-xs font-medium transition-colors">
+                                    <i class="fas fa-filter mr-1"></i>Apply Filters
+                                </button>
+                                <button id="btnResetFilters"
+                                    class="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-medium transition-colors">
+                                    <i class="fas fa-redo mr-1"></i>Reset
+                                </button>
+                            </div>
+                            <div class="text-xs text-gray-600 dark:text-gray-400">
+                                Showing <span id="displayCount" class="font-semibold">15</span> contests
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr
+                                    class="text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50 uppercase tracking-wider">
+                                    <th class="px-4 py-3">
+                                        <input type="checkbox" id="selectAll"
+                                            class="rounded border-gray-300 text-primary-600">
+                                    </th>
+                                    <th class="px-4 py-3">Contest Name</th>
+                                    <th class="px-4 py-3">Type</th>
+                                    <th class="px-4 py-3">Section</th>
+                                    <th class="px-4 py-3">Subject</th>
+                                    <th class="px-4 py-3">Time Slot</th>
+                                    <th class="px-4 py-3">Start Date</th>
+                                    <th class="px-4 py-3">Status</th>
+                                    <th class="px-4 py-3 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contestsTableBody" class="divide-y divide-gray-200 dark:divide-gray-700">
+                                <!-- Dynamic content will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div
+                        class="px-4 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                        <div class="text-sm text-gray-600 dark:text-gray-400">
+                            Page <span id="currentPage" class="font-semibold">1</span> of <span id="totalPages"
+                                class="font-semibold">2</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="btnPrevPage"
+                                class="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="fas fa-chevron-left"></i> Previous
+                            </button>
+                            <button id="btnNextPage"
+                                class="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                Next <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Contest Detail Modal -->
+    <div id="contestDetailModal"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+        <div
+            class="w-full max-w-5xl bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden animate-fadeIn m-4 max-h-[90vh] overflow-y-auto">
+            <div class="bg-gradient-to-br from-pink-500 to-pink-700 relative px-6 py-4">
+                <button id="closeContestModal"
+                    class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white/90 transition-all flex items-center justify-center backdrop-blur-sm">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+                <h2 class="text-xl font-bold text-white">Contest Details</h2>
+            </div>
+
+            <div class="p-6" id="contestDetailContent">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification & Profile Overlays -->
+    <div id="notificationDropdown"
+        class="fixed top-16 right-6 z-[70] w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 hidden animate-[fadeIn_0.1s_ease-out]">
+        <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+            <h3 class="font-semibold text-gray-800 dark:text-white">Notifications</h3>
+            <span class="text-xs text-primary-500 cursor-pointer hover:underline">Mark all read</span>
+        </div>
+        <div class="p-2">
+            <div class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer">
+                <p class="text-sm text-gray-800 dark:text-gray-200 font-medium">New Contest Submission</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Dr. Smith submitted a new contest.</p>
+            </div>
+        </div>
+    </div>
+
+        <div id="profileOverlay" class="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+        <div class="w-[380px] bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden animate-[fadeIn_0.2s_ease-out]">
+            <div class="bg-gradient-to-br from-[#1E4A7A] to-[#153255] relative pt-12 pb-20 px-6 text-center">
+                <button id="closeProfileOverlay" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white/90 transition-all flex items-center justify-center backdrop-blur-sm">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+
+                <div class="absolute left-1/2 bottom-[-48px] -translate-x-1/2">
+                    <div class="relative w-24 h-24 rounded-full p-1.5 bg-white dark:bg-gray-800 ring-4 ring-[#1E4A7A]/10 dark:ring-[#1E4A7A]/30">
+                        <div class="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold shadow-inner">
+                            <%= user.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2) %>
+                        </div>
+                        <div class="absolute bottom-0 right-0 w-6 h-6 bg-green-500 border-4 border-white dark:border-gray-800 rounded-full"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-16 pb-8 px-6">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-1"><%= user.fullName %></h2>
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3"><%= user.post || 'Faculty Member' %></p>
+
+                    <div class="flex items-center justify-center gap-2 flex-wrap">
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-100 dark:border-blue-800">
+                            <%= user.department || 'General' %> Dept
+                        </span>
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border border-purple-100 dark:border-purple-800">
+                            <%= user.role ? user.role.toUpperCase() : 'FACULTY' %>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="p-3 rounded-2xl bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700 text-center">
+                        <p class="text-xs text-gray-500 uppercase font-semibold">Faculty ID</p>
+                        <p class="text-sm font-bold text-gray-800 dark:text-gray-200">FAC-<%= user.id %></p>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700 text-center">
+                        <p class="text-xs text-gray-500 uppercase font-semibold">Joined</p>
+                        <p class="text-sm font-bold text-gray-800 dark:text-gray-200"><%= user.joiningDate || 'Unknown' %></p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <button id="logoutBtn" class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group transition-all duration-200 border border-transparent hover:border-red-100 dark:hover:border-red-800">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center justify-center">
+                                <i class="fas fa-sign-out-alt text-sm"></i>
+                            </div>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-red-600 dark:group-hover:text-red-400">Logout</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-xs text-gray-400 group-hover:text-red-500 dark:group-hover:text-red-400"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Toast Notification -->
+    <div id="toastNotification" class="fixed top-20 right-6 z-[90] hidden animate-[fadeIn_0.3s_ease-out]">
+        <div id="toastContent"
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4 min-w-[320px] max-w-md">
+            <div class="flex items-start gap-3">
+                <div id="toastIcon" class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"></div>
+                <div class="flex-1">
+                    <h4 id="toastTitle" class="font-semibold text-gray-900 dark:text-white text-sm mb-1"></h4>
+                    <p id="toastMessage" class="text-xs text-gray-600 dark:text-gray-400"></p>
+                </div>
+                <button onclick="hideToast()"
+                    class="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Dialog -->
+    <div id="confirmDialog"
+        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+        <div
+            class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 max-w-md w-full m-4 animate-[fadeIn_0.2s_ease-out]">
+            <div class="flex items-start gap-4 mb-4">
+                <div id="confirmIcon" class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center">
+                </div>
+                <div class="flex-1">
+                    <h3 id="confirmTitle" class="text-lg font-bold text-gray-900 dark:text-white mb-2"></h3>
+                    <p id="confirmMessage" class="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line"></p>
+                </div>
+            </div>
+            <div class="flex gap-3 justify-end">
+                <button id="confirmCancelBtn"
+                    class="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors">
+                    Cancel
+                </button>
+                <button id="confirmOkBtn"
+                    class="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/hos/notifications.js"></script>
+    <script>
+        // Inject server data for the external JS
+        window.allContests = JSON.parse('<%- JSON.stringify(contests || []) %>');
+        window.serverSubjects = JSON.parse('<%- JSON.stringify(subjects || []) %>');
+        var allContests = window.allContests;
+        var serverSubjects = window.serverSubjects;
+    </script>
+    <script src="/js/hos/pending_contests.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById('mainSidebar');
+            const toggleBtn = document.getElementById('sidebarToggleBtn');
+            const toggleIcon = toggleBtn ? toggleBtn.querySelector('i') : null;
+            const sidebarLogoText = document.getElementById('sidebarLogoText');
+            const headerLogoText = document.getElementById('headerLogoText');
+
+            if (toggleBtn && sidebar) {
+                toggleBtn.addEventListener('click', () => {
+                    sidebar.classList.toggle('collapsed');
+                    if (sidebar.classList.contains('collapsed')) {
+                        sidebar.classList.replace('w-64', 'w-20');
+                        if (toggleIcon) toggleIcon.style.transform = 'rotate(180deg)';
+                        if (sidebarLogoText) { sidebarLogoText.style.opacity = '0'; sidebarLogoText.style.width = '0px'; }
+                        if (headerLogoText) {
+                            headerLogoText.classList.remove('hidden');
+                            setTimeout(() => { headerLogoText.classList.remove('opacity-0', '-translate-x-2'); }, 50);
+                        }
+                    } else {
+                        sidebar.classList.replace('w-20', 'w-64');
+                        if (toggleIcon) toggleIcon.style.transform = 'rotate(0deg)';
+                        if (sidebarLogoText) { sidebarLogoText.style.opacity = '1'; sidebarLogoText.style.width = 'auto'; }
+                        if (headerLogoText) {
+                            headerLogoText.classList.add('opacity-0', '-translate-x-2');
+                            setTimeout(() => { headerLogoText.classList.add('hidden'); }, 300);
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+    <script src="/js/hos/index1_logic.js"></script>
+</body>
+
+</html>

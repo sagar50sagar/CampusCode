@@ -1,0 +1,27 @@
+<aside id="mainSidebar" class="sidebar w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen flex-shrink-0 transition-colors duration-200 z-50">
+    <div class="p-6 flex-shrink-0 flex items-center justify-between h-[88px]">
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2 overflow-hidden whitespace-nowrap">
+            <i class="fas fa-code text-primary-500 text-2xl flex-shrink-0"></i>
+            <span id="sidebarLogoText" class="transition-all duration-300 opacity-100 w-auto">CampusCode</span>
+        </h1>
+        <button id="sidebarToggleBtn" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary-500 transition-colors focus:outline-none">
+            <i class="fas fa-chevron-left transition-transform duration-300"></i>
+        </button>
+    </div>
+
+    <nav class="flex-1 px-4 space-y-1 overflow-y-auto mt-2">
+        <a href="/college/hod/dashboard" class="nav-item <%= currentPage === 'dashboard' ? 'active' : '' %>"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="/college/hod/problem" class="nav-item <%= currentPage === 'problem' ? 'active' : '' %>"><i class="fas fa-tasks"></i><span>Problems</span></a>
+        <a href="/college/hod/contest" class="nav-item <%= currentPage === 'contest' ? 'active' : '' %>"><i class="fas fa-trophy"></i><span>Contests</span></a>
+        <a href="/college/hod/faculty" class="nav-item <%= currentPage === 'faculty' ? 'active' : '' %>"><i class="fas fa-users"></i><span>Faculty</span></a>
+        <a href="/college/hod/student" class="nav-item <%= currentPage === 'student' ? 'active' : '' %>"><i class="fas fa-user-graduate"></i><span>Students</span></a>
+        <a href="/college/hod/community" class="nav-item <%= currentPage === 'community' ? 'active' : '' %>"><i class="fas fa-comments"></i><span>Community</span></a>
+        <a href="/college/hod/report" class="nav-item <%= currentPage === 'report' ? 'active' : '' %>"><i class="fas fa-chart-pie"></i><span>Report</span></a>
+        <a href="/college/hod/profile" class="nav-item <%= currentPage === 'profile' ? 'active' : '' %>"><i class="fas fa-user"></i><span>Profile</span></a>
+    </nav>
+
+    <div class="p-4 space-y-1 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0 bottom-menu">
+        <a href="/college/hod/help" class="nav-item <%= currentPage === 'help' ? 'active' : '' %>"><i class="far fa-question-circle"></i><span>Help & Support</span></a>
+        <a href="/college/hod/settings" class="nav-item <%= currentPage === 'settings' ? 'active' : '' %>"><i class="fas fa-cog"></i><span>Settings</span></a>
+    </div>
+</aside>

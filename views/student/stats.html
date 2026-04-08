@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student - Stats</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: { sans: ["Poppins", "sans-serif"] },
+            colors: {
+              primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" },
+              dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" }
+            }
+          }
+        }
+      };
+    </script>
+    <style>
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      .dark ::-webkit-scrollbar-track { background: #111827; }
+      ::-webkit-scrollbar-thumb { background: #7ba4d0; border-radius: 3px; }
+      .nav-item { transition: all 0.2s ease; position: relative; display: flex; align-items: center; padding: 0.75rem 1rem; margin-bottom: 0.25rem; color: #374151; border-radius: 0.5rem; cursor: pointer; white-space: nowrap; }
+      .nav-item:hover { background-color: #f3f4f6; }
+      .dark .nav-item { color: #d1d5db; }
+      .dark .nav-item:hover { background-color: #374151; }
+      .nav-item.active { background-color: #d0e1f5; color: #1e4a7a; }
+      .dark .nav-item.active { background-color: #1e4a7a; color: #ffffff; }
+      .nav-item.active::before { content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 60%; width: 4px; background-color: #2e5e99; border-radius: 0 4px 4px 0; }
+      .dark .nav-item.active::before { background-color: #60a5fa; }
+      .nav-item i { width: 1.5rem; text-align: center; margin-right: 0.75rem; font-size: 1.1rem; flex-shrink: 0; }
+      .nav-item span { font-size: 0.875rem; font-weight: 500; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 font-sans text-gray-800 dark:text-gray-200 transition-colors duration-200">
+  <div class="flex h-screen overflow-hidden">
+    <aside class="w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen flex-shrink-0 z-50">
+      <div class="p-6 flex items-center h-[88px]">
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+          <img src="/campuscode-logo.jpeg" alt="CampusCode logo" class="w-9 h-9 object-contain"><span>CampusCode</span>
+        </h1>
+      </div>
+      <nav class="flex-1 px-4 space-y-1 overflow-y-auto mt-2">
+        <a href="/student/dashboard" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="/student/problems" class="nav-item"><i class="fas fa-tasks"></i><span>Problems</span></a>
+        <a href="/student/contests" class="nav-item"><i class="fas fa-trophy"></i><span>Contests</span></a>
+        <a href="/forum/forum.html" class="nav-item"><i class="fas fa-comments"></i><span>Community</span></a>
+        <a href="/student/stats" class="nav-item active"><i class="fas fa-list"></i><span>Stats</span></a>
+        <a href="/student/report" class="nav-item"><i class="fas fa-chart-pie"></i><span>Report</span></a>
+        <a href="/student/profile" class="nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+      </nav>
+      <div class="p-4 space-y-1 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
+        <a href="/student/support" class="nav-item"><i class="far fa-question-circle"></i><span>Help & Support</span></a>
+      </div>
+    </aside>
+    <div class="flex-1 flex flex-col min-w-0">
+      <header class="bg-white dark:bg-gray-800 shadow-sm transition-colors duration-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+          <div class="flex-1 max-w-2xl ml-4 flex items-center gap-4">
+            <h1 id="headerLogoText" class="text-xl font-bold text-gray-800 dark:text-white hidden transition-all duration-300 opacity-0 transform -translate-x-2 whitespace-nowrap">CampusCode</h1>
+            <div class="relative flex items-center w-full">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fas fa-search text-gray-400"></i></div>
+              <input type="text" class="block w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all" placeholder="Search problems, contests, tags..." />
+            </div>
+          </div>
+
+          <div class="ml-4 flex items-center gap-3">
+            <button id="themeToggleBtn" class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none transition-transform active:scale-95">
+              <i class="fas fa-moon text-xl"></i>
+            </button>
+            <div class="relative">
+              <button id="notificationBtn" class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none">
+                <i class="fas fa-bell text-xl"></i>
+                <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-800"></span>
+              </button>
+            </div>
+            <button id="headerProfileBtn" class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              <div class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm"><%= (user.username || 'ST').slice(0,2).toUpperCase() %></div>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block"><%= user.fullName %></span>
+            </button>
+          </div>
+        </div>
+      </header>
+      <main class="flex-1 p-4 grid grid-cols-1 md:grid-cols-12 grid-rows-auto gap-4 overflow-y-auto">
+        <div class="col-span-12 md:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col h-[300px]">
+          <h3 class="text-xs font-bold text-gray-400 uppercase mb-2">Skill Proficiency</h3>
+          <div class="flex-1 min-h-0 relative"><canvas id="skillRadar"></canvas></div>
+        </div>
+        <div class="col-span-12 md:col-span-5 bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col h-[300px]">
+          <div class="flex justify-between items-start mb-2">
+            <h3 class="text-xs font-bold text-gray-400 uppercase">Rating History</h3>
+            <span class="text-lg font-bold text-primary-600 dark:text-primary-400"><%= user.xp %></span>
+          </div>
+          <div class="flex-1 min-h-0 relative"><canvas id="ratingLine"></canvas></div>
+        </div>
+        <div class="col-span-12 md:col-span-3 bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col h-[300px]">
+          <h3 class="text-xs font-bold text-gray-400 uppercase mb-2">Difficulty</h3>
+          <div class="flex-1 min-h-0 relative"><canvas id="difficultyPie"></canvas></div>
+        </div>
+        <div class="col-span-12 md:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col h-[300px]">
+          <h3 class="text-xs font-bold text-gray-400 uppercase mb-2">Submission Verdicts</h3>
+          <div class="flex-1 min-h-0 relative"><canvas id="verdictDoughnut"></canvas></div>
+        </div>
+        <div class="col-span-12 md:col-span-5 bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col h-[300px]">
+          <h3 class="text-xs font-bold text-gray-400 uppercase mb-2">Languages Used</h3>
+          <div class="flex-1 min-h-0 relative"><canvas id="languageBar"></canvas></div>
+        </div>
+        <div class="col-span-12 md:col-span-3 bg-primary-50 dark:bg-gray-800 rounded-xl p-5 border border-primary-100 dark:border-gray-700 shadow-sm flex flex-col justify-center items-center text-center h-[300px]">
+          <div class="p-4 bg-white dark:bg-gray-700 rounded-full shadow-sm mb-3"><i class="fas fa-trophy text-2xl text-yellow-500"></i></div>
+          <h3 class="text-gray-800 dark:text-white font-bold text-lg">Top <%= top_percent %>%</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Global Ranking</p>
+          <div class="w-full bg-gray-200 dark:bg-gray-600 h-2 rounded-full overflow-hidden">
+            <div class="bg-green-500 h-full" style="width: <%= top_percent %>%"></div>
+          </div>
+          <p class="text-[10px] text-gray-400 mt-2">Your dynamic rank is based on current points.</p>
+        </div>
+      </main>
+    </div>
+  </div>
+  <div id="notificationDropdown" class="fixed top-16 right-6 z-50 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 hidden">
+    <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+      <h3 class="font-semibold text-gray-800 dark:text-white">Notifications</h3>
+      <span class="text-xs text-primary-500 cursor-pointer hover:underline">Mark all read</span>
+    </div>
+    <div class="p-2">
+      <div class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer">
+        <p class="text-sm text-gray-800 dark:text-gray-200 font-medium">Stats Update</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400">Your rank and analytics update after submissions.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="profileOverlay" class="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+    <div class="w-[340px] bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden">
+      <div class="bg-[#1E4A7A] dark:bg-[#0f2a4a] relative pt-8 pb-16 px-6 text-center">
+        <button id="closeProfileOverlay" class="absolute top-4 right-4 text-white/70 hover:text-white"><i class="fas fa-times text-lg"></i></button>
+        <div class="absolute left-1/2 bottom-[-45px] -translate-x-1/2">
+          <div class="w-24 h-24 rounded-full bg-[#1E4A7A] p-1">
+            <div class="w-full h-full rounded-full bg-[#1E4A7A] flex items-center justify-center text-white text-4xl font-normal border-4 border-white dark:border-gray-800"><%= (user.username || 'S').charAt(0).toUpperCase() %></div>
+          </div>
+        </div>
+      </div>
+      <div class="pt-14 pb-6 px-6 text-center">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white"><%= user.fullName %></h2>
+        <div class="flex flex-col items-center mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <span class="flex items-center gap-1"><i class="fas fa-users text-xs"></i> <%= user.college %></span>
+          <span><%= user.email %></span>
+        </div>
+        <div class="flex justify-between mt-6 px-2">
+          <div class="text-center">
+            <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Solved</div>
+            <div class="text-xl font-bold text-gray-900 dark:text-white mt-1"><%= user.problems_solved %></div>
+          </div>
+          <div class="text-center border-l border-r border-gray-100 dark:border-gray-700 px-4">
+            <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Rank</div>
+            <div class="text-xl font-bold text-gray-900 dark:text-white mt-1"><%= user.global_rank %></div>
+          </div>
+          <div class="text-center">
+            <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Points</div>
+            <div class="text-xl font-bold text-gray-900 dark:text-white mt-1"><%= user.xp %></div>
+          </div>
+        </div>
+        <div class="h-px bg-gray-100 dark:bg-gray-700 my-6"></div>
+        <div class="space-y-1">
+          <a href="/student/profile" class="nav-item"><i class="fas fa-id-card"></i><span>My Profile</span></a>
+          <a href="/student/profile" class="nav-item"><i class="fas fa-pen"></i><span>Edit Profile</span></a>
+          <a href="/student/report" class="nav-item"><i class="fas fa-chart-pie"></i><span>Report</span></a>
+          <a href="/student/stats" class="nav-item"><i class="fas fa-list"></i><span>Stats</span></a>
+          <a href="/auth/logout" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
+            <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center"><i class="fas fa-sign-out-alt"></i></div>
+            <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const root = document.documentElement;
+    const themeBtn = document.getElementById('themeToggleBtn');
+    const themeIcon = themeBtn ? themeBtn.querySelector('i') : null;
+    if (themeBtn && themeIcon) {
+      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        root.classList.add('dark');
+        themeIcon.classList.replace('fa-moon', 'fa-sun');
+      }
+      themeBtn.addEventListener('click', () => {
+        root.classList.toggle('dark');
+        const isDark = root.classList.contains('dark');
+        localStorage.theme = isDark ? 'dark' : 'light';
+        themeIcon.className = isDark ? 'fas fa-sun text-xl' : 'fas fa-moon text-xl';
+      });
+    }
+    const notificationBtn = document.getElementById('notificationBtn');
+    const notificationDropdown = document.getElementById('notificationDropdown');
+    if (notificationBtn && notificationDropdown) {
+      notificationBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        notificationDropdown.classList.toggle('hidden');
+      });
+      document.addEventListener('click', (event) => {
+        if (!notificationDropdown.contains(event.target) && !notificationBtn.contains(event.target)) notificationDropdown.classList.add('hidden');
+      });
+    }
+    const profileOverlay = document.getElementById('profileOverlay');
+    const headerProfileBtn = document.getElementById('headerProfileBtn');
+    const closeProfileOverlayBtn = document.getElementById('closeProfileOverlay');
+    if (profileOverlay && headerProfileBtn && closeProfileOverlayBtn) {
+      headerProfileBtn.addEventListener('click', () => profileOverlay.classList.remove('hidden'));
+      closeProfileOverlayBtn.addEventListener('click', () => profileOverlay.classList.add('hidden'));
+      profileOverlay.addEventListener('click', (event) => {
+        if (event.target === profileOverlay) profileOverlay.classList.add('hidden');
+      });
+    }
+
+    const sharedOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#94a3b8' } } } };
+    new Chart(document.getElementById('skillRadar').getContext('2d'), {
+      type: 'radar',
+      data: { labels: <%- skill_labels || '[]' %>, datasets: [{ data: <%- skill_values || '[]' %>, backgroundColor: 'rgba(30,74,122,0.18)', borderColor: '#1E4A7A', borderWidth: 2 }] },
+      options: { ...sharedOptions, scales: { r: { beginAtZero: true, ticks: { display: false } } } }
+    });
+    new Chart(document.getElementById('ratingLine').getContext('2d'), {
+      type: 'line',
+      data: { labels: <%- rating_labels || '[]' %>, datasets: [{ data: <%- rating_values || '[]' %>, borderColor: '#1E4A7A', backgroundColor: 'rgba(30,74,122,0.12)', fill: true, tension: 0.35, pointRadius: 3 }] },
+      options: { ...sharedOptions, plugins: { legend: { display: false } } }
+    });
+    new Chart(document.getElementById('difficultyPie').getContext('2d'), {
+      type: 'pie',
+      data: { labels: <%- difficulty_labels || '[]' %>, datasets: [{ data: <%- difficulty_values || '[]' %>, backgroundColor: ['#4ade80','#facc15','#f87171'] }] },
+      options: sharedOptions
+    });
+    new Chart(document.getElementById('verdictDoughnut').getContext('2d'), {
+      type: 'doughnut',
+      data: { labels: <%- verdict_labels || '[]' %>, datasets: [{ data: <%- verdict_values || '[]' %>, backgroundColor: ['#4ade80','#60a5fa','#f87171','#fbbf24','#94a3b8'] }] },
+      options: sharedOptions
+    });
+    new Chart(document.getElementById('languageBar').getContext('2d'), {
+      type: 'bar',
+      data: { labels: <%- language_labels || '[]' %>, datasets: [{ data: <%- language_values || '[]' %>, backgroundColor: '#1E4A7A' }] },
+      options: { ...sharedOptions, plugins: { legend: { display: false } } }
+    });
+  </script>
+</body>
+</html>

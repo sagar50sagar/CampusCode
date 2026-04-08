@@ -18,33 +18,50 @@
         extend: {
           fontFamily: { sans: ['Poppins', 'sans-serif'] },
           colors: {
-            primary: { 50: '#E7F0FA', 200: '#7BA4D0', 400: '#2E5E99', 500: '#2E5E99', 600: '#0D2440' }
+            primary: { 50: '#E7F0FA', 100: '#D0E1F5', 200: '#7BA4D0', 300: '#4D84C0', 400: '#2E5E99', 500: '#1E4A7A', 600: '#0D2440' }
           }
         }
       }
     }
   </script>
   <style>
+    /* --- Scrollbar --- */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    .dark ::-webkit-scrollbar-track { background: #111827; }
+    ::-webkit-scrollbar-thumb { background: #7ba4d0; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #2e5e99; }
+
     /* --- Sidebar Logic --- */
-    .sidebar { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .sidebar { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
     .sidebar.collapsed { width: 5rem; }
     .sidebar.collapsed .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
     .sidebar.collapsed .nav-item i { margin-right: 0; font-size: 1.25rem; }
-    .sidebar.collapsed .nav-item span, 
-    .sidebar.collapsed .logo-text, 
+    .sidebar.collapsed .nav-item span,
+    .sidebar.collapsed .logo-text,
     .sidebar.collapsed .bottom-menu span { display: none; }
+    .sidebar.collapsed .bottom-menu .nav-item { justify-content: center; }
 
-    /* Adjust nav-item for consistency */
-    .nav-item i { width: 1.5rem; text-align: center; margin-right: 0.75rem; flex-shrink: 0; }
-  
-    /* Custom Styles */
-    .nav-item { display: flex; align-items: center; padding: 0.6rem 1rem; border-radius: 0.5rem; color: #64748b; transition: all 0.2s; cursor: pointer; text-decoration: none;}
-    .nav-item:hover { background-color: #f3f4f6; color: #2E5E99; }
-    .nav-item.active { background-color: #E7F0FA; color: #2E5E99; font-weight: 600; }
-    .dark .nav-item { color: #94a3b8; }
-    .dark .nav-item:hover { background-color: #374151; color: white; }
-    .dark .nav-item.active { background-color: #2E5E99; color: white; }
+    /* --- Nav Item Styling (Synced with Dashboard) --- */
+    .nav-item {
+        transition: all 0.2s ease; position: relative; display: flex; align-items: center;
+        padding: 0.75rem 1rem; margin-bottom: 0.25rem; color: #374151; border-radius: 0.5rem;
+        cursor: pointer; white-space: nowrap; text-decoration: none;
+    }
+    .nav-item:hover { background-color: #f3f4f6; }
+    .dark .nav-item { color: #d1d5db; }
+    .dark .nav-item:hover { background-color: #374151; }
+    .nav-item.active { background-color: #d0e1f5; color: #1e4a7a; }
+    .dark .nav-item.active { background-color: #1e4a7a; color: #ffffff; }
+    .nav-item.active::before {
+        content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+        height: 60%; width: 4px; background-color: #2e5e99; border-radius: 0 4px 4px 0;
+    }
+    .dark .nav-item.active::before { background-color: #60a5fa; }
+    .nav-item i { width: 1.5rem; text-align: center; margin-right: 0.75rem; font-size: 1.1rem; flex-shrink: 0; }
+    .nav-item span { font-size: 0.875rem; font-weight: 500; }
     
+    /* --- Body & Profile specific styles --- */
     body { transition: background-color 0.3s, color 0.3s; }
     .glass-card { background: white; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
     .dark .glass-card { background: #1f2937; border-color: #374151; }
@@ -69,10 +86,11 @@
   </style>
 </head>
 
-<body class="bg-gray-50 dark:bg-gray-900 font-sans overflow-hidden">
+<body class="bg-gray-50 dark:bg-gray-900 font-sans overflow-hidden transition-colors duration-200">
 
 <div class="flex h-screen">
-  <aside id="mainSidebar" class="sidebar w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen flex-shrink-0 z-50">
+  
+  <aside id="mainSidebar" class="sidebar w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen flex-shrink-0 transition-colors duration-200 z-50">
     <div class="p-6 flex-shrink-0 flex items-center justify-between h-[88px]">
         <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2 overflow-hidden whitespace-nowrap">
             <i class="fas fa-code text-primary-500 text-2xl flex-shrink-0"></i>
@@ -81,7 +99,8 @@
         <button id="sidebarToggleBtn" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary-500 transition-colors focus:outline-none">
             <i class="fas fa-chevron-left transition-transform duration-300"></i>
         </button>
-    </div>    <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
+    </div>
+    <nav class="flex-1 px-4 space-y-1 overflow-y-auto mt-2">
         <a href="/college/dashboard" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
         <a href="/college/program" class="nav-item"><i class="fa-solid fa-layer-group"></i><span>Programs</span></a>
         <a href="/college/contest" class="nav-item"><i class="fas fa-trophy"></i><span>Contests</span></a>
@@ -94,143 +113,259 @@
         <a href="/college/help_support" class="nav-item"><i class="far fa-question-circle"></i><span>Help &amp; Support</span></a>
         <a href="/college/setting" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
     </div>
-</aside>
-  <div class="flex-1 flex flex-col">
-    <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-8 py-4 flex justify-end items-center gap-8 relative">
+  </aside>
+
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-8 py-4 flex justify-end items-center gap-8 relative z-40 transition-colors duration-200 shadow-sm">
       
-      <button onclick="toggleTheme()" class="text-gray-500 dark:text-gray-400 hover:text-gray-800 transition-colors">
+      <button onclick="toggleTheme()" class="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white transition-colors">
         <i id="themeIcon" class="fas fa-moon text-xl"></i>
       </button>
 
       <div class="relative">
-        <div id="bellBtn" onclick="toggleNotifications(event)" class="relative cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-800 transition-colors">
+        <div id="bellBtn" onclick="toggleNotifications(event)" class="relative cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white transition-colors">
             <i class="fas fa-bell text-xl"></i>
             <span id="notifBadge" class="absolute -top-1 -right-0.5 w-2.5 h-2.5 bg-red-500 border-2 border-white dark:border-gray-800 rounded-full"></span>
         </div>
 
-        <div id="notificationPanel" class="absolute right-0 mt-6 w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border dark:border-gray-700 z-[120] overflow-hidden">
-            <div class="p-4 border-b dark:border-gray-700 flex justify-between items-center">
+        <div id="notificationPanel" class="absolute right-0 mt-6 w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 z-[120] overflow-hidden">
+            <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
                 <h4 class="font-bold text-gray-800 dark:text-white">Notifications</h4>
                 <button onclick="clearNotif(event)" class="text-[10px] text-primary-500 font-bold uppercase hover:text-primary-600">Clear all</button>
             </div>
             <div id="notificationList" class="max-h-80 overflow-y-auto">
-                <div class="p-4 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
-                    <p class="text-xs font-bold dark:text-gray-200">Welcome to CampusCode</p>
+                <div class="p-4 border-b border-gray-50 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors">
+                    <p class="text-xs font-bold text-gray-800 dark:text-gray-200">Welcome to CampusCode</p>
                     <p class="text-[11px] text-gray-500 mt-0.5">Your profile is ready.</p>
                 </div>
             </div>
         </div>
       </div>
 
-      <div class="flex items-center gap-3 cursor-pointer group" onclick="toggleProfileOverlay()">
-        <div class="avatar-initials w-10 h-10 rounded-full bg-[#2E4B77] flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:opacity-90">
+      <div class="flex items-center gap-3 cursor-pointer group hover:opacity-90 transition-opacity" onclick="toggleProfileOverlay()">
+        <div class="avatar-initials w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm shadow-sm">
           --
         </div>
-        <span id="headerName" class="text-[#334155] dark:text-gray-200 font-semibold text-lg">Loading...</span>
+        <span id="headerName" class="text-gray-700 dark:text-gray-200 font-semibold text-sm">Loading...</span>
       </div>
     </header>
 
-    <main class="flex-1 px-8 py-6 overflow-y-auto">
+   <main class="flex-1 px-8 py-6 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       <div class="grid grid-cols-12 gap-6">
         
-        <div class="col-span-12 lg:col-span-3 glass-card rounded-3xl p-6 flex flex-col items-center">
-          <div class="relative group">
-            <div class="w-32 h-32 rounded-3xl border-4 border-primary-50 dark:border-gray-700 shadow-xl overflow-hidden bg-gray-100">
-                <img id="mainAvatar" class="w-full h-full object-cover" src="https://ui-avatars.com/api/?name=User&background=2E5E99&color=fff" />
+        <div class="col-span-12 lg:col-span-4 xl:col-span-3 glass-card rounded-3xl p-6 flex flex-col items-center">
+          <div class="relative group mt-4">
+            <div class="w-32 h-32 rounded-full border-4 border-primary-100 dark:border-gray-700 shadow-xl overflow-hidden bg-gray-100">
+                <img id="mainAvatar" class="w-full h-full object-cover" src="https://ui-avatars.com/api/?name=Admin&background=1E4A7A&color=fff" alt="Profile Avatar" />
             </div>
-            <div class="img-controls absolute -bottom-2 flex gap-2 left-1/2 -translate-x-1/2">
-                <button onclick="document.getElementById('profileUpload').click()" class="bg-primary-500 text-white w-8 h-8 rounded-lg flex items-center justify-center hover:scale-110"><i class="fas fa-pencil-alt text-xs"></i></button>
-                <button onclick="removeProfilePic()" class="bg-red-500 text-white w-8 h-8 rounded-lg flex items-center justify-center hover:scale-110"><i class="fas fa-trash-alt text-xs"></i></button>
+            <div class="img-controls absolute -bottom-2 flex gap-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <button type="button" onclick="document.getElementById('profileUpload').click()" class="bg-primary-500 text-white w-8 h-8 rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform" title="Change Picture">
+                    <i class="fas fa-pencil-alt text-xs"></i>
+                </button>
+                <button type="button" onclick="removeProfilePic()" class="bg-red-500 text-white w-8 h-8 rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform" title="Remove Picture">
+                    <i class="fas fa-trash-alt text-xs"></i>
+                </button>
             </div>
             <input type="file" id="profileUpload" class="hidden" accept="image/*" onchange="previewImage(event)">
           </div>
           
-          <h2 id="displayName" class="mt-8 text-xl font-bold dark:text-white">Loading...</h2>
-          <p id="displayDesig" class="text-xs font-semibold text-gray-400 uppercase tracking-widest mt-1">...</p>
+          <h2 id="displayName" class="mt-6 text-xl font-bold text-gray-800 dark:text-white text-center break-words w-full">Loading...</h2>
+          <p id="displayDesig" class="text-xs font-semibold text-primary-500 dark:text-primary-400 uppercase tracking-widest mt-1 text-center">...</p>
+          
+          <span id="displayStatus" class="mt-3 px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full text-[10px] font-bold uppercase tracking-wider">Active</span>
 
-          <div class="mt-8 w-full space-y-4 border-t border-gray-100 dark:border-gray-700 pt-6">
-            <div class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400"><i class="fas fa-university text-primary-400 w-5"></i><span id="displayInst">...</span></div>
-            <div class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400"><i class="fas fa-envelope text-primary-400 w-5"></i><span id="displayEmail">...</span></div>
+          <div class="mt-6 w-full space-y-4 border-t border-gray-100 dark:border-gray-700 pt-6">
+            <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Contact & Info</h4>
+            
+            <div class="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-400 w-full">
+                <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center shrink-0">
+                    <i class="fas fa-university text-primary-400"></i>
+                </div>
+                <div class="pt-1 flex-1 min-w-0">
+                    <p class="text-[10px] text-gray-400 font-semibold mb-0.5">Institution</p>
+                    <div id="displayInst" class="font-medium text-gray-700 dark:text-gray-300 break-words">...</div>
+                </div>
+            </div>
+            
+            <div class="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-400 w-full">
+                <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center shrink-0">
+                    <i class="fas fa-envelope text-primary-400"></i>
+                </div>
+                <div class="pt-1 flex-1 min-w-0">
+                    <p class="text-[10px] text-gray-400 font-semibold mb-0.5">Email</p>
+                    <div id="displayEmail" class="font-medium text-gray-700 dark:text-gray-300 break-all">...</div>
+                </div>
+            </div>
+
+            <div class="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-400 w-full">
+                <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center shrink-0">
+                    <i class="fas fa-building text-primary-400"></i>
+                </div>
+                <div class="pt-1 flex-1 min-w-0">
+                    <p class="text-[10px] text-gray-400 font-semibold mb-0.5">Department</p>
+                    <div id="displayDept" class="font-medium text-gray-700 dark:text-gray-300 break-words">N/A</div>
+                </div>
+            </div>
           </div>
 
-          <div class="mt-10 w-full space-y-3">
-            <button onclick="toggleModal('editModal')" class="w-full py-3 rounded-2xl bg-primary-500 text-white font-bold text-xs shadow-lg hover:bg-primary-600">EDIT PROFILE</button>
-            <a href="setting.html" class="block w-full text-center py-3 rounded-2xl border border-gray-200 dark:border-gray-700 dark:text-gray-300 font-bold text-xs hover:bg-gray-50 dark:hover:bg-gray-700">ACCOUNT SETTINGS</a>
+          <div class="mt-8 w-full space-y-3">
+            <button type="button" onclick="toggleModal('editModal')" class="w-full py-3 rounded-xl bg-primary-600 text-white font-bold text-xs shadow-md hover:bg-primary-700 transition-colors">
+                EDIT PROFILE
+            </button>
+            <a href="/college/setting" class="block w-full text-center py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-bold text-xs hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                ACCOUNT SETTINGS
+            </a>
           </div>
         </div>
 
-        <div class="col-span-12 lg:col-span-9 flex flex-col gap-6">
+        <div class="col-span-12 lg:col-span-8 xl:col-span-9 flex flex-col gap-6">
+          
           <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-            <div class="glass-card rounded-[2rem] p-6 flex items-center gap-4">
-                <div class="p-3 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-600"><i class="fas fa-user-graduate text-xl"></i></div>
-                <div><p class="text-xs font-bold text-gray-400 uppercase">Students</p><p id="statStudents" class="text-2xl font-black dark:text-white">0</p></div>
+            <div class="glass-card rounded-[1.5rem] p-6 flex items-center gap-4 transition-transform hover:-translate-y-1">
+                <div class="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600"><i class="fas fa-user-graduate text-2xl"></i></div>
+                <div><p class="text-xs font-bold text-gray-400 uppercase">Students</p><p id="statStudents" class="text-2xl font-black text-gray-800 dark:text-white">0</p></div>
             </div>
-            <div class="glass-card rounded-[2rem] p-6 flex items-center gap-4">
-                <div class="p-3 rounded-2xl bg-purple-50 dark:bg-purple-900/20 text-purple-600"><i class="fas fa-chalkboard-teacher text-xl"></i></div>
-                <div><p class="text-xs font-bold text-gray-400 uppercase">Faculty</p><p id="statFaculty" class="text-2xl font-black dark:text-white">0</p></div>
+            <div class="glass-card rounded-[1.5rem] p-6 flex items-center gap-4 transition-transform hover:-translate-y-1">
+                <div class="p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 text-purple-600"><i class="fas fa-chalkboard-teacher text-2xl"></i></div>
+                <div><p class="text-xs font-bold text-gray-400 uppercase">Faculty</p><p id="statFaculty" class="text-2xl font-black text-gray-800 dark:text-white">0</p></div>
             </div>
-            <div class="glass-card rounded-[2rem] p-6 flex items-center gap-4">
-                <div class="p-3 rounded-2xl bg-green-50 dark:bg-green-900/20 text-green-600"><i class="fas fa-code-branch text-xl"></i></div>
-                <div><p class="text-xs font-bold text-gray-400 uppercase">Programs</p><p id="statPrograms" class="text-2xl font-black dark:text-white">0</p></div>
+            <div class="glass-card rounded-[1.5rem] p-6 flex items-center gap-4 transition-transform hover:-translate-y-1">
+                <div class="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 text-green-600"><i class="fas fa-code-branch text-2xl"></i></div>
+                <div><p class="text-xs font-bold text-gray-400 uppercase">Programs</p><p id="statPrograms" class="text-2xl font-black text-gray-800 dark:text-white">0</p></div>
             </div>
-            <div class="glass-card rounded-[2rem] p-6 flex items-center gap-4">
-                <div class="p-3 rounded-2xl bg-orange-50 dark:bg-orange-900/20 text-orange-600"><i class="fas fa-bolt text-xl"></i></div>
-                <div><p class="text-xs font-bold text-gray-400 uppercase">Contests</p><p id="statContests" class="text-2xl font-black dark:text-white">0</p></div>
+            <div class="glass-card rounded-[1.5rem] p-6 flex items-center gap-4 transition-transform hover:-translate-y-1">
+                <div class="p-4 rounded-xl bg-orange-50 dark:bg-orange-900/20 text-orange-600"><i class="fas fa-bolt text-2xl"></i></div>
+                <div><p class="text-xs font-bold text-gray-400 uppercase">Contests</p><p id="statContests" class="text-2xl font-black text-gray-800 dark:text-white">0</p></div>
             </div>
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[400px]">
-            <div class="glass-card rounded-[2.5rem] p-8 flex flex-col">
-                <h3 class="font-bold text-gray-800 dark:text-white mb-6">Platform Usage</h3>
-                <div class="relative flex-1"><canvas id="usageChart"></canvas></div>
+            <div class="glass-card rounded-[1.5rem] p-8 flex flex-col">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-bold text-gray-800 dark:text-white">Platform Usage</h3>
+                    <span class="text-[10px] font-semibold bg-gray-100 dark:bg-gray-800 text-gray-500 px-2 py-1 rounded">Last 6 Months</span>
+                </div>
+                <div class="relative flex-1 min-h-[250px]"><canvas id="usageChart"></canvas></div>
             </div>
-            <div class="glass-card rounded-[2.5rem] p-8 flex flex-col">
-                <h3 class="font-bold text-gray-800 dark:text-white mb-6">Performance Matrix</h3>
-                <div class="relative flex-1"><canvas id="performanceChart"></canvas></div>
+            <div class="glass-card rounded-[1.5rem] p-8 flex flex-col">
+                <h3 class="font-bold text-gray-800 dark:text-white mb-6">User Account Status</h3>
+                <div class="relative flex-1 min-h-[250px]"><canvas id="performanceChart"></canvas></div>
             </div>
           </div>
         </div>
       </div>
     </main>
+
+    <div id="editModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm transition-opacity">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-lg rounded-2xl shadow-2xl p-8 transform transition-all">
+            <div class="flex justify-between items-center mb-6 border-b border-gray-100 dark:border-gray-700 pb-4">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Edit Profile</h3>
+                <button onclick="toggleModal('editModal')" class="text-gray-400 hover:text-red-500 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="profileForm" onsubmit="event.preventDefault(); saveProfile();" class="space-y-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">First Name</label>
+                        <input type="text" id="inputFirstName" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Last Name</label>
+                        <input type="text" id="inputLastName" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none">
+                    </div>
+                </div>
+                
+                <div class="pt-4 border-t border-gray-100 dark:border-gray-700">
+                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Change Password <span class="text-gray-400 font-normal">(Leave blank to keep current)</span></label>
+                    <input type="password" id="inputPassword" placeholder="Enter new password" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none">
+                </div>
+
+                <div class="flex justify-end gap-3 mt-8">
+                    <button type="button" onclick="toggleModal('editModal')" class="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">Cancel</button>
+                    <button type="submit" id="saveBtn" class="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-primary-600 hover:bg-primary-700 shadow-md transition-colors flex items-center gap-2">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="editModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm transition-opacity">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-lg rounded-2xl shadow-2xl p-8 transform transition-all">
+            <div class="flex justify-between items-center mb-6 border-b border-gray-100 dark:border-gray-700 pb-4">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Edit Profile</h3>
+                <button onclick="toggleModal('editModal')" class="text-gray-400 hover:text-red-500 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="profileForm" onsubmit="event.preventDefault(); saveProfile();" class="space-y-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">First Name</label>
+                        <input type="text" id="inputFirstName" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Last Name</label>
+                        <input type="text" id="inputLastName" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none">
+                    </div>
+                </div>
+                
+                <div class="pt-4 border-t border-gray-100 dark:border-gray-700">
+                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Change Password <span class="text-gray-400 font-normal">(Leave blank to keep current)</span></label>
+                    <input type="password" id="inputPassword" placeholder="Enter new password" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none">
+                </div>
+
+                <div class="flex justify-end gap-3 mt-8">
+                    <button type="button" onclick="toggleModal('editModal')" class="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">Cancel</button>
+                    <button type="submit" id="saveBtn" class="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-primary-600 hover:bg-primary-700 shadow-md transition-colors flex items-center gap-2">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
   </div>
 </div>
 
-<div id="profileOverlay" class="hidden fixed inset-0 z-[150] profile-modal-overlay flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-gray-800 rounded-[2rem] w-full max-w-[340px] shadow-2xl overflow-hidden relative border dark:border-gray-700">
-        <button onclick="toggleProfileOverlay()" class="absolute top-4 right-4 text-white hover:text-gray-200 z-10"><i class="fas fa-times text-lg"></i></button>
-        <div class="h-32 bg-[#2E4B77] w-full"></div>
+<div id="profileOverlay" class="hidden fixed inset-0 z-[150] profile-modal-overlay flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+    <div class="bg-white dark:bg-gray-800 rounded-[2rem] w-full max-w-[340px] shadow-2xl overflow-hidden relative border border-gray-100 dark:border-gray-700 transform transition-all">
+        <button onclick="toggleProfileOverlay()" class="absolute top-4 right-4 text-white/80 hover:text-white z-10"><i class="fas fa-times text-lg"></i></button>
+        <div class="h-32 bg-primary-600 w-full"></div>
         <div class="relative -mt-12 flex justify-center mb-3">
-            <div class="avatar-initials w-24 h-24 rounded-full bg-[#2E4B77] border-[4px] border-white dark:border-gray-800 flex items-center justify-center shadow-md text-3xl font-bold text-white">
+            <div class="avatar-initials w-24 h-24 rounded-full bg-primary-500 border-[4px] border-white dark:border-gray-800 flex items-center justify-center shadow-md text-3xl font-bold text-white">
                 --
             </div>
         </div>
         <div class="text-center px-6 pb-8">
             <h2 class="text-xl font-bold text-gray-800 dark:text-white" id="overlayName">Loading...</h2>
-            <p class="text-xs text-gray-400" id="overlayDesig">...</p>
-            <p class="text-xs text-gray-500 mb-3 mt-1 flex items-center justify-center gap-1" id="overlayInst"><i class="fas fa-university"></i> ...</p>
+            <p class="text-xs font-semibold text-primary-500 uppercase tracking-wide mt-1" id="overlayDesig">...</p>
+            <p class="text-xs text-gray-500 mb-4 mt-2 flex items-center justify-center gap-1" id="overlayInst"><i class="fas fa-university"></i> ...</p>
 
             <div class="flex justify-between border-y border-gray-100 dark:border-gray-700 py-4 mb-6">
-                <div><p class="text-[10px] font-bold text-primary-400 uppercase">Contests</p><p class="text-lg font-bold dark:text-white" id="overlayContests">0</p></div>
-                <div class="border-x border-gray-100 dark:border-gray-700 px-6"><p class="text-[10px] font-bold text-primary-400 uppercase">Users</p><p class="text-lg font-bold dark:text-white" id="overlayUsers">0</p></div>
-                <div><p class="text-[10px] font-bold text-primary-400 uppercase">Programs</p><p class="text-lg font-bold dark:text-white" id="overlayPrograms">0</p></div>
+                <div><p class="text-[10px] font-bold text-gray-400 uppercase">Contests</p><p class="text-lg font-bold text-gray-800 dark:text-white" id="overlayContests">0</p></div>
+                <div class="border-x border-gray-100 dark:border-gray-700 px-6"><p class="text-[10px] font-bold text-gray-400 uppercase">Users</p><p class="text-lg font-bold text-gray-800 dark:text-white" id="overlayUsers">0</p></div>
+                <div><p class="text-[10px] font-bold text-gray-400 uppercase">Programs</p><p class="text-lg font-bold text-gray-800 dark:text-white" id="overlayPrograms">0</p></div>
             </div>
             
             <div class="space-y-1">
-                <a href="profile.html">   
+                <a href="/college/profile" class="block">   
                     <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
-                        <div class="flex items-center gap-3"><i class="fas fa-user-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200"> Profile</span></div>
+                        <div class="flex items-center gap-3"><i class="fas fa-user-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200"> My Profile</span></div>
                         <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
                     </button>
                 </a>
                     
-                <a href="help_support.html">  
+                <a href="/college/help_support" class="block">  
                     <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
                         <div class="flex items-center gap-3"><i class="fas fa-question-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">Help & Support</span></div>
                         <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
                     </button>
                 </a>
 
-                <button onclick="handleLogout()" class="mt-6 flex items-center justify-center gap-3 w-full py-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-500 font-bold text-sm hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors">
+                <button onclick="handleLogout()" class="mt-4 flex items-center justify-center gap-3 w-full py-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 font-bold text-sm hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors">
                     <i class="fas fa-sign-out-alt"></i> Log out
                 </button>
             </div>
@@ -238,26 +373,44 @@
     </div>
 </div>
 
-<div id="editModal" class="hidden fixed inset-0 z-[140] modal-overlay flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-md p-8 shadow-2xl">
-        <h3 class="text-xl font-bold dark:text-white mb-6">Update Profile</h3>
+<div id="editModal" class="hidden fixed inset-0 z-[160] modal-overlay flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-[2rem] w-full max-w-md p-8 shadow-2xl border border-gray-100 dark:border-gray-700">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold text-gray-800 dark:text-white">Update Profile</h3>
+            <button onclick="toggleModal('editModal')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white"><i class="fas fa-times"></i></button>
+        </div>
         
-        <label class="text-[10px] font-bold text-gray-400 uppercase">First Name</label>
-        <input type="text" id="inputFirstName" class="w-full mb-4 px-4 py-2 rounded-xl border dark:bg-gray-900 dark:border-gray-700 dark:text-white outline-none">
+        <label class="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">First Name</label>
+        <input type="text" id="inputFirstName" class="w-full mt-1 mb-4 px-4 py-3 rounded-xl border border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-white outline-none focus:border-primary-500 transition-colors">
         
-        <label class="text-[10px] font-bold text-gray-400 uppercase">Last Name</label>
-        <input type="text" id="inputLastName" class="w-full mb-4 px-4 py-2 rounded-xl border dark:bg-gray-900 dark:border-gray-700 dark:text-white outline-none">
+        <label class="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Last Name</label>
+        <input type="text" id="inputLastName" class="w-full mt-1 mb-4 px-4 py-3 rounded-xl border border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-white outline-none focus:border-primary-500 transition-colors">
         
-        <div class="flex gap-3 mt-4">
-            <button onclick="toggleModal('editModal')" class="flex-1 py-3 border rounded-xl dark:text-white dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</button>
-            <button onclick="saveProfile()" class="flex-1 py-3 bg-primary-500 text-white rounded-xl hover:bg-primary-600">Save Changes</button>
+        <div class="flex gap-3 mt-6">
+            <button onclick="toggleModal('editModal')" class="flex-1 py-3 border border-gray-200 rounded-xl text-gray-700 font-semibold dark:text-white dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancel</button>
+            <button onclick="saveProfile()" class="flex-1 py-3 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-colors shadow-md">Save Changes</button>
         </div>
     </div>
 </div>
 
 <script>
+  let mixedChartInstance = null;
+  let pieChartInstance = null;
+  
+  // Store these globally so we can rebuild charts on theme toggle
+  window.chartData = { active: 1, pending: 0 };
+
   // --- DATA FETCHING & INITIALIZATION ---
   document.addEventListener('DOMContentLoaded', async () => {
+      // Set Theme properly on load
+      const savedTheme = localStorage.getItem('theme') || 'system';
+      const html = document.documentElement;
+      if (savedTheme === 'dark' || (savedTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          html.classList.add('dark');
+          const themeIcon = document.getElementById('themeIcon');
+          if (themeIcon) themeIcon.classList.replace('fa-moon', 'fa-sun');
+      }
+
       try {
           // 1. Fetch Profile Data
           const profileRes = await fetch('/college/api/profile');
@@ -275,94 +428,220 @@
               const college = user.collegeName || 'Unknown College';
               const email = user.email || 'No email provided';
 
-              // Update DOM
-              document.getElementById('headerName').innerText = fullName;
+              // Update Standard DOM safely
+              if (document.getElementById('headerName')) document.getElementById('headerName').innerText = fullName;
               document.querySelectorAll('.avatar-initials').forEach(el => el.innerText = initials);
               
-              document.getElementById('displayName').innerText = fullName;
-              document.getElementById('displayDesig').innerText = role;
-              document.getElementById('displayInst').innerText = college;
-              document.getElementById('displayEmail').innerText = email;
+              if (document.getElementById('displayName')) document.getElementById('displayName').innerText = fullName;
+              if (document.getElementById('displayDesig')) document.getElementById('displayDesig').innerText = role;
+              if (document.getElementById('displayInst')) document.getElementById('displayInst').innerText = college;
+              if (document.getElementById('displayEmail')) document.getElementById('displayEmail').innerText = email;
               
-              document.getElementById('overlayName').innerText = fullName;
-              document.getElementById('overlayDesig').innerText = role;
-              document.getElementById('overlayInst').innerHTML = `<i class="fas fa-university"></i> ${college}`;
+              // Extra Details Update
+              if (document.getElementById('displayMobile')) document.getElementById('displayMobile').innerText = user.mobile || 'Not Provided';
+              if (document.getElementById('displayDept')) document.getElementById('displayDept').innerText = user.department || (user.branch || 'Not Assigned');
               
-              document.getElementById('mainAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=2E5E99&color=fff`;
+              const statusBadge = document.getElementById('displayStatus');
+              if (statusBadge) {
+                  if (user.status === 'pending') {
+                      statusBadge.innerText = 'Pending';
+                      statusBadge.className = "mt-3 px-3 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-full text-[10px] font-bold uppercase tracking-wider";
+                  } else {
+                      statusBadge.innerText = user.status || 'Active';
+                  }
+              }
+
+              // Modal Overlays Update
+              if (document.getElementById('overlayName')) document.getElementById('overlayName').innerText = fullName;
+              if (document.getElementById('overlayDesig')) document.getElementById('overlayDesig').innerText = role;
+              if (document.getElementById('overlayInst')) document.getElementById('overlayInst').innerHTML = `<i class="fas fa-university"></i> ${college}`;
+              if (document.getElementById('mainAvatar')) document.getElementById('mainAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=1E4A7A&color=fff`;
 
               // Pre-fill Edit Modal
               const nameParts = fullName.split(' ');
-              document.getElementById('inputFirstName').value = profileData.firstName || nameParts[0] || '';
-              document.getElementById('inputLastName').value = profileData.lastName || nameParts.slice(1).join(' ') || '';
+              if (document.getElementById('inputFirstName')) document.getElementById('inputFirstName').value = profileData.firstName || nameParts[0] || '';
+              if (document.getElementById('inputLastName')) document.getElementById('inputLastName').value = profileData.lastName || nameParts.slice(1).join(' ') || '';
           }
 
-          // 2. Fetch Users Data (Students & Faculty Count)
-          const usersRes = await fetch('/college/api/users');
-          const usersData = await usersRes.json();
-          if (usersData.success && usersData.users) {
-              const studentsCount = usersData.users.filter(u => u.role === 'student').length;
-              const facultyCount = usersData.users.filter(u => u.role === 'faculty').length;
-              const totalUsers = studentsCount + facultyCount;
-              
-              document.getElementById('statStudents').innerText = studentsCount;
-              document.getElementById('statFaculty').innerText = facultyCount;
-              document.getElementById('overlayUsers').innerText = totalUsers;
-          }
+          // 2. Fetch Users Data (Students, Faculty Count, and Performance Status)
+          try {
+              const usersRes = await fetch('/college/api/users');
+              const usersData = await usersRes.json();
+              if (usersData && usersData.users) {
+                  const studentsCount = usersData.users.filter(u => u.role === 'student').length;
+                  const facultyCount = usersData.users.filter(u => u.role === 'faculty' || u.role === 'hod').length;
+                  const totalUsers = studentsCount + facultyCount;
+                  
+                  if(document.getElementById('statStudents')) document.getElementById('statStudents').innerText = studentsCount;
+                  if(document.getElementById('statFaculty')) document.getElementById('statFaculty').innerText = facultyCount;
+                  if(document.getElementById('overlayUsers')) document.getElementById('overlayUsers').innerText = totalUsers;
+
+                  // Data for the Performance/Status Donut Chart
+                  window.chartData.active = usersData.users.filter(u => u.status === 'active').length;
+                  window.chartData.pending = usersData.users.filter(u => u.status === 'pending').length;
+              }
+          } catch(e) { console.warn("Could not fetch users"); }
 
           // 3. Fetch Programs Count
-          const programsRes = await fetch('/college/api/programs');
-          const programsData = await programsRes.json();
-          if (programsData.success && programsData.data) {
-              document.getElementById('statPrograms').innerText = programsData.data.length;
-              document.getElementById('overlayPrograms').innerText = programsData.data.length;
-          }
+          try {
+              const programsRes = await fetch('/college/programs');
+              const programsData = await programsRes.json();
+              const pCount = Array.isArray(programsData) ? programsData.length : (programsData.data ? programsData.data.length : 0);
+              if(document.getElementById('statPrograms')) document.getElementById('statPrograms').innerText = pCount;
+              if(document.getElementById('overlayPrograms')) document.getElementById('overlayPrograms').innerText = pCount;
+          } catch(e) { console.warn("Could not fetch programs"); }
 
           // 4. Fetch Contests Count
-          const contestsRes = await fetch('/college/api/contests');
-          const contestsData = await contestsRes.json();
-          if (contestsData.success && contestsData.data) {
-              document.getElementById('statContests').innerText = contestsData.data.length;
-              document.getElementById('overlayContests').innerText = contestsData.data.length;
-          }
+          try {
+              const contestsRes = await fetch('/college/api/contests');
+              const contestsData = await contestsRes.json();
+              const cCount = Array.isArray(contestsData) ? contestsData.length : (contestsData.data || contestsData.contests || []).length;
+              if(document.getElementById('statContests')) document.getElementById('statContests').innerText = cCount;
+              if(document.getElementById('overlayContests')) document.getElementById('overlayContests').innerText = cCount;
+          } catch(e) { console.warn("Could not fetch contests"); }
+
+          // 5. Build Real-Time Charts
+          buildCharts();
 
       } catch (error) {
           console.error("Error fetching dashboard data:", error);
+          buildCharts(); 
       }
   });
 
+  // --- CHART BUILDER ---
+  async function buildCharts() {
+      const activeCount = window.chartData.active || 1;
+      const pendingCount = window.chartData.pending || 0;
+
+      let labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+      let usageData = [0, 0, 0, 0, 0, 0];
+      
+      try {
+          const statsRes = await fetch('/college/api/activity-stats');
+          if(statsRes.ok) {
+              const statsJson = await statsRes.json();
+              if(statsJson.labels) labels = statsJson.labels;
+              if(statsJson.data) usageData = statsJson.data;
+          }
+      } catch(e) { console.warn("Failed to fetch activity stats for graph"); }
+
+      // Destroy old instances if they exist
+      if(mixedChartInstance) mixedChartInstance.destroy();
+      if(pieChartInstance) pieChartInstance.destroy();
+
+      const isDark = document.documentElement.classList.contains('dark');
+      const textColor = isDark ? '#9ca3af' : '#6b7280';
+      const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+
+      // Render Platform Usage Line Chart
+      const lineCanvas = document.getElementById('usageChart');
+      if (lineCanvas) {
+          const ctxLine = lineCanvas.getContext('2d');
+          mixedChartInstance = new Chart(ctxLine, {
+            type: 'line',
+            data: {
+              labels: labels,
+              datasets: [{ 
+                  label: 'New Registrations / Activities', 
+                  data: usageData, 
+                  borderColor: '#2E5E99', 
+                  borderWidth: 3, 
+                  tension: 0.4, 
+                  fill: true, 
+                  backgroundColor: isDark ? 'rgba(46, 94, 153, 0.2)' : 'rgba(46, 94, 153, 0.1)',
+                  pointBackgroundColor: '#ffffff',
+                  pointBorderColor: '#2E5E99',
+                  pointRadius: 4,
+                  pointHoverRadius: 6
+              }]
+            },
+            options: { 
+                maintainAspectRatio: false, 
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: isDark ? 'rgba(31, 41, 55, 0.9)' : 'rgba(17, 24, 39, 0.9)',
+                        titleFont: { family: "'Poppins', sans-serif" },
+                        bodyFont: { family: "'Poppins', sans-serif" },
+                        padding: 12, cornerRadius: 8
+                    } 
+                }, 
+                scales: { 
+                    y: { grid: { color: gridColor, drawBorder: false }, ticks: { color: textColor, font: { family: "'Poppins', sans-serif"} } }, 
+                    x: { grid: { display: false }, ticks: { color: textColor, font: { family: "'Poppins', sans-serif"} } } 
+                } 
+            }
+          });
+      }
+
+      // Render Account Status Doughnut Chart
+      const pieCanvas = document.getElementById('performanceChart');
+      if (pieCanvas) {
+          const ctxPie = pieCanvas.getContext('2d');
+          pieChartInstance = new Chart(ctxPie, {
+            type: 'doughnut',
+            data: { 
+                labels: ['Active Accounts', 'Pending Approval'], 
+                datasets: [{ 
+                    data: [activeCount, pendingCount], 
+                    backgroundColor: ['#10B981', '#F59E0B'], 
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }] 
+            },
+            options: { 
+                maintainAspectRatio: false, 
+                cutout: '75%', 
+                plugins: { 
+                    legend: { 
+                        position: 'bottom',
+                        labels: { color: textColor, font: { family: "'Poppins', sans-serif", size: 12 }, padding: 20 }
+                    } 
+                } 
+            }
+          });
+      }
+  }
+
   // --- LOGOUT LOGIC ---
   async function handleLogout() {
-      if(confirm("Are you sure you want to log out?")) {
-          try {
-              await fetch('/college/logout', { method: 'POST' });
-              window.location.href = '/';
-          } catch(err) {
-              console.error("Logout Error:", err);
-              window.location.href = '/';
-          }
+      try {
+          await fetch('/auth/logout', { method: 'POST' });
+      } catch(err) {
+          console.error("Logout Error:", err);
+      } finally {
+          window.location.href = '/';
       }
   }
 
   // --- UPDATE PROFILE LOGIC ---
   async function saveProfile() {
-      const firstName = document.getElementById('inputFirstName').value.trim();
-      const lastName = document.getElementById('inputLastName').value.trim();
+      const firstInput = document.getElementById('inputFirstName');
+      const lastInput = document.getElementById('inputLastName');
+      
+      const firstName = firstInput ? firstInput.value.trim() : '';
+      const lastName = lastInput ? lastInput.value.trim() : '';
+      const fullName = `${firstName} ${lastName}`.trim();
       
       try {
-          const res = await fetch('/college/api/profile', {
+          // Hits the properly configured update route
+          const res = await fetch('/college/api/profile/update', {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ firstName, lastName })
+              body: JSON.stringify({ fullName })
           });
           const data = await res.json();
-          if (data.success) {
+          
+          if (res.ok && data.success) {
               toggleModal('editModal');
               window.location.reload(); // Reload to reflect changes
           } else {
-              alert('Failed to update profile: ' + (data.error || 'Unknown error'));
+              alert(data.message || data.error || 'Failed to update profile.');
           }
       } catch(err) {
           console.error("Profile Update Error:", err);
+          alert("An error occurred while trying to save.");
       }
   }
 
@@ -370,59 +649,82 @@
   function toggleNotifications(event) {
     event.stopPropagation();
     const panel = document.getElementById('notificationPanel');
-    panel.classList.toggle('active');
+    if (panel) panel.classList.toggle('active');
   }
 
   function clearNotif(event) {
     event.stopPropagation();
-    document.getElementById('notifBadge').style.display = 'none';
-    document.getElementById('notificationList').innerHTML = `
-        <div class="p-10 text-center">
-            <i class="fas fa-bell-slash text-gray-200 dark:text-gray-700 text-4xl mb-3"></i>
-            <p class="text-xs text-gray-400">No new notifications</p>
-        </div>
-    `;
+    const badge = document.getElementById('notifBadge');
+    const list = document.getElementById('notificationList');
+    if (badge) badge.style.display = 'none';
+    if (list) {
+        list.innerHTML = `
+            <div class="p-10 text-center">
+                <i class="fas fa-bell-slash text-gray-200 dark:text-gray-700 text-4xl mb-3"></i>
+                <p class="text-xs text-gray-400">No new notifications</p>
+            </div>
+        `;
+    }
   }
 
   // --- THEME TOGGLE ---
   function toggleTheme() {
     const html = document.documentElement;
     const icon = document.getElementById('themeIcon');
-    if (html.classList.contains('dark')) {
+    const isDark = html.classList.contains('dark');
+    
+    if (isDark) {
       html.classList.remove('dark');
-      icon.classList.replace('fa-sun', 'fa-moon');
+      if (icon) icon.classList.replace('fa-sun', 'fa-moon');
+      localStorage.setItem('theme', 'light');
     } else {
       html.classList.add('dark');
-      icon.classList.replace('fa-moon', 'fa-sun');
+      if (icon) icon.classList.replace('fa-moon', 'fa-sun');
+      localStorage.setItem('theme', 'dark');
     }
+
+    // Rebuild charts so labels & gridlines adapt to dark/light mode automatically
+    buildCharts();
   }
 
   // --- UI HELPERS ---
-  function toggleModal(id) { document.getElementById(id).classList.toggle('hidden'); }
+  function toggleModal(id) { 
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('hidden'); 
+  }
   
   function toggleProfileOverlay() { 
       const overlay = document.getElementById('profileOverlay');
-      overlay.classList.toggle('hidden'); 
-      overlay.classList.toggle('active'); 
+      if (overlay) {
+          overlay.classList.toggle('hidden'); 
+          overlay.classList.toggle('active'); 
+      }
   }
 
   function previewImage(event) {
       const reader = new FileReader();
-      reader.onload = function(){ document.getElementById('mainAvatar').src = reader.result; };
+      reader.onload = function(){ 
+          const avatar = document.getElementById('mainAvatar');
+          if (avatar) avatar.src = reader.result; 
+      };
       if(event.target.files[0]) reader.readAsDataURL(event.target.files[0]);
   }
 
   function removeProfilePic() {
-      const name = document.getElementById('displayName').innerText;
-      document.getElementById('mainAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2E5E99&color=fff`;
-      document.getElementById('profileUpload').value = "";
+      const nameEl = document.getElementById('displayName');
+      const name = nameEl ? nameEl.innerText : 'Admin';
+      const avatar = document.getElementById('mainAvatar');
+      const upload = document.getElementById('profileUpload');
+      
+      if (avatar) avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1E4A7A&color=fff`;
+      if (upload) upload.value = "";
   }
 
   // CLOSE DROPDOWNS ON OUTSIDE CLICK
   window.addEventListener('click', function(e) {
     const panel = document.getElementById('notificationPanel');
     const bell = document.getElementById('bellBtn');
-    if (panel && !panel.contains(e.target) && !bell.contains(e.target)) {
+    if (panel && bell && !panel.contains(e.target) && !bell.contains(e.target)) {
         panel.classList.remove('active');
     }
   });
@@ -430,32 +732,20 @@
   // --- SIDEBAR TOGGLE LOGIC ---
   const sidebar = document.getElementById('mainSidebar');
   const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
-  const toggleIcon = sidebarToggleBtn.querySelector('i');
+  const toggleIcon = sidebarToggleBtn ? sidebarToggleBtn.querySelector('i') : null;
 
-  sidebarToggleBtn.addEventListener('click', () => {
-      sidebar.classList.toggle('collapsed');
-      if (sidebar.classList.contains('collapsed')) {
-          toggleIcon.classList.replace('fa-chevron-left', 'fa-chevron-right');
-      } else {
-          toggleIcon.classList.replace('fa-chevron-right', 'fa-chevron-left');
-      }
-  });
-
-  // --- CHARTS INITIALIZATION (Visual Placeholders) ---
-  new Chart(document.getElementById('usageChart').getContext('2d'), {
-    type: 'line',
-    data: {
-      labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
-      datasets: [{ data: [320, 410, 380, 500, 620, 560, 590], borderColor: '#2E5E99', borderWidth: 3, tension: 0.4, fill: true, backgroundColor: 'rgba(46, 94, 153, 0.1)' }]
-    },
-    options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
-  });
-
-  new Chart(document.getElementById('performanceChart'), {
-    type: 'doughnut',
-    data: { labels: ['Excellent','Average', 'At Risk'], datasets: [{ data: [45, 40, 15], backgroundColor: ['#10B981','#F59E0B','#EF4444'], borderWidth: 0 }] },
-    options: { maintainAspectRatio: false, cutout: '80%', plugins: { legend: { position: 'bottom' } } }
-  });
+  if(sidebarToggleBtn) {
+      sidebarToggleBtn.addEventListener('click', () => {
+          if (sidebar) sidebar.classList.toggle('collapsed');
+          if (toggleIcon) {
+              if (sidebar && sidebar.classList.contains('collapsed')) {
+                  toggleIcon.classList.replace('fa-chevron-left', 'fa-chevron-right');
+              } else {
+                  toggleIcon.classList.replace('fa-chevron-right', 'fa-chevron-left');
+              }
+          }
+      });
+  }
 </script>
 </body>
 </html>

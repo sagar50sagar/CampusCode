@@ -1,0 +1,41 @@
+# contest in campuscode college module
+
+## Who can create Contest ?
+faculty, Head of subject and head of department
+
+contests created by faculty need approval from HOS and HOD to be reflected in student dashboard
+contest created by HOS need approval from HOD
+contest created by HOD is auto approved
+
+## fields:
+title
+description
+starting date and time
+end date and time
+last date for registration
+duration (calculate using start and end date and time , no input field)
+rules and guideline
+problems from college problem bank and global problem bank
+created by
+created on 
+approved by
+
+
+# problem in campuscode college module
+
+## who can create ?
+faculty, HOS and HOD
+
+problems created by faculty need approval from HOS to be reflected in college problem bank
+problems created by HOS and HOD are auto approved
+
+## field
+title
+description
+input and output format
+constraints
+tags
+subject
+created by
+created at
+approved by

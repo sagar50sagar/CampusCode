@@ -9,8 +9,15 @@ const otpStore = new Map();
 // ⭐ Helper function to check for existing HOD using 'branch'
 const checkHODExists = (db, collegeName, branch, excludeUserId = null) => {
     return new Promise((resolve, reject) => {
-        let query = `SELECT id FROM users WHERE collegeName = ? AND branch = ? AND is_hod = 1 AND status = 'active'`;
-        let params = [collegeName, branch];
+        let query = `
+            SELECT id
+            FROM account_users
+            WHERE collegeName = ?
+              AND LOWER(COALESCE(role, '')) = 'hod'
+              AND LOWER(TRIM(COALESCE(NULLIF(branch, ''), NULLIF(department, ''), ''))) = LOWER(TRIM(?))
+              AND status = 'active'
+        `;
+        let params = [collegeName, branch || ''];
         
         if (excludeUserId) {
             query += ` AND id != ?`;
@@ -80,13 +87,27 @@ module.exports = (db, transporter) => {
         res.sendFile(path.join(__dirname, '../views/admin/setting.html'));
     });
 
-    // ⭐ ADDED: Profile and Help/Support View Routes
+    // ⭐ ADDED: Profile, Help/Support, and View Faculty Routes
     router.get('/profile', requireRole('admin'), (req, res) => {
         res.sendFile(path.join(__dirname, '../views/admin/profile.html'));
     });
 
     router.get('/help_support', requireRole('admin'), (req, res) => {
         res.sendFile(path.join(__dirname, '../views/admin/help_support.html'));
+    });
+
+    router.get('/view_faculty', requireRole('admin'), (req, res) => {
+        res.sendFile(path.join(__dirname, '../views/faculty/view_faculty.html'));
+    });
+    // 👇 ADD THESE NEW VIEW STUDENT ROUTES HERE 👇
+    router.get('/view_student', requireRole('admin'), (req, res) => {
+    
+        res.sendFile(path.join(__dirname, '../views/student/view_student.html'));
+    });
+
+    // Add smart alias so /view_student.html redirects to the clean URL
+    router.get('/view_student.html', requireRole('admin'), (req, res) => {
+        res.redirect('/college/view_student');
     });
 
     // ==========================================
@@ -123,7 +144,7 @@ module.exports = (db, transporter) => {
 
     router.get('/api/profile', requireRole('admin'), (req, res) => {
         const userId = req.session.user.id;
-        db.get(`SELECT id, fullName, email, role, collegeName FROM users WHERE id = ?`, [userId], (err, user) => {
+        db.get(`SELECT id, fullName, email, role, collegeName FROM account_users WHERE id = ?`, [userId], (err, user) => {
             if (err) return res.status(500).json({ success: false, message: err.message });
             
             if (user) {
@@ -136,38 +157,74 @@ module.exports = (db, transporter) => {
     });
 
     // ⭐ Dashboard Analytics & Feed APIs
-    router.get('/api/activity-stats', requireRole('admin'), (req, res) => {
-        // Mocking chart data based on months
-        res.json({
-            labels: ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'],
-            data: [45, 52, 38, 65, 48, 72]
-        });
-    });
-
-    router.get('/api/activity', requireRole('admin'), (req, res) => {
+   router.get('/api/activity-stats', requireRole('admin'), (req, res) => {
         const collegeName = req.session.user.collegeName;
-        // Fetch recent users as activity
-        db.all(`SELECT fullName, role, createdAt FROM users WHERE collegeName = ? ORDER BY id DESC LIMIT 5`, [collegeName], (err, rows) => {
-            if (err) return res.json([]);
-            const activities = rows.map(r => ({
-                message: `New ${r.role} onboarded: ${r.fullName}`,
-                time: 'Recently',
-                icon: r.role === 'student' ? 'fa-solid fa-graduation-cap' : 'fa-solid fa-chalkboard-user'
-            }));
-            res.json(activities);
-        });
-    });
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-    router.get('/api/alerts', requireRole('admin'), (req, res) => {
-        const collegeName = req.session.user.collegeName;
-        // Pending faculty requests as alerts
-        db.all(`SELECT id, fullName FROM users WHERE collegeName = ? AND role = 'pending' AND status = 'pending'`, [collegeName], (err, rows) => {
-            if (err) return res.json([]);
-            const alerts = rows.map(r => ({
-                message: `Verification required for faculty: ${r.fullName}`,
-                type: 'warning'
-            }));
-            res.json(alerts);
+        const parseFlexibleDate = (raw) => {
+            if (!raw) return null;
+            const value = String(raw).trim();
+            if (!value) return null;
+
+            // Native parse first (works for ISO / sqlite datetime)
+            const nativeDate = new Date(value);
+            if (!Number.isNaN(nativeDate.getTime())) return nativeDate;
+
+            // dd-mm-yyyy or dd/mm/yyyy
+            const dmyMatch = value.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
+            if (dmyMatch) {
+                const day = Number(dmyMatch[1]);
+                const month = Number(dmyMatch[2]) - 1;
+                const year = Number(dmyMatch[3]);
+                const parsed = new Date(year, month, day);
+                if (!Number.isNaN(parsed.getTime())) return parsed;
+            }
+
+            return null;
+        };
+
+        // users table in this project uses joiningDate (not createdAt)
+        const query = `
+            SELECT joiningDate
+            FROM account_users
+            WHERE collegeName = ?
+              AND joiningDate IS NOT NULL
+              AND TRIM(joiningDate) != ''
+        `;
+
+        db.all(query, [collegeName], (err, rows) => {
+            if (err) {
+                console.error("Error fetching stats:", err);
+                return res.json({ labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], data: [0, 0, 0, 0, 0, 0] });
+            }
+
+            const now = new Date();
+            const monthKeys = [];
+            const counts = {};
+
+            // Build rolling 6-month window (oldest -> latest)
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                monthKeys.push(key);
+                counts[key] = 0;
+            }
+
+            for (const row of rows || []) {
+                const joinedAt = parseFlexibleDate(row.joiningDate);
+                if (!joinedAt) continue;
+                const key = `${joinedAt.getFullYear()}-${String(joinedAt.getMonth() + 1).padStart(2, '0')}`;
+                if (key in counts) counts[key] += 1;
+            }
+
+            const labels = monthKeys.map((key) => {
+                const parts = key.split('-');
+                const monthIndex = Number(parts[1]) - 1;
+                return monthNames[monthIndex] || key;
+            });
+            const data = monthKeys.map((key) => counts[key]);
+
+            res.json({ labels, data });
         });
     });
 
@@ -180,7 +237,6 @@ module.exports = (db, transporter) => {
         
         console.log(`[DEV MODE] Email Update OTP for ${email}: ${otp}`);
         
-        // ⭐ Send the email via Nodemailer
         if (transporter) {
             const mailOptions = {
                 from: process.env.EMAIL_USER,
@@ -211,7 +267,7 @@ module.exports = (db, transporter) => {
 
         otpStore.delete(`email_${userId}`);
 
-        db.run(`UPDATE users SET email = ? WHERE id = ?`, [email, userId], function(err) {
+        db.run(`UPDATE account_users SET email = ? WHERE id = ?`, [email, userId], function(err) {
             if (err) return res.status(500).json({ success: false, message: err.message });
             req.session.user.email = email;
             res.json({ success: true, message: "Email updated successfully" });
@@ -227,7 +283,6 @@ module.exports = (db, transporter) => {
         
         console.log(`[DEV MODE] Forgot Password OTP for ${email}: ${otp}`);
         
-        // ⭐ Send the email via Nodemailer
         if (transporter) {
             const mailOptions = {
                 from: process.env.EMAIL_USER,
@@ -258,7 +313,7 @@ module.exports = (db, transporter) => {
 
         try {
             const hashedPassword = await bcrypt.hash(newPassword, 10);
-            db.run(`UPDATE users SET password = ? WHERE id = ?`, [hashedPassword, userId], function(err) {
+            db.run(`UPDATE account_users SET password = ? WHERE id = ?`, [hashedPassword, userId], function(err) {
                 if (err) return res.status(500).json({ success: false, message: err.message });
                 otpStore.delete(`fp_${userId}`); 
                 res.json({ success: true, message: "Password reset successfully" });
@@ -274,9 +329,8 @@ module.exports = (db, transporter) => {
 
         try {
             if (newPass && newPass.trim() !== '') {
-                // Changing password requires verifying current password
                 const user = await new Promise((resolve, reject) => {
-                    db.get(`SELECT password FROM users WHERE id = ?`, [userId], (err, row) => {
+                    db.get(`SELECT password FROM account_users WHERE id = ?`, [userId], (err, row) => {
                         if (err) reject(err); else resolve(row);
                     });
                 });
@@ -286,14 +340,13 @@ module.exports = (db, transporter) => {
 
                 const hashedPassword = await bcrypt.hash(newPass, 10);
                 
-                db.run(`UPDATE users SET fullName = ?, designation = ?, password = ? WHERE id = ?`, 
+                db.run(`UPDATE account_users SET fullName = ?, designation = ?, password = ? WHERE id = ?`, 
                     [fullName, designation || null, hashedPassword, userId], function(err) {
                     if (err) return res.status(500).json({ success: false, message: err.message });
                     res.json({ success: true, message: "Profile and password updated successfully" });
                 });
             } else {
-                // Updating profile without password
-                db.run(`UPDATE users SET fullName = ?, designation = ? WHERE id = ?`, 
+                db.run(`UPDATE account_users SET fullName = ?, designation = ? WHERE id = ?`, 
                     [fullName, designation || null, userId], function(err) {
                     if (err) return res.status(500).json({ success: false, message: err.message });
                     res.json({ success: true, message: "Profile updated successfully" });
@@ -310,26 +363,61 @@ module.exports = (db, transporter) => {
     
     router.get('/api/pending-faculty', requireRole('admin'), (req, res) => {
         const collegeName = req.session.user.collegeName;
-        db.all(`SELECT id, fullName, email, branch FROM users WHERE collegeName = ? AND role = 'pending' AND status = 'pending'`, 
-        [collegeName], (err, rows) => {
+        db.all(`
+            SELECT id, fullName, email, branch, role, 'account' as request_type
+            FROM account_users
+            WHERE collegeName = ? AND status = 'pending'
+            UNION ALL
+            SELECT id, fullName, email, branch, role, 'college_change' as request_type
+            FROM account_users
+            WHERE role = 'student' AND pending_college_name = ? AND college_request_status = 'pending'
+        `, 
+        [collegeName, collegeName], (err, rows) => {
             if (err) return res.status(500).json({ success: false, error: err.message });
             res.json({ success: true, pending: rows });
         });
     });
 
     router.post('/api/approve-faculty/:id', requireRole('admin'), (req, res) => {
-        const { course, branch } = req.body;
+        const { course, branch, role } = req.body; 
         const collegeName = req.session.user.collegeName;
-        
-        if (!course || !branch) {
-            return res.status(400).json({ success: false, error: "Course and Branch are required." });
-        }
 
-        db.run(`UPDATE users SET status = 'active', is_verified = 1, isVerified = 1, course = ?, branch = ?, department = ?, role = 'faculty' WHERE id = ? AND collegeName = ? AND role = 'pending'`, 
-        [course, branch, branch, req.params.id, collegeName], function(err) {
-            if (err) return res.status(500).json({ success: false, error: err.message });
-            if (this.changes === 0) return res.status(404).json({ success: false, error: "User not found or not in pending state." });
-            res.json({ success: true, message: 'User verified and assigned successfully' });
+        db.get(`SELECT id, role, status, collegeName, pending_college_name, college_request_status FROM account_users WHERE id = ?`, [req.params.id], (userErr, userRow) => {
+            if (userErr) return res.status(500).json({ success: false, error: userErr.message });
+            if (!userRow) return res.status(404).json({ success: false, error: 'User not found.' });
+
+            const isStudentCollegeRequest = String(userRow.role || '').toLowerCase() === 'student'
+                && String(userRow.college_request_status || '').toLowerCase() === 'pending'
+                && String(userRow.pending_college_name || '') === String(collegeName || '');
+
+            if (isStudentCollegeRequest) {
+                db.run(`
+                    UPDATE account_users
+                    SET collegeName = pending_college_name,
+                        pending_college_name = '',
+                        college_request_status = 'approved',
+                        status = 'active',
+                        is_verified = 1,
+                        isVerified = 1
+                    WHERE id = ?
+                `, [req.params.id], function (approveErr) {
+                    if (approveErr) return res.status(500).json({ success: false, error: approveErr.message });
+                    return res.json({ success: true, message: 'Student college verification approved successfully.' });
+                });
+                return;
+            }
+
+            if (!course || !branch) {
+                return res.status(400).json({ success: false, error: "Course and Branch are required." });
+            }
+
+            const assignedRole = role || null;
+            db.run(`UPDATE account_users SET status = 'active', is_verified = 1, isVerified = 1, course = ?, branch = ?, department = ?, role = COALESCE(?, role) WHERE id = ? AND collegeName = ?`, 
+            [course, branch, branch, assignedRole, req.params.id, collegeName], function(err) {
+                if (err) return res.status(500).json({ success: false, error: err.message });
+                if (this.changes === 0) return res.status(404).json({ success: false, error: "User not found or not in pending state." });
+                res.json({ success: true, message: 'User verified and assigned successfully' });
+            });
         });
     });
 
@@ -339,6 +427,7 @@ module.exports = (db, transporter) => {
         const query = `
             SELECT 
                 u.*,
+                CASE WHEN LOWER(COALESCE(u.role,'')) = 'hod' THEN 1 ELSE COALESCE(u.is_hod, 0) END AS is_hod,
                 0 AS contests_participated,
                 0 AS problems_solved,
                 0 AS contests_won,
@@ -349,7 +438,7 @@ module.exports = (db, transporter) => {
                 (SELECT COUNT(*) FROM contests WHERE createdBy = u.id AND status = 'accepted') AS contests_created,
                 (SELECT COUNT(*) FROM problems WHERE faculty_id = u.id AND status = 'accepted') AS problems_created,
                 '0.0' AS rating
-            FROM users u
+            FROM account_users u
             WHERE u.collegeName = ? AND u.role IN ('student', 'faculty', 'hod', 'hos') AND u.status = 'active'
             ORDER BY u.id DESC
         `;
@@ -364,71 +453,49 @@ module.exports = (db, transporter) => {
         const { users } = req.body;
         const collegeName = req.session.user.collegeName;
 
-        if (!users || !Array.isArray(users)) {
-            return res.status(400).json({ success: false, message: "Invalid data format." });
+        if (!users || !Array.isArray(users) || users.length === 0) {
+            return res.status(400).json({ success: false, error: "No valid user data provided." });
         }
 
         let successCount = 0;
-        let failCount = 0;
+        let errors = [];
 
-        for (let user of users) {
+        for (const user of users) {
             try {
-                // Check if email exists
-                const existing = await new Promise((resolve, reject) => {
-                    db.get(`SELECT id FROM users WHERE email = ?`, [user.email], (err, row) => {
-                        if (err) reject(err); else resolve(row);
+                const hashedPassword = await bcrypt.hash(user.defaultPassword, 10);
+                
+                await new Promise((resolve, reject) => {
+                    db.run(`INSERT INTO account_users (fullName, email, role, password, collegeName, program, branch, department, year, section, status, is_verified, isVerified) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', 1, 1)`,
+                    [
+                        user.fullName, 
+                        user.email, 
+                        user.role, 
+                        hashedPassword, 
+                        collegeName, 
+                        user.program, 
+                        user.branch, 
+                        user.branch, 
+                        user.year, 
+                        user.section
+                    ], function(err) {
+                        if (err) reject(err);
+                        else resolve(this.lastID);
                     });
                 });
-
-                if (existing) { failCount++; continue; }
-
-                // Check HOD conflict if applicable (using branch)
-                if (user.role === 'faculty' && user.is_hod === 1) {
-                    const hodExists = await checkHODExists(db, collegeName, user.branch);
-                    if (hodExists) { user.is_hod = 0; } 
-                }
-
-                // ⭐ Changed default password to CAMPUS123
-                const plainPassword = user.defaultPassword || "CAMPUS123";
-                const hashedPassword = await bcrypt.hash(plainPassword, 10);
-
-                await new Promise((resolve, reject) => {
-                    db.run(`INSERT INTO users (role, fullName, email, password, collegeName, branch, department, is_hod, status, program, course, year, section) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?)`,
-                        [user.role, user.fullName, user.email, hashedPassword, collegeName, user.branch || null, user.branch || null, user.is_hod || 0, user.program || null, user.program || null, user.year || null, user.section || null],
-                        function(err) { if (err) reject(err); else resolve(); }
-                    );
-                });
-                
-                // ⭐ Send Welcome Email for bulk user
-                if (transporter) {
-                    const mailOptions = {
-                        from: process.env.EMAIL_USER,
-                        to: user.email,
-                        subject: 'Welcome to CampusCode!',
-                        html: `
-                            <div style="font-family: sans-serif; padding: 20px;">
-                                <h2>Hello ${user.fullName},</h2>
-                                <p>You have been onboarded to CampusCode as a <strong>${user.role}</strong>.</p>
-                                <p>Your login credentials are:</p>
-                                <ul>
-                                    <li><strong>Email:</strong> ${user.email}</li>
-                                    <li><strong>Password:</strong> ${plainPassword}</li>
-                                </ul>
-                                <p>We strongly recommend changing your password after logging in!</p>
-                            </div>
-                        `
-                    };
-                    transporter.sendMail(mailOptions).catch(err => console.error('Bulk welcome email failed:', err));
-                }
-
                 successCount++;
-            } catch (error) {
-                console.error("Bulk Insert Error:", error);
-                failCount++;
+            } catch (err) {
+                if (!err.message.includes('UNIQUE constraint failed')) {
+                    errors.push(`Failed for ${user.email}: ${err.message}`);
+                }
             }
         }
-        res.json({ success: true, message: `Upload finished! ✅ Added: ${successCount}, ❌ Skipped/Failed: ${failCount}` });
+
+        res.json({ 
+            success: true, 
+            message: `Successfully imported ${successCount} users.`, 
+            errors: errors.length > 0 ? errors : undefined 
+        });
     });
 
     router.post('/api/users', requireRole('admin'), async (req, res) => {
@@ -440,7 +507,7 @@ module.exports = (db, transporter) => {
                 return res.status(400).json({ success: false, error: "Name and Email are required." });
             }
 
-            db.get(`SELECT id FROM users WHERE email = ?`, [email], async (err, existing) => {
+            db.get(`SELECT id FROM account_users WHERE email = ?`, [email], async (err, existing) => {
                 if (err) return res.status(500).json({ success: false, error: err.message });
                 if (existing) return res.status(409).json({ success: false, error: "Email already in use." });
 
@@ -451,16 +518,14 @@ module.exports = (db, transporter) => {
                     }
                 }
 
-                // ⭐ Changed default password to CAMPUS123
                 const plainPassword = password || "CAMPUS123";
                 const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
-                db.run(`INSERT INTO users (role, fullName, email, password, collegeName, branch, department, is_hod, status, program, course, year, section) 
+                db.run(`INSERT INTO account_users (role, fullName, email, password, collegeName, branch, department, is_hod, status, program, course, year, section) 
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?)`, 
                     [role, fullName, email, hashedPassword, collegeName, branch || null, branch || null, is_hod || 0, program || null, program || null, year || null, section || null], function(err) {
                         if (err) return res.status(500).json({ success: false, error: err.message });
                         
-                        // ⭐ Send Welcome Email for single user
                         if (transporter) {
                             const mailOptions = {
                                 from: process.env.EMAIL_USER,
@@ -503,7 +568,7 @@ module.exports = (db, transporter) => {
                 }
             }
 
-            let query = `UPDATE users SET fullName = ?, email = ?, role = ?, branch = ?, department = ?, is_hod = ?, program = ?, course = ?, year = ?, section = ?`;
+            let query = `UPDATE account_users SET fullName = ?, email = ?, role = ?, branch = ?, department = ?, is_hod = ?, program = ?, course = ?, year = ?, section = ?`;
             let params = [fullName, email, role, branch || null, branch || null, is_hod || 0, program || null, program || null, year || null, section || null];
 
             if (password && password.trim() !== '') {
@@ -526,23 +591,34 @@ module.exports = (db, transporter) => {
 
     router.put('/api/faculty/:id/hod', requireRole('admin'), async (req, res) => {
         const { is_hod } = req.body;
+        const targetIsHod = Number(is_hod) === 1 ? 1 : 0;
         const userId = req.params.id;
         const collegeName = req.session.user.collegeName;
 
         try {
-            if (is_hod === 1) {
-                db.get(`SELECT branch, fullName FROM users WHERE id = ?`, [userId], async (err, facultyUser) => {
+            if (targetIsHod === 1) {
+                db.get(`SELECT branch, department, fullName, role, is_hod FROM account_users WHERE id = ? AND collegeName = ?`, [userId, collegeName], async (err, facultyUser) => {
                     if (err || !facultyUser) return res.status(404).json({ success: false, error: 'User not found' });
+                    const currentRole = String(facultyUser.role || '').trim().toLowerCase();
+                    if (['student', 'superadmin'].includes(currentRole)) {
+                        return res.status(400).json({ success: false, error: `Cannot promote role "${facultyUser.role || 'unknown'}" to HOD.` });
+                    }
+                    if (currentRole === 'hod' && Number(facultyUser.is_hod) === 1) {
+                        return res.json({ success: true, message: 'User is already marked as HOD.' });
+                    }
+                    const normalizedBranch = String(facultyUser.branch || facultyUser.department || '').trim();
+                    if (!normalizedBranch) {
+                        return res.status(400).json({ success: false, error: 'Faculty branch/department is missing. Please update profile first.' });
+                    }
                     
-                    const exists = await checkHODExists(db, collegeName, facultyUser.branch, userId);
-                    if (exists) return res.status(400).json({ success: false, error: `An HOD already exists for the ${facultyUser.branch} branch.` });
+                    const exists = await checkHODExists(db, collegeName, normalizedBranch, userId);
+                    if (exists) return res.status(400).json({ success: false, error: `An HOD already exists for the ${normalizedBranch} branch.` });
 
-                    db.run(`UPDATE users SET is_hod = 1, role = 'hod' WHERE id = ? AND collegeName = ?`, [userId, collegeName], (err) => {
+                    db.run(`UPDATE account_users SET is_hod = 1, role = 'hod', branch = ?, department = ? WHERE id = ? AND collegeName = ?`, [normalizedBranch, normalizedBranch, userId, collegeName], (err) => {
                         if (err) return res.status(500).json({ success: false, error: err.message });
                         
-                        // ⭐ Automated HOD Sync based on Branch Structure
                         const syncQuery = `
-                            INSERT OR IGNORE INTO user_assignments (user_id, subject, year, section, assigned_by_id, collegeName)
+                            INSERT OR IGNORE INTO faculty_assignments (user_id, subject, year, section, assigned_by_id, collegeName)
                             SELECT ?, sub.name, 
                                    CASE 
                                      WHEN s.semester <= 2 THEN '1st Year' 
@@ -557,14 +633,14 @@ module.exports = (db, transporter) => {
                             WHERE b.collegeName = ? AND (b.name = ? OR b.abbreviation = ?)
                         `;
 
-                        db.run(syncQuery, [userId, req.session.user.id, collegeName, collegeName, facultyUser.branch, facultyUser.branch], (err) => {
+                        db.run(syncQuery, [userId, req.session.user.id, collegeName, collegeName, normalizedBranch, normalizedBranch], (err) => {
                             if (err) console.error("HOD Sync Error:", err);
-                            res.json({ success: true, message: `HOD status granted and ${facultyUser.branch} structure synced.` });
+                            res.json({ success: true, message: `HOD status granted and ${normalizedBranch} structure synced.` });
                         });
                     });
                 });
             } else {
-                db.run(`UPDATE users SET is_hod = 0, role = 'faculty' WHERE id = ? AND collegeName = ?`, [userId, collegeName], (err) => {
+                db.run(`UPDATE account_users SET is_hod = 0, role = CASE WHEN LOWER(COALESCE(role,''))='hod' THEN 'faculty' ELSE role END WHERE id = ? AND collegeName = ?`, [userId, collegeName], (err) => {
                     if (err) return res.status(500).json({ success: false, error: err.message });
                     res.json({ success: true, message: 'HOD status revoked' });
                 });
@@ -576,14 +652,14 @@ module.exports = (db, transporter) => {
 
     router.delete('/api/users/:id', requireRole('admin'), (req, res) => {
         const collegeName = req.session.user.collegeName;
-        db.run(`DELETE FROM users WHERE id = ? AND collegeName = ?`, [req.params.id, collegeName], function(err) {
+        db.run(`DELETE FROM account_users WHERE id = ? AND collegeName = ?`, [req.params.id, collegeName], function(err) {
             if (err) return res.status(500).json({ success: false, error: err.message });
             res.json({ success: true, message: 'User deleted successfully' });
         });
     });
 
     // ==========================================
-    // ACADEMIC STRUCTURE APIs
+    // ⭐ ACADEMIC STRUCTURE APIs (Updated Hierarchies)
     // ==========================================
 
     router.get('/api/colleges', requireRole('admin'), (req, res) => {
@@ -612,7 +688,7 @@ module.exports = (db, transporter) => {
     router.get('/branches', requireRole('admin'), (req, res) => {
         const collegeName = req.session.user.collegeName;
         const query = `
-            SELECT b.*, p.name as program_name 
+            SELECT b.*, p.name as program_name, p.duration as program_duration 
             FROM branches b 
             JOIN programs p ON b.program_id = p.id
             WHERE p.collegeName = ? OR p.collegeName IS NULL
@@ -626,13 +702,13 @@ module.exports = (db, transporter) => {
     router.get('/sections', requireRole('admin'), (req, res) => {
         const collegeName = req.session.user.collegeName;
         const query = `
-            SELECT s.*, b.name as branch_name 
+            SELECT s.*, b.name as branch_name, p.name as program_name, p.duration as program_duration 
             FROM sections s 
             JOIN branches b ON s.branch_id = b.id
             JOIN programs p ON b.program_id = p.id
-            WHERE p.collegeName = ? OR p.collegeName IS NULL
+            WHERE (p.collegeName = ? OR p.collegeName IS NULL) AND (s.collegeName = ? OR s.collegeName IS NULL)
         `;
-        db.all(query, [collegeName], (err, rows) => {
+        db.all(query, [collegeName, collegeName], (err, rows) => {
             if (err) return res.status(500).json({ success: false, message: err.message });
             res.json({ success: true, data: rows });
         });
@@ -641,14 +717,13 @@ module.exports = (db, transporter) => {
     router.get('/subjects', requireRole('admin'), (req, res) => {
         const collegeName = req.session.user.collegeName;
         const query = `
-            SELECT sub.*, s.semester, b.name as branch_name, p.name as program_name
+            SELECT sub.*, b.name as branch_name, p.name as program_name, p.duration as program_duration
             FROM subjects sub
-            JOIN sections s ON sub.section_id = s.id
-            JOIN branches b ON s.branch_id = b.id
+            JOIN branches b ON sub.branch_id = b.id
             JOIN programs p ON b.program_id = p.id
-            WHERE p.collegeName = ? OR p.collegeName IS NULL
+            WHERE (p.collegeName = ? OR p.collegeName IS NULL) AND (sub.collegeName = ? OR sub.collegeName IS NULL)
         `;
-        db.all(query, [collegeName], (err, rows) => {
+        db.all(query, [collegeName, collegeName], (err, rows) => {
             if (err) return res.status(500).json({ success: false, message: err.message });
             res.json({ success: true, data: rows });
         });
@@ -661,7 +736,7 @@ module.exports = (db, transporter) => {
         db.run(`INSERT INTO programs (collegeName, name, code, type, duration) VALUES (?, ?, ?, ?, ?)`, 
             [collegeName, name, code, type, duration], function(err) {
             if (err) return res.status(500).json({ success: false, message: err.message });
-            res.json({ success: true, id: this.lastID });
+            res.json({ success: true, id: this.lastID, message: "Program added!" });
         });
     });
 
@@ -671,27 +746,35 @@ module.exports = (db, transporter) => {
         db.run(`INSERT INTO branches (program_id, name, code, abbreviation, collegeName) VALUES (?, ?, ?, ?, ?)`, 
             [program_id, name, code, abbreviation, collegeName], function(err) {
             if (err) return res.status(500).json({ success: false, message: err.message });
-            res.json({ success: true, id: this.lastID });
+            res.json({ success: true, id: this.lastID, message: "Branch added!" });
         });
     });
 
+    // ⭐ FIXED: Added semester and capacity fields
     router.post('/add-section', requireRole('admin'), (req, res) => {
-        const { branch_id, name, semester, capacity } = req.body;
+        const { branch_id, name, year, semester, capacity } = req.body;
         const collegeName = req.session.user.collegeName;
-        db.run(`INSERT INTO sections (branch_id, name, semester, capacity, collegeName) VALUES (?, ?, ?, ?, ?)`, 
-            [branch_id, name, semester, capacity, collegeName], function(err) {
+        db.run(`INSERT INTO sections (branch_id, name, year, semester, capacity, collegeName) VALUES (?, ?, ?, ?, ?, ?)`, 
+            [branch_id, name, year, semester || null, capacity || null, collegeName], function(err) {
             if (err) return res.status(500).json({ success: false, message: err.message });
-            res.json({ success: true, id: this.lastID });
+            res.json({ success: true, id: this.lastID, message: "Section added!" });
         });
     });
 
+    // ⭐ FIXED: Add Subject dynamically fetches Year and Semester
     router.post('/add-subject', requireRole('admin'), (req, res) => {
-        const { section_id, name, code, credits } = req.body;
+        const { branch_id, section_id, name, code, credits } = req.body;
         const collegeName = req.session.user.collegeName;
-        db.run(`INSERT INTO subjects (section_id, name, code, credits, collegeName) VALUES (?, ?, ?, ?, ?)`, 
-            [section_id, name, code, credits, collegeName], function(err) {
-            if (err) return res.status(500).json({ success: false, message: err.message });
-            res.json({ success: true, id: this.lastID });
+
+        db.get(`SELECT year, semester FROM sections WHERE id = ?`, [section_id], (err, section) => {
+            const finalYear = (section && section.year) ? section.year : 1; 
+            const finalSemester = (section && section.semester) ? section.semester : 1;
+
+            db.run(`INSERT INTO subjects (branch_id, section_id, name, code, credits, year, semester, collegeName) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
+                [branch_id, section_id || null, name, code, credits, finalYear, finalSemester, collegeName], function(err) {
+                if (err) return res.status(500).json({ success: false, message: err.message });
+                res.json({ success: true, id: this.lastID, message: "Subject added!" });
+            });
         });
     });
 
@@ -715,21 +798,29 @@ module.exports = (db, transporter) => {
         });
     });
 
+    // ⭐ FIXED: Added semester and capacity fields
     router.post('/edit-section', requireRole('admin'), (req, res) => {
-        const { id, branch_id, name, semester, capacity } = req.body;
-        db.run(`UPDATE sections SET branch_id=?, name=?, semester=?, capacity=? WHERE id=?`, 
-            [branch_id, name, semester, capacity, id], function(err) {
+        const { id, branch_id, name, year, semester, capacity } = req.body;
+        db.run(`UPDATE sections SET branch_id=?, name=?, year=?, semester=?, capacity=? WHERE id=?`, 
+            [branch_id, name, year, semester || null, capacity || null, id], function(err) {
             if (err) return res.status(500).json({ success: false, message: err.message });
             res.json({ success: true });
         });
     });
 
+    // ⭐ FIXED: Edit Subject dynamically fetches Year and Semester
     router.post('/edit-subject', requireRole('admin'), (req, res) => {
-        const { id, section_id, name, code, credits } = req.body;
-        db.run(`UPDATE subjects SET section_id=?, name=?, code=?, credits=? WHERE id=?`, 
-            [section_id, name, code, credits, id], function(err) {
-            if (err) return res.status(500).json({ success: false, message: err.message });
-            res.json({ success: true });
+        const { id, branch_id, section_id, name, code, credits } = req.body;
+
+        db.get(`SELECT year, semester FROM sections WHERE id = ?`, [section_id], (err, section) => {
+            const finalYear = (section && section.year) ? section.year : 1; 
+            const finalSemester = (section && section.semester) ? section.semester : 1;
+
+            db.run(`UPDATE subjects SET branch_id=?, section_id=?, name=?, code=?, credits=?, year=?, semester=? WHERE id=?`, 
+                [branch_id, section_id || null, name, code, credits, finalYear, finalSemester, id], function(err) {
+                if (err) return res.status(500).json({ success: false, message: err.message });
+                res.json({ success: true });
+            });
         });
     });
 
@@ -782,21 +873,29 @@ module.exports = (db, transporter) => {
         });
     });
 
+    // ⭐ FIXED: Added semester and capacity fields for PUT update
     router.put('/update-section/:id', requireRole('admin'), (req, res) => {
-        const { name, semester, capacity } = req.body;
-        db.run(`UPDATE sections SET name=?, semester=?, capacity=? WHERE id=?`, 
-            [name, semester, capacity, req.params.id], function(err) {
+        const { name, year, semester, capacity } = req.body;
+        db.run(`UPDATE sections SET name=?, year=?, semester=?, capacity=? WHERE id=?`, 
+            [name, year, semester || null, capacity || null, req.params.id], function(err) {
             if (err) return res.status(500).json({ success: false, message: err.message });
             res.json({ success: true });
         });
     });
 
+    // ⭐ FIXED: Update Subject dynamically fetches Year and Semester
     router.put('/update-subject/:id', requireRole('admin'), (req, res) => {
-        const { name, code, credits } = req.body;
-        db.run(`UPDATE subjects SET name=?, code=?, credits=? WHERE id=?`, 
-            [name, code, credits, req.params.id], function(err) {
-            if (err) return res.status(500).json({ success: false, message: err.message });
-            res.json({ success: true });
+        const { name, code, credits, section_id } = req.body;
+        
+        db.get(`SELECT year, semester FROM sections WHERE id = ?`, [section_id], (err, section) => {
+            const finalYear = (section && section.year) ? section.year : 1;
+            const finalSemester = (section && section.semester) ? section.semester : 1;
+
+            db.run(`UPDATE subjects SET name=?, code=?, credits=?, section_id=?, year=?, semester=? WHERE id=?`, 
+                [name, code, credits, section_id || null, finalYear, finalSemester, req.params.id], function(err) {
+                if (err) return res.status(500).json({ success: false, message: err.message });
+                res.json({ success: true });
+            });
         });
     });
 
@@ -822,15 +921,32 @@ module.exports = (db, transporter) => {
     });
 
     router.post('/api/contests', requireRole('admin'), (req, res) => {
-        const { title, scope, level, date, deadline, duration, eligibility, description, rulesAndDescription, colleges, problem_ids } = req.body;
+        const {
+            title, scope, level, date, deadline, duration, eligibility, description, discription,
+            rulesAndDescription, guidelines, colleges, problem_ids, prize, class: contestClassInput, contest_class,
+            startDate, endDate
+        } = req.body;
         const collegesStr = colleges ? JSON.stringify(colleges) : '[]';
         const createdBy = req.session.user.id;
         const collegeName = req.session.user.collegeName;
+        const normalizedClass = ['E', 'D', 'C', 'B', 'A', 'S'].includes(String(contestClassInput || contest_class || '').toUpperCase())
+            ? String(contestClassInput || contest_class).toUpperCase()
+            : 'E';
+        const finalDescription = description || discription || '';
+        const finalGuidelines = guidelines || rulesAndDescription || '';
+        const finalStartDate = startDate || date || null;
+        const finalEndDate = endDate || deadline || null;
 
-        // Admin contests are auto-accepted — no HOD/HOS verification needed
-        db.run(`INSERT INTO contests (title, scope, level, date, deadline, duration, eligibility, description, rulesAndDescription, status, colleges, createdBy, collegeName, hos_verified, hod_verified) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'accepted', ?, ?, ?, 1, 1)`, 
-            [title, scope, level, date, deadline, duration, eligibility, description, rulesAndDescription, collegesStr, createdBy, collegeName], 
+        db.run(`INSERT INTO contests (
+                    title, scope, level, date, deadline, duration, eligibility, description, rulesAndDescription,
+                    guidelines, contest_class, prize, startDate, endDate,
+                    status, colleges, createdBy, collegeName, hos_verified, hod_verified
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'accepted', ?, ?, ?, 1, 1)`,
+            [
+                title, scope, level, date, deadline, duration, eligibility, finalDescription, finalGuidelines,
+                finalGuidelines, normalizedClass, prize || '', finalStartDate, finalEndDate,
+                collegesStr, createdBy, collegeName
+            ],
             function(err) {
                 if (err) return res.status(500).json({ success: false, message: err.message });
                 
@@ -853,7 +969,6 @@ module.exports = (db, transporter) => {
         });
     });
 
-    // I completed the bottom part of this route since it got cut off in your snippet
     router.post('/api/problems', requireRole('admin'), (req, res) => {
         const { title, difficulty, score, constraints, description } = req.body;
         
@@ -866,11 +981,28 @@ module.exports = (db, transporter) => {
     });
 
     router.put('/api/contests/:id', requireRole('admin'), (req, res) => {
-        const { title, scope, level, date, deadline, duration, eligibility, description, rulesAndDescription, status, colleges } = req.body;
+        const {
+            title, scope, level, date, deadline, duration, eligibility, description, discription,
+            rulesAndDescription, guidelines, status, colleges, class: contestClassInput, contest_class, prize,
+            startDate, endDate
+        } = req.body;
         const collegesStr = colleges ? JSON.stringify(colleges) : '[]';
+        const normalizedClass = ['E', 'D', 'C', 'B', 'A', 'S'].includes(String(contestClassInput || contest_class || '').toUpperCase())
+            ? String(contestClassInput || contest_class).toUpperCase()
+            : 'E';
+        const finalDescription = description || discription || '';
+        const finalGuidelines = guidelines || rulesAndDescription || '';
+        const finalStartDate = startDate || date || null;
+        const finalEndDate = endDate || deadline || null;
 
-        db.run(`UPDATE contests SET title=?, scope=?, level=?, date=?, deadline=?, duration=?, eligibility=?, description=?, rulesAndDescription=?, status=?, colleges=? WHERE id=?`, 
-            [title, scope, level, date, deadline, duration, eligibility, description, rulesAndDescription, status || 'upcoming', collegesStr, req.params.id], 
+        db.run(`UPDATE contests
+                SET title=?, scope=?, level=?, date=?, deadline=?, duration=?, eligibility=?, description=?, rulesAndDescription=?,
+                    guidelines=?, contest_class=?, prize=?, startDate=?, endDate=?, status=?, colleges=?
+                WHERE id=?`,
+            [
+                title, scope, level, date, deadline, duration, eligibility, finalDescription, finalGuidelines,
+                finalGuidelines, normalizedClass, prize || '', finalStartDate, finalEndDate, status || 'upcoming', collegesStr, req.params.id
+            ],
             function(err) {
                 if (err) return res.status(500).json({ success: false, message: err.message });
                 res.json({ success: true, message: "Contest updated successfully!" });
@@ -917,27 +1049,162 @@ module.exports = (db, transporter) => {
 
     router.get('/api/pending-verifications', requireRole('admin'), (req, res) => {
         const collegeName = req.session.user.collegeName;
-        db.all(`SELECT id, fullName, email, collegeName FROM users WHERE is_verified = 0 AND role = 'pending' AND collegeName = ?`, [collegeName], (err, rows) => {
+        db.all(`SELECT id, fullName, email, collegeName, role FROM account_users WHERE is_verified = 0 AND status = 'pending' AND collegeName = ?`, [collegeName], (err, rows) => {
             if (err) return res.status(500).json({ success: false, error: err.message });
             res.json({ success: true, pending: rows });
         });
     });
 
     router.post('/api/verify-user', requireRole('admin'), (req, res) => {
-        const { userId, course, branch } = req.body;
+        const { userId, course, branch, role } = req.body; 
         const collegeName = req.session.user.collegeName;
 
         if (!course || !branch) {
             return res.status(400).json({ success: false, error: "Course and Branch are required." });
         }
 
-        db.run(`UPDATE users SET is_verified = 1, isVerified = 1, role = 'faculty', status = 'active', course = ?, branch = ?, department = ? WHERE id = ? AND collegeName = ?`,
-            [course, branch, branch, userId, collegeName], function(err) {
+        db.run(`UPDATE account_users SET is_verified = 1, isVerified = 1, status = 'active', course = ?, branch = ?, department = ?, role = COALESCE(?, role) WHERE id = ? AND collegeName = ?`,
+            [course, branch, branch, role || null, userId, collegeName], function(err) {
                 if (err) return res.status(500).json({ success: false, error: err.message });
                 if (this.changes === 0) return res.status(404).json({ success: false, error: "User not found or already verified." });
-                res.json({ success: true, message: "User verified as faculty successfully!" });
+                res.json({ success: true, message: "User verified successfully!" });
             });
     });
 
+    // ==========================================
+    // ⭐ Public Profile API for view_faculty.html
+    // ==========================================
+    router.get('/api/faculty/public-profile/:id', requireRole('admin'), (req, res) => {
+        const facultyId = req.params.id;
+        const collegeName = req.session.user.collegeName;
+
+        // 1. Fetch user info securely scoped to their college
+        db.get(`SELECT id, fullName, email, department, branch, program, collegeName, role, status, is_hod 
+                FROM account_users WHERE id = ? AND collegeName = ?`, 
+        [facultyId, collegeName], (err, user) => {
+            
+            if (err) return res.status(500).json({ success: false, message: "Database error" });
+            if (!user) return res.status(404).json({ success: false, message: "Faculty not found" });
+
+            // 2. Fetch real contribution stats from your actual tables
+            const statsQuery = `
+                SELECT 
+                    (SELECT COUNT(*) FROM contests WHERE createdBy = ?) as totalContests,
+                    (SELECT COUNT(*) FROM problems WHERE faculty_id = ?) as totalProblems
+            `;
+
+            db.get(statsQuery, [facultyId, facultyId], (err, stats) => {
+                res.json({
+                    success: true,
+                    faculty: user,
+                    stats: {
+                        problemsCreated: stats ? stats.totalProblems : 0,
+                        activeContests: stats ? stats.totalContests : 0
+                    }
+                });
+            });
+        });
+    });
+    // ==========================================
+    // VIEW STUDENT ROUTES (Add these near view_faculty)
+    // ==========================================
+    router.get('/view_student', requireRole('admin'), (req, res) => {
+        // Change the path based on where you save the view_student.html file
+        res.sendFile(path.join(__dirname, '../views/admin/view_student.html'));
+    });
+    router.get('/view_student.html', requireRole('admin'), (req, res) => res.redirect('/college/view_student'));
+
+
+    // ==========================================
+    // VIEW STUDENT API (Add this near the faculty public-profile API)
+    // ==========================================
+    router.get('/api/student/public-profile/:id', requireRole('admin'), (req, res) => {
+        const studentId = req.params.id;
+        const collegeName = req.session.user.collegeName;
+
+        // Fetch student info securely scoped to their college
+        db.get(`SELECT id, fullName, email, department, branch, program, year, section, collegeName, role, status, points, rank, solvedCount 
+                FROM account_users WHERE id = ? AND collegeName = ? AND role = 'student'`, 
+        [studentId, collegeName], (err, user) => {
+            
+            if (err) return res.status(500).json({ success: false, message: "Database error" });
+            if (!user) return res.status(404).json({ success: false, message: "Student not found" });
+
+            res.json({
+                success: true,
+                student: user
+            });
+        });
+    });
+    // 👇 ADD THIS NEW STUDENT PROFILE API HERE 👇
+    router.get('/api/student/public-profile/:id', requireRole('admin'), (req, res) => {
+        const studentId = req.params.id;
+        const collegeName = req.session.user.collegeName;
+
+        // Fetch student info securely scoped to their college
+        db.get(`
+            SELECT id, fullName, email, department, branch, program, year, section, collegeName, role, status
+            FROM account_users 
+            WHERE id = ? AND collegeName = ? AND role = 'student'
+        `, [studentId, collegeName], (err, user) => {
+            
+            if (err) return res.status(500).json({ success: false, message: "Database error" });
+            if (!user) return res.status(404).json({ success: false, message: "Student not found" });
+
+            // (Optional) You can add additional queries here to fetch their points/ranks 
+            // if you have those tables set up, similar to how you fetch faculty stats.
+
+            res.json({
+                success: true,
+                student: {
+                    ...user,
+                    points: 0,       // Default value if not using a points table yet
+                    rank: 'Unranked',// Default value
+                    solvedCount: 0   // Default value
+                }
+            });
+        });
+    });
+    // 👆 END NEW STUDENT PROFILE API 👆
+    // ==========================================
+    // UPDATE ADMIN PROFILE API
+    // ==========================================
+    router.put('/api/profile/update', requireRole('admin'), (req, res) => {
+        const { fullName, password } = req.body;
+        const userId = req.session.user.id;
+
+        if (!fullName) {
+            return res.status(400).json({ success: false, message: "Full name is required" });
+        }
+
+        if (password) {
+            // Hash the new password and update BOTH name and password
+            bcrypt.hash(password, 10, (err, hash) => {
+                if (err) return res.status(500).json({ success: false, message: "Error hashing password" });
+                
+                db.run(
+                    `UPDATE account_users SET fullName = ?, password = ? WHERE id = ?`,
+                    [fullName, hash, userId],
+                    function(err) {
+                        if (err) return res.status(500).json({ success: false, message: "Database error" });
+                        req.session.user.fullName = fullName; // Sync session with DB
+                        res.json({ success: true, message: "Profile and password updated successfully" });
+                    }
+                );
+            });
+        } else {
+            // Update ONLY the full name
+            db.run(
+                `UPDATE account_users SET fullName = ? WHERE id = ?`,
+                [fullName, userId],
+                function(err) {
+                    if (err) return res.status(500).json({ success: false, message: "Database error" });
+                    req.session.user.fullName = fullName; // Sync session with DB
+                    res.json({ success: true, message: "Profile updated successfully" });
+                }
+            );
+        }
+    });
+
     return router;
-};
+}; // End of module.exports

@@ -6,9 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -26,7 +28,9 @@
       }
     }
   </script>
+
   <style>
+    /* YOUR ORIGINAL UI THEME SAVED BELOW */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     .dark ::-webkit-scrollbar-track { background: #111827; }
@@ -79,8 +83,97 @@
     .dark thead th { background-color: #1e293b; color: #94a3b8; border-bottom: 2px solid #334155; }
     tbody tr { transition: background-color 0.2s; white-space: nowrap; }
   </style>
-</head>
 
+  <script>
+    async function downloadTemplate() {
+        const btnText = document.getElementById('templateBtnText');
+        const originalText = btnText.innerText;
+        btnText.innerText = "Connecting...";
+
+        if (typeof ExcelJS === 'undefined') {
+            alert("🚨 Missing Library!");
+            btnText.innerText = originalText;
+            return;
+        }
+
+        let programList = [], branchList = [], sectionList = [], yearList = [];
+
+        try {
+            const [progRes, branchRes, secRes] = await Promise.all([
+                fetch('/college/programs').then(r => r.json()),
+                fetch('/college/branches').then(r => r.json()),
+                fetch('/college/sections').then(r => r.json())
+            ]);
+
+            if (progRes.success) programList = [...new Set(progRes.data.map(p => p.name.toUpperCase()))];
+            if (branchRes.success) branchList = [...new Set(branchRes.data.map(b => (b.abbreviation || b.name).toUpperCase()))];
+            
+            // ⭐ DYNAMIC YEAR LOGIC: Automatically calculates years from max semester in DB
+            if (secRes.success && secRes.data.length > 0) {
+                sectionList = [...new Set(secRes.data.map(s => s.name.toUpperCase()))];
+                const maxSemester = Math.max(...secRes.data.map(s => parseInt(s.semester) || 1));
+                const maxYear = Math.ceil(maxSemester / 2); 
+                const yearLabels = ["1ST", "2ND", "3RD", "4TH", "5TH"];
+                for(let i = 0; i < maxYear; i++) {
+                    yearList.push(yearLabels[i] || `${i+1}TH`);
+                }
+            }
+
+            if (programList.length === 0 || branchList.length === 0) {
+                alert("🚨 Please add Programs and Branches in Academic Structure first.");
+                btnText.innerText = originalText;
+                return;
+            }
+        } catch (error) {
+            alert("Connection Error. Check if server is running.");
+            btnText.innerText = originalText;
+            return;
+        }
+
+        btnText.innerText = "Generating...";
+
+        try {
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Template');
+            
+            const programOptions = `"${programList.join(',')}"`;
+            const branchOptions = `"${branchList.join(',')}"`;
+            const yearOptions = yearList.length > 0 ? `"${yearList.join(',')}"` : null;
+            const sectionOptions = sectionList.length > 0 ? `"${sectionList.join(',')}"` : null;
+
+            let headers = (activeTab === 'student') 
+                ? ['Student Name', 'Student Email', 'Program', 'Branch', 'Year', 'Section', 'Role']
+                : ['Faculty Name', 'Faculty Email', 'Role', 'Program', 'Branch'];
+
+            worksheet.addRow(headers);
+
+            for (let i = 2; i <= 500; i++) {
+                if (activeTab === 'student') {
+                    worksheet.getCell(`C${i}`).dataValidation = { type: 'list', formulae: [programOptions] };
+                    worksheet.getCell(`D${i}`).dataValidation = { type: 'list', formulae: [branchOptions] };
+                    if (yearOptions) worksheet.getCell(`E${i}`).dataValidation = { type: 'list', formulae: [yearOptions] };
+                    if (sectionOptions) worksheet.getCell(`F${i}`).dataValidation = { type: 'list', formulae: [sectionOptions] };
+                    worksheet.getCell(`G${i}`).dataValidation = { type: 'list', formulae: ['"student"'] };
+                } else {
+                    worksheet.getCell(`C${i}`).dataValidation = { type: 'list', formulae: ['"faculty"'] };
+                    worksheet.getCell(`D${i}`).dataValidation = { type: 'list', formulae: [programOptions] };
+                    worksheet.getCell(`E${i}`).dataValidation = { type: 'list', formulae: [branchOptions] };
+                }
+            }
+
+            worksheet.columns.forEach(col => col.width = 22);
+            worksheet.getRow(1).font = { bold: true };
+
+            const buffer = await workbook.xlsx.writeBuffer();
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob([buffer]));
+            link.download = `${activeTab}_template.xlsx`;
+            link.click();
+        } catch (e) { alert("Excel Error: " + e.message); }
+        btnText.innerText = originalText;
+    }
+  </script>
+</head>
 <body class="font-sans min-h-screen overflow-hidden bg-gray-50 dark:bg-gray-900 transition-colors duration-200" onload="fetchData()">
 
 <div class="flex h-screen overflow-hidden">
@@ -178,13 +271,18 @@
             </button>
         </div>
 
-        <div id="bulkInviteSection" class="bg-theme-card rounded-3xl border border-theme-default shadow-sm p-6">
+      <div id="bulkInviteSection" class="bg-theme-card rounded-3xl border border-theme-default shadow-sm p-6">
             <div class="flex justify-between items-center">
                 <div>
                     <h3 class="text-lg font-bold dark:text-white">Batch Onboarding</h3>
-                    <p class="text-xs text-gray-500 font-medium">Upload Excel or CSV file to add multiple users.</p>
+                    <p class="text-xs text-gray-500 font-medium">Upload Excel file to add multiple users.</p>
                 </div>
                 <div class="flex gap-3">
+                    <button onclick="downloadTemplate()" class="px-6 py-2.5 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border border-primary-100 dark:border-primary-800 hover:bg-primary-100 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+                        <i class="fas fa-download"></i>
+                        <span id="templateBtnText">Download Template</span>
+                    </button>
+
                     <label class="px-6 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:border-primary-400 text-gray-700 dark:text-gray-200 rounded-xl text-xs font-bold cursor-pointer transition-all flex items-center gap-2">
                         <i class="fas fa-file-excel text-green-600"></i>
                         <span>Upload Spreadsheet</span>
@@ -221,7 +319,7 @@
             <input type="hidden" id="modalUserType" value="student">
             
             <div class="grid grid-cols-2 gap-4" id="modalFields">
-                </div>
+            </div>
 
             <div class="flex gap-3 pt-4">
                 <button onclick="closeAddModal()" class="flex-1 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-xs font-black uppercase text-gray-500">Cancel</button>
@@ -299,19 +397,21 @@ document.addEventListener('click', (e) => {
     if (e.target === document.getElementById('profileOverlay')) toggleProfile();
 });
 
-const logoutBtn = document.getElementById('logoutBtn');
-if (logoutBtn) {
-    logoutBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        try {
-            await fetch('/auth/logout', { method: 'POST' });
-        } catch(err) {
-            console.warn("Logout request failed, redirecting anyway", err);
-        }
-        window.location.href = '/';
-    });
+// ====== UNIFIED LOGOUT FUNCTION ======
+async function performLogout(e) {
+    if (e) e.preventDefault();
+    try {
+        await fetch('/auth/logout', { method: 'POST' });
+    } catch(err) {
+        console.warn("Logout request failed, redirecting anyway", err);
+    }
+    window.location.href = '/';
 }
 
+const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) logoutBtn.addEventListener('click', performLogout);
+
+// ====== THEME TOGGLE ======
 const themeToggleBtn = document.getElementById('themeToggleBtn');
 const themeIcon = themeToggleBtn ? themeToggleBtn.querySelector('i') : null;
 const html = document.documentElement;
@@ -334,8 +434,9 @@ let modalUserType = 'student';
 let users = [];
 let requests = [];
 let editingId = null; 
-let dbBranches = []; 
 let dbPrograms = []; 
+let dbBranches = []; 
+let dbSections = []; // Added for dynamic year/section hierarchy
 
 async function fetchData() {
     try {
@@ -372,7 +473,7 @@ async function fetchData() {
                 role: u.role,
                 type: (u.role && u.role.toLowerCase() === 'student') ? 'student' : 'faculty',
                 branch: u.branch || '', 
-                is_hod: u.is_hod || 0,
+                is_hod: (String((u.role || '')).toLowerCase() === 'hod') ? 1 : (Number(u.is_hod) || 0),
                 status: u.status || 'Active',
                 last_active: u.last_active || 'N/A',
                 program: u.program || '',
@@ -391,17 +492,15 @@ async function fetchData() {
             }));
         }
 
+        // Fetch hierarchy datasets
         const resPrograms = await fetch('/college/programs');
-        if (resPrograms.ok) {
-            const pData = await resPrograms.json();
-            dbPrograms = pData.data || [];
-        }
+        if (resPrograms.ok) dbPrograms = (await resPrograms.json()).data || [];
 
         const resBranches = await fetch('/college/branches');
-        if (resBranches.ok) {
-            const bData = await resBranches.json();
-            dbBranches = bData.data || [];
-        }
+        if (resBranches.ok) dbBranches = (await resBranches.json()).data || [];
+
+        const resSec = await fetch('/college/sections');
+        if (resSec.ok) dbSections = (await resSec.json()).data || [];
 
         const resReq = await fetch('/college/api/pending-faculty');
         if(resReq.ok) {
@@ -456,6 +555,18 @@ function setTab(tab) {
     });
 
     render();
+}
+
+// ⭐ HIERARCHY LOGIC: Filters branches inside inline "Requests" row
+function updateRowBranch(id, programName) {
+    const branchSelect = document.getElementById(`branch-${id}`);
+    const program = dbPrograms.find(p => p.name === programName);
+    branchSelect.innerHTML = '<option value="" disabled selected>Branch</option>';
+    if (program) {
+        dbBranches.filter(b => b.program_id === program.id).forEach(b => {
+            branchSelect.innerHTML += `<option value="${b.name}">${b.name}</option>`;
+        });
+    }
 }
 
 function render() {
@@ -531,17 +642,17 @@ function render() {
         if (activeTab === 'student') {
             tr.innerHTML = `
                 <td class="p-4">
-                    <div class="flex items-center gap-3">
-                        <div class="h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0">${initial}</div>
+                    <div class="flex items-center gap-3 cursor-pointer group" onclick="window.location.href='/college/view_student?id=${u.id}'" title="View Student Profile">
+                        <div class="h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0 group-hover:bg-blue-200 transition-colors">${initial}</div>
                         <div>
-                            <p class="text-sm font-bold text-gray-900 dark:text-white">${u.fullName}</p>
+                            <p class="text-sm font-bold text-gray-900 dark:text-white group-hover:text-primary-500 transition-colors">${u.fullName}</p>
                             <p class="text-[10px] text-gray-500 font-mono">ID: #${u.id}</p>
                         </div>
                     </div>
                 </td>
                 <td class="p-4 text-xs text-gray-600 dark:text-gray-300">${u.email}</td>
                 <td class="p-4">
-                    <p class="text-xs font-bold text-gray-800 dark:text-gray-200">${u.program || '-'} - ${u.year || '-'}</p>
+                    <p class="text-xs font-bold text-gray-800 dark:text-gray-200">${u.program || '-'} - Year ${u.year || '-'}</p>
                     <p class="text-[10px] text-gray-500">Br: ${u.branch || '-'} | Sec: ${u.section || '-'}</p>
                 </td>
                 <td class="p-4 text-center text-sm font-semibold">${u.contests_participated}</td>
@@ -558,17 +669,21 @@ function render() {
                 </td>
             `;
         } else if (activeTab === 'faculty') {
-            const isHod = u.is_hod === 1;
+            const roleLower = String(u.role || '').toLowerCase();
+            const isHod = Number(u.is_hod) === 1 || roleLower === 'hod';
+            const isHos = roleLower === 'hos';
             const roleBadge = isHod 
                 ? `<span class="bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-1 rounded-md">HOD</span>`
-                : `<span class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 text-[10px] font-bold px-2 py-1 rounded-md">Faculty</span>`;
+                : isHos
+                    ? `<span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-1 rounded-md">HOS</span>`
+                    : `<span class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 text-[10px] font-bold px-2 py-1 rounded-md">Faculty</span>`;
 
             tr.innerHTML = `
                 <td class="p-4">
-                    <div class="flex items-center gap-3">
-                        <div class="h-8 w-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-bold text-xs shrink-0">${initial}</div>
+                    <div class="flex items-center gap-3 cursor-pointer group" onclick="window.location.href='/college/view_faculty?id=${u.id}'" title="View Profile">
+                        <div class="h-8 w-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-bold text-xs shrink-0 group-hover:bg-green-200 transition-colors">${initial}</div>
                         <div>
-                            <p class="text-sm font-bold text-gray-900 dark:text-white">${u.fullName}</p>
+                            <p class="text-sm font-bold text-gray-900 dark:text-white group-hover:text-primary-500 transition-colors">${u.fullName}</p>
                             <p class="text-[10px] text-gray-500 font-mono">ID: #${u.id}</p>
                         </div>
                     </div>
@@ -586,7 +701,7 @@ function render() {
                 <td class="p-4 text-center"><span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-md">${u.status}</span></td>
                 <td class="p-4 text-center text-[10px] text-gray-500">${u.last_active}</td>
                 <td class="p-4 text-center">
-                    <button onclick="toggleHOD(${u.id}, ${u.is_hod})" class="text-purple-500 hover:text-purple-700 mr-2 transition-colors" title="${u.is_hod ? 'Remove HOD' : 'Make HOD'}"><i class="fas fa-user-tie"></i></button>
+                    <button onclick="toggleHOD(${u.id}, ${isHod ? 1 : 0})" class="text-purple-500 hover:text-purple-700 mr-2 transition-colors" title="${isHod ? 'Remove HOD' : 'Make HOD'}"><i class="fas fa-user-tie"></i></button>
                     <button onclick="openEditModal(${u.id})" class="text-blue-500 hover:text-blue-700 mr-2 transition-colors"><i class="fas fa-pen"></i></button>
                     <button onclick="deleteUser(${u.id}, 'faculty')" class="text-red-500 hover:text-red-700 transition-colors"><i class="fas fa-trash"></i></button>
                 </td>
@@ -605,13 +720,12 @@ function render() {
                 </td>
                 <td class="p-4">
                     <form onsubmit="verifyAndAssign(event, ${u.id})" class="flex gap-2 items-center m-0 flex-wrap">
-                        <select id="course-${u.id}" required class="text-xs p-1.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded focus:ring-1 focus:ring-primary-500 outline-none w-32">
+                        <select id="course-${u.id}" required onchange="updateRowBranch(${u.id}, this.value)" class="text-xs p-1.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded focus:ring-1 focus:ring-primary-500 outline-none w-32">
                             <option value="" disabled selected>Course</option>
                             ${dbPrograms.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
                         </select>
                         <select id="branch-${u.id}" required class="text-xs p-1.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded focus:ring-1 focus:ring-primary-500 outline-none w-32">
                             <option value="" disabled selected>Branch</option>
-                            ${dbBranches.map(b => `<option value="${b.name}">${b.name}</option>`).join('')}
                         </select>
                         <button type="submit" class="bg-green-500 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-green-600 transition-colors whitespace-nowrap">Verify &amp; Assign</button>
                         <button type="button" onclick="handleRequest(${u.id}, 'reject')" class="bg-red-500 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-red-600 transition-colors">Reject</button>
@@ -621,6 +735,42 @@ function render() {
         }
         tbody.appendChild(tr);
     });
+}
+
+// ⭐ HIERARCHY LOGIC: Update Branches based on chosen program
+function filterBranches(programName, selectedBranch = '') {
+    const branchSelect = document.getElementById('modalBranch');
+    if(!branchSelect) return;
+    
+    const program = dbPrograms.find(p => p.name === programName);
+    branchSelect.innerHTML = '<option value="">Select Branch</option>';
+    
+    if (program) {
+        dbBranches.filter(b => b.program_id === program.id).forEach(b => {
+            branchSelect.innerHTML += `<option value="${b.name}" ${selectedBranch === b.name ? 'selected' : ''}>${b.name}</option>`;
+        });
+    }
+}
+
+// ⭐ HIERARCHY LOGIC: Update Years/Sections based on chosen branch
+function filterYearsSections(branchName, selectedYear = '', selectedSection = '') {
+    const yearSelect = document.getElementById('modalYear');
+    const sectionSelect = document.getElementById('modalSection');
+    if(!yearSelect || !sectionSelect) return;
+
+    const branch = dbBranches.find(b => b.name === branchName);
+    yearSelect.innerHTML = '<option value="">Select Year</option>';
+    sectionSelect.innerHTML = '<option value="">Select Section</option>';
+
+    if (branch) {
+        const branchSections = dbSections.filter(s => s.branch_id === branch.id);
+        
+        const years = [...new Set(branchSections.map(s => s.year))].sort();
+        years.forEach(y => { yearSelect.innerHTML += `<option value="${y}" ${selectedYear == y ? 'selected' : ''}>${y}</option>`; });
+
+        const sections = [...new Set(branchSections.map(s => s.name))].sort();
+        sections.forEach(s => { sectionSelect.innerHTML += `<option value="${s}" ${selectedSection === s ? 'selected' : ''}>${s}</option>`; });
+    }
 }
 
 function openAddModal() {
@@ -637,18 +787,32 @@ function closeAddModal() {
     document.getElementById('addModal').classList.remove('flex');
 }
 
-function setModalUserType(type) {
+function openEditModal(id) {
+    const user = users.find(u => u.id === id);
+    if (!user) return;
+    
+    editingId = id;
+    document.getElementById('modalTitle').innerText = 'Edit Member';
+    document.getElementById('modalSaveBtn').innerText = 'Update User';
+    
+    setModalUserType(user.type, user);
+    
+    document.getElementById('addModal').classList.remove('hidden');
+    document.getElementById('addModal').classList.add('flex');
+}
+
+function setModalUserType(type, userData = {}) {
     modalUserType = type;
     document.getElementById('modalUserType').value = type;
     
     if (type === 'student') {
         document.getElementById('modalTabStudent').className = 'flex-1 py-2 text-xs font-bold rounded-lg modal-tab-active';
         document.getElementById('modalTabFaculty').className = 'flex-1 py-2 text-xs font-bold rounded-lg text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors';
-        renderModalFields('student');
+        renderModalFields('student', userData);
     } else {
         document.getElementById('modalTabFaculty').className = 'flex-1 py-2 text-xs font-bold rounded-lg modal-tab-active';
         document.getElementById('modalTabStudent').className = 'flex-1 py-2 text-xs font-bold rounded-lg text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors';
-        renderModalFields('faculty');
+        renderModalFields('faculty', userData);
     }
 }
 
@@ -660,11 +824,6 @@ function renderModalFields(type, userData = {}) {
         programOptions += `<option value="${p.name}" ${userData.program === p.name ? 'selected' : ''}>${p.name}</option>`;
     });
 
-    let branchOptions = '<option value="">Select Branch</option>';
-    dbBranches.forEach(b => {
-        branchOptions += `<option value="${b.name}" ${userData.branch === b.name ? 'selected' : ''}>${b.name}</option>`;
-    });
-
     let html = `
         <div class="col-span-2">
             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
@@ -674,70 +833,83 @@ function renderModalFields(type, userData = {}) {
             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
             <input type="email" id="modalEmail" value="${userData.email || ''}" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition-all dark:text-white" placeholder="user@college.edu">
         </div>
+        
+        <div class="col-span-2">
+            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                Password ${userData.id ? '<span class="text-gray-500 font-normal">(Leave blank to keep current)</span>' : '<span class="text-red-500">*</span>'}
+            </label>
+            <input type="text" id="modalPassword" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition-all dark:text-white" placeholder="${userData.id ? 'Enter new password if changing...' : 'e.g. Welcome@123'}">
+            ${!userData.id ? '<p class="text-[10px] text-gray-500 mt-1">This default password will be sent to the user\'s email.</p>' : ''}
+        </div>
     `;
 
     if (type === 'student') {
         html += `
             <div>
                 <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Program</label>
-                <select id="modalProgram" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white">
+                <select id="modalProgram" onchange="filterBranches(this.value)" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white">
                     ${programOptions}
                 </select>
             </div>
             <div>
                 <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Branch</label>
-                <select id="modalBranch" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white">
-                    ${branchOptions}
+                <select id="modalBranch" onchange="filterYearsSections(this.value)" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white">
+                    <option value="">Select Branch</option>
                 </select>
             </div>
             <div>
                 <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Year</label>
-                <input type="text" id="modalYear" value="${userData.year || ''}" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white" placeholder="1st, 2nd, 3rd...">
+                <select id="modalYear" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white">
+                    <option value="">Select Year</option>
+                </select>
             </div>
             <div>
                 <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Section</label>
-                <input type="text" id="modalSection" value="${userData.section || ''}" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white" placeholder="A, B, C...">
+                <select id="modalSection" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white">
+                    <option value="">Select Section</option>
+                </select>
             </div>
         `;
     } else {
         html += `
             <div class="col-span-2">
                 <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Program</label>
-                <select id="modalProgram" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white">
+                <select id="modalProgram" onchange="filterBranches(this.value)" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white">
                     ${programOptions}
                 </select>
             </div>
             <div class="col-span-2">
                 <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Branch</label>
                 <select id="modalBranch" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white">
-                     ${branchOptions}
+                     <option value="">Select Branch</option>
                 </select>
             </div>
         `;
     }
     
     mf.innerHTML = html;
-}
 
-function openEditModal(id) {
-    editingId = id;
-    const user = users.find(u => u.id === id);
-    if(!user) return;
-    
-    document.getElementById('modalTitle').innerText = 'Edit Member';
-    document.getElementById('modalSaveBtn').innerText = 'Update User';
-    setModalUserType(user.type);
-    renderModalFields(user.type, user);
-    
-    document.getElementById('addModal').classList.remove('hidden');
-    document.getElementById('addModal').classList.add('flex');
+    // Trigger cascades immediately if loading existing user values
+    if(userData.program) {
+        filterBranches(userData.program, userData.branch);
+        if(userData.branch && type === 'student') {
+            filterYearsSections(userData.branch, userData.year, userData.section);
+        }
+    }
 }
 
 async function saveUser() {
     const fullName = document.getElementById('modalFullName').value.trim();
     const email = document.getElementById('modalEmail').value.trim();
     
+    const password = document.getElementById('modalPassword') ? document.getElementById('modalPassword').value.trim() : null;
+    
     if(!fullName || !email) { alert("Name and Email are required!"); return; }
+    
+    if(!editingId && !password) {
+        alert("A default password is required for new members!"); 
+        return; 
+    }
     
     const payload = { 
         fullName, 
@@ -746,6 +918,10 @@ async function saveUser() {
         program: document.getElementById('modalProgram') ? document.getElementById('modalProgram').value : null,
         branch: document.getElementById('modalBranch') ? document.getElementById('modalBranch').value : null
     };
+
+    if (password) {
+        payload.password = password;
+    }
 
     if (modalUserType === 'student') {
         payload.year = document.getElementById('modalYear').value;
@@ -796,8 +972,26 @@ async function deleteUser(id, type) {
 }
 
 async function toggleHOD(id, currentStatus) {
-    const newStatus = currentStatus === 1 ? 0 : 1;
+    const newStatus = Number(currentStatus) === 1 ? 0 : 1;
     const action = newStatus === 1 ? 'make HOD' : 'remove HOD status';
+    
+    const user = users.find(u => u.id === id);
+
+    if (newStatus === 1 && user) {
+        const existingHOD = users.find(u => 
+            (Number(u.is_hod) === 1 || String(u.role || '').toLowerCase() === 'hod') && 
+            u.id !== id && 
+            u.branch === user.branch && 
+            u.program === user.program
+        );
+        
+        if (existingHOD) {
+            const programName = user.program || 'this program';
+            const branchName = user.branch || 'this branch';
+            alert(`Cannot make HOD. An HOD already exists for ${programName} - ${branchName}: ${existingHOD.fullName}`);
+            return; 
+        }
+    }
     
     if(!confirm(`Are you sure you want to ${action} for this faculty member?`)) return;
     
@@ -849,107 +1043,107 @@ async function verifyAndAssign(event, id) {
     }
 }
 
-// ⭐ UPDATED: Fixed handleRequest to hit the correct backend routes
 async function handleRequest(id, action) {
-    
-    if(!confirm(`Are you sure you want to reject this request?`)) return;
+    if (!confirm(`Are you sure you want to ${action} this request?`)) return;
     try {
-        const res = await fetch(`/college/api/users/${id}`, { method: 'DELETE' });
+        const res = await fetch(`/college/api/${action}-faculty/${id}`, {
+            method: 'POST'
+        });
         const data = await res.json();
-        
         if(data.success) {
-            fetchData(); 
+            fetchData();
         } else {
-             alert(data.error || `Failed to reject request.`);
+            alert(data.error || `Failed to ${action} user.`);
         }
     } catch(err) {
         console.error(err);
-        alert("An error occurred while processing the request.");
+        alert("An error occurred while handling the request.");
     }
 }
 
-function exportToExcel() {
-    let dataToExport = [];
-    if (activeTab === 'student') {
-        dataToExport = users.filter(u => u.type === 'student').map(u => ({
-            "Full Name": u.fullName,
-            "Email": u.email,
-            "Program": u.program,
-            "Branch": u.branch,
-            "Year": u.year,
-            "Section": u.section,
-            "Contests Participated": u.contests_participated,
-            "Problems Solved": u.problems_solved,
-            "Streak": u.streak
-        }));
-    } else if (activeTab === 'faculty') {
-         dataToExport = users.filter(u => u.type === 'faculty').map(u => ({
-            "Full Name": u.fullName,
-            "Email": u.email,
-            "Role": u.is_hod ? 'HOD' : 'Faculty',
-            "Program": u.program,
-            "Branch": u.branch,
-            "Contests Created": u.contests_created,
-            "Problems Created": u.problems_created,
-            "Rating": u.rating
-        }));
-    } else {
-        alert("Nothing to export in requests tab");
+// ====== EXCEL UPLOAD AND DOWNLOAD LOGIC ======
+async function exportToExcel() {
+    if (typeof XLSX === 'undefined') {
+        alert("🚨 Missing Library for Exporting Excel!");
         return;
     }
-
-    if(dataToExport.length === 0) {
-        alert("No data to export.");
+    if (users.length === 0) { 
+        alert("No users to export"); 
+        return; 
+    }
+    
+    const filteredUsers = users.filter(u => u.type === activeTab);
+    if(filteredUsers.length === 0) {
+        alert(`No ${activeTab} data to export.`);
         return;
     }
+    
+    const wsData = filteredUsers.map(u => ({
+        ID: u.id,
+        Name: u.fullName,
+        Email: u.email,
+        Role: u.type,
+        Program: u.program || '-',
+        Branch: u.branch || '-',
+        Year: u.year || '-',
+        Section: u.section || '-',
+        Status: u.status
+    }));
 
-    const ws = XLSX.utils.json_to_sheet(dataToExport);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Users");
-    XLSX.writeFile(wb, `CampusCode_${activeTab}s.xlsx`);
+    const ws = XLSX.utils.json_to_sheet(wsData);
+    XLSX.utils.book_append_sheet(wb, ws, `${activeTab}_List`);
+    XLSX.writeFile(wb, `CampusCode_${activeTab}.xlsx`);
 }
 
-function handleExcelUpload(event) {
+async function handleExcelUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
 
+    if (typeof XLSX === 'undefined') {
+        alert("🚨 Missing Library for Uploading Excel!");
+        return;
+    }
+
     const reader = new FileReader();
-    reader.onload = async function (e) {
+    reader.onload = async (e) => {
         try {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
-            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-            
-            if (jsonData.length === 0) {
-                alert("The uploaded file is empty.");
+            const sheetName = workbook.SheetNames[0];
+            const sheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+            const defaultPassword = prompt("Please enter a default password for the new users:", "Welcome@123");
+            if (!defaultPassword) {
+                alert("Upload cancelled: Default password is required.");
+                event.target.value = ''; 
                 return;
             }
 
-            const firstRow = jsonData[0];
-            const hasFullName = firstRow.hasOwnProperty('FullName') || firstRow.hasOwnProperty('Full Name') || firstRow.hasOwnProperty('Name');
-            const hasEmail = firstRow.hasOwnProperty('Email') || firstRow.hasOwnProperty('Email Address');
-
-            if (!hasFullName || !hasEmail) {
-                 alert("Invalid file format. Please ensure the file has 'Full Name' and 'Email' columns.");
-                 return;
-            }
-
-            const processedData = jsonData.map(row => ({
-                fullName: row['FullName'] || row['Full Name'] || row['Name'] || '',
-                email: row['Email'] || row['Email Address'] || '',
-                role: row['Role'] || activeTab, 
-                program: row['Program'] || '',
-                branch: row['Branch'] || row['Department'] || '',
-                year: row['Year'] || '',
-                section: row['Section'] || ''
-            })).filter(user => user.fullName && user.email); 
+            const processedData = jsonData.map(row => {
+                const normalizedRow = {};
+                for (const key in row) {
+                    normalizedRow[key.trim().toLowerCase()] = row[key];
+                }
+                return {
+                    fullName: normalizedRow['student name'] || normalizedRow['faculty name'] || normalizedRow['name'],
+                    email: normalizedRow['student email'] || normalizedRow['faculty email'] || normalizedRow['email'],
+                    role: normalizedRow['role'] ? normalizedRow['role'].toLowerCase() : (normalizedRow['student name'] ? 'student' : 'faculty'),
+                    program: String(normalizedRow['program'] || '').toUpperCase(),
+                    branch: String(normalizedRow['branch'] || '').toUpperCase(),
+                    year: String(normalizedRow['year'] || '').toUpperCase(),
+                    section: String(normalizedRow['section'] || '').toUpperCase(),
+                    defaultPassword: defaultPassword 
+                };
+            }).filter(user => user.fullName && user.email); 
             
             if (processedData.length === 0) {
-                 alert("No valid users found in the file.");
+                 alert("No valid users found. Please make sure the 'Name' and 'Email' columns contain data.");
                  return;
             }
 
+            // Hit the API to Bulk Import
             const res = await fetch('/college/api/users/bulk', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -957,24 +1151,25 @@ function handleExcelUpload(event) {
             });
 
             const result = await res.json();
-            
             if (result.success) {
-                alert(`Successfully imported ${result.importedCount || 'users'}.`);
-                fetchData(); 
+                alert(result.message || `Upload successful!`);
+                fetchData(); // This instantly refreshes the table!
             } else {
                 alert(result.error || result.message || "Failed to import users.");
             }
 
         } catch (error) {
             console.error("Error processing file:", error);
-            alert("An error occurred while reading the file.");
+            alert("An error occurred while reading the Excel file. Check the format.");
         } finally {
-            event.target.value = ''; 
+            event.target.value = ''; // Reset input so you can re-upload if needed
         }
     };
     reader.readAsArrayBuffer(file);
 }
 
+// Initialize application data
+document.addEventListener('DOMContentLoaded', fetchData);
 </script>
 </body>
 </html>

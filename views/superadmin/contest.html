@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Contests - SuperAdmin</title>
+  <link rel="shortcut icon" href="/campuscode-logo.jpeg" type="image/jpeg">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: { sans: ["Plus Jakarta Sans", "sans-serif"] },
+          colors: { primary: { 50: "#E7F0FA", 100: "#D0E1F5", 500: "#1E4A7A", 600: "#0D2440" }, darkBg: "#0f172a", darkCard: "#1e293b" }
+        }
+      }
+    };
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .nav-item { transition: all .2s ease; position: relative; display: flex; align-items: center; padding: .75rem 1rem; margin-bottom: .25rem; color: #374151; border-radius: .75rem; white-space: nowrap; }
+    .dark .nav-item { color: #d1d5db; }
+    .nav-item:hover { background-color: #f3f4f6; }
+    .dark .nav-item:hover { background-color: #374151; }
+    .nav-item.active { background-color: #d0e1f5; color: #1e4a7a; }
+    .dark .nav-item.active { background-color: #1e4a7a; color: #fff; }
+    .nav-item.active::before { content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 60%; width: 4px; background: #2e5e99; border-radius: 0 4px 4px 0; }
+    .sa-shell { background: #e7f0fa; }
+    .dark .sa-shell { background: #0f172a; }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+  </style>
+</head>
+<body class="sa-shell text-gray-800 transition-colors duration-300 dark:text-gray-200 h-screen flex overflow-hidden p-4 gap-6">
+  <div class="flex h-full overflow-hidden w-full">
+    <aside class="w-64 bg-white dark:bg-darkCard rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-transparent dark:border-gray-800 flex-shrink-0 flex flex-col h-full relative overflow-hidden">
+      <div class="absolute -top-10 -left-10 w-32 h-32 bg-primary-50 dark:bg-primary-500/20 rounded-full mix-blend-multiply blur-2xl opacity-70"></div>
+      <div class="p-6 flex-shrink-0 flex items-center justify-between h-[88px]">
+        <div class="flex items-center gap-3 text-2xl font-bold text-gray-800 dark:text-white overflow-hidden whitespace-nowrap">
+          <img src="/campuscode-logo.jpeg" alt="CampusCode logo" class="w-9 h-9 object-contain">
+          <span>CampusCode</span><span class="text-primary-500 text-sm font-bold align-top ml-0.5">SA</span>
+        </div>
+      </div>
+      <div class="p-4 flex-1 overflow-y-auto flex flex-col">
+        <p class="text-[10px] font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4 mt-2 px-4">Menu</p>
+        <nav class="space-y-1">
+          <a href="/superadmin/dashboard" class="nav-item"><i class="fas fa-building-columns mr-3"></i><span>Manage Colleges</span></a>
+          <a href="/superadmin/problems" class="nav-item"><i class="fas fa-tasks mr-3"></i><span>Manage Problems</span></a>
+          <a href="/superadmin/contest" class="nav-item active"><i class="fas fa-trophy mr-3"></i><span>Manage Contests</span></a>
+          <a href="/superadmin/support" class="nav-item"><i class="fas fa-life-ring mr-3"></i><span>Support Tickets</span></a>
+          <a href="/forum/forum.html" class="nav-item"><i class="fas fa-comments mr-3"></i><span>Community Forum</span></a>
+        </nav>
+        <div class="mt-auto pt-6">
+          <a href="/auth/logout" class="mb-3 flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl font-medium transition"><i class="fas fa-sign-out-alt w-5"></i> Logout</a>
+          <div class="w-full text-left flex items-center gap-3 p-3 rounded-2xl bg-primary-50/50 dark:bg-gray-800/60 hover:bg-primary-50 dark:hover:bg-gray-700 transition border border-primary-100/20 dark:border-gray-700">
+            <div id="sidebarAvatar" class="w-11 h-11 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm">SA</div>
+            <div class="min-w-0">
+              <div id="sidebarName" class="text-sm font-bold text-gray-800 dark:text-white truncate">Superadmin</div>
+              <div id="sidebarRole" class="text-xs text-gray-500 dark:text-gray-300">SuperAdmin</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto p-8">
+      <div class="bg-gradient-to-r from-gray-800 to-gray-900 rounded-2xl p-6 md:p-8 text-white mb-8 shadow-lg border border-gray-700">
+        <h2 class="text-2xl md:text-3xl font-bold mb-2">SuperAdmin Contest Publisher</h2>
+        <p class="text-gray-300">Create contest first, then add problems from Action overlay and publish.</p>
+      </div>
+
+      <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
+        <div class="xl:col-span-1 bg-white dark:bg-darkCard rounded-[2rem] border border-gray-100 dark:border-gray-700 p-6 shadow-sm">
+          <h3 class="font-bold text-lg text-gray-800 dark:text-white mb-4">Create Contest</h3>
+         <form id="contestForm" class="space-y-3">
+    <input id="title" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="Contest title" required>
+    <textarea id="description" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white" rows="3" placeholder="Description"></textarea>
+    
+    <div class="grid grid-cols-2 gap-2">
+        <select id="contestClass" class="p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white">
+            <option value="E">Class E</option>
+            <option value="D">Class D</option>
+            <option value="C">Class C</option>
+            <option value="B">Class B</option>
+            <option value="A">Class A</option>
+            <option value="S">Class S</option>
+        </select>
+        <input id="duration" class="p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="Duration (e.g. 3h)">
+    </div>
+    
+    <div class="grid grid-cols-2 gap-2">
+        <input id="startDate" type="datetime-local" class="p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white">
+        <input id="endDate" type="datetime-local" class="p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white">
+    </div>
+    
+    <div class="space-y-2">
+        <div class="flex items-center">
+            <input type="checkbox" id="selectAllPrograms" class="mr-2 w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-blue-600 dark:ring-offset-gray-800" onclick="toggleAllPrograms(this)">
+            <label for="selectAllPrograms" class="text-sm font-semibold text-gray-900 dark:text-white">Select All Programs <span class="text-red-500">*</span></label>
+        </div>
+        <div id="programCheckboxes" class="max-h-32 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 grid grid-cols-2 gap-2 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white">
+            </div>
+    </div>
+    
+    <input id="prize" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="Prize (optional)">
+    <textarea id="guidelines" class="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white" rows="3" placeholder="Guidelines"></textarea>
+    
+    <p class="text-xs text-gray-500 dark:text-gray-400">Use Action -> Add Problems overlay to map problems, then publish.</p>
+    <button type="submit" class="w-full bg-[#1E4A7A] hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg font-medium transition">Create Contest</button>
+</form>
+        </div>
+
+        <div class="xl:col-span-2 bg-white dark:bg-darkCard rounded-[2rem] border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
+          <div class="p-5 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+            <h3 class="font-bold text-lg text-gray-800 dark:text-white">All Contests</h3>
+            <button onclick="loadContests()" class="text-sm bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-lg">Refresh</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead class="bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 text-sm">
+                <tr>
+                  <th class="py-3 px-4 font-medium">Title</th>
+                  <th class="py-3 px-4 font-medium">Class</th>
+                  <th class="py-3 px-4 font-medium">Problems</th>
+                  <th class="py-3 px-4 font-medium">Status</th>
+                  <th class="py-3 px-4 font-medium text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="contestTable" class="text-sm divide-y divide-gray-100 dark:divide-gray-800"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="problemOverlay" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 items-center justify-center p-4">
+    <div class="w-full max-w-3xl bg-white dark:bg-darkCard rounded-2xl border border-gray-200 dark:border-gray-700 shadow-2xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+        <div>
+          <h3 class="font-bold text-lg text-gray-900 dark:text-white">Add Problems To Contest</h3>
+          <p id="overlayContestTitle" class="text-xs text-gray-500 dark:text-gray-400"></p>
+        </div>
+        <button onclick="closeProblemOverlay()" class="text-gray-500 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-5 space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <input id="problemSearch" class="p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="Search title or tag...">
+          <select id="difficultyFilter" class="p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white">
+            <option value="">All Difficulty</option>
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+          <input id="tagFilter" class="p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="Filter by tag">
+        </div>
+        <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
+          <span><span id="overlaySelectedCount">0</span> selected</span>
+          <span id="overlayResultCount">0 problems</span>
+        </div>
+        <div id="overlayProblemList" class="max-h-80 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-2 space-y-2 custom-scrollbar"></div>
+      </div>
+      <div class="px-5 py-4 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-2">
+        <button onclick="closeProblemOverlay()" class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200">Cancel</button>
+        <button onclick="saveContestProblems()" class="px-4 py-2 rounded-lg bg-[#1E4A7A] text-white hover:bg-blue-700">Save Problems</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      html.classList.toggle('dark');
+      localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+    }
+
+    const state = { contests: [] };
+    const problemState = { all: [] };
+    const overlayState = { contestId: null, selectedIds: new Set(), filtered: [] };
+
+    async function loadCurrentUser() {
+      try {
+        const response = await fetch('/api/forum/me');
+        const data = await response.json();
+        if (!data.success || !data.user) return;
+        const fullName = data.user.fullName || 'Superadmin';
+        const initials = fullName.split(' ').filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase() || 'SA';
+        document.getElementById('sidebarName').textContent = fullName;
+        document.getElementById('sidebarRole').textContent = 'SuperAdmin';
+        document.getElementById('sidebarAvatar').textContent = initials;
+      } catch (error) {
+        console.error('Failed to load superadmin profile context', error);
+      }
+    }
+
+    function esc(v) {
+      return String(v || "").replace(/[&<>"']/g, (s) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[s]));
+    }
+    async function fetchJsonSafe(url, options = {}) {
+      const res = await fetch(url, options);
+      const text = await res.text();
+      let data;
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        throw new Error(`Request failed (${res.status}) for ${url}`);
+      }
+      if (!res.ok || data.success === false) {
+        throw new Error(data.error || data.message || `Request failed (${res.status})`);
+      }
+      return data;
+    }
+    function getProblemIdsFromContest(contest) {
+      const raw = Array.isArray(contest.problems) ? contest.problems : [];
+      return raw.map((p) => Number(typeof p === "object" ? p.id : p)).filter((id) => Number.isInteger(id) && id > 0);
+    }
+
+    async function loadProblems() {
+      try {
+        const data = await fetchJsonSafe("/api/problems");
+        problemState.all = (data.problems || []).map((p) => ({ id: Number(p.id), title: p.title, difficulty: p.difficulty || "", tags: p.tags || "" }));
+      } catch (err) {
+        console.error("Problem load failed:", err.message);
+      }
+    }
+
+    async function loadContests() {
+      const table = document.getElementById("contestTable");
+      table.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-gray-500">Loading contests...</td></tr>';
+      try {
+        const data = await fetchJsonSafe("/superadmin/api/contests");
+        if (!data.contests.length) {
+          table.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-gray-500">No contests yet.</td></tr>';
+          return;
+        }
+        state.contests = data.contests || [];
+        table.innerHTML = state.contests.map((c) => {
+          const problemCount = Array.isArray(c.problems) ? c.problems.length : 0;
+          const publishBtn = c.status !== "accepted"
+            ? (problemCount > 0
+              ? `<button onclick="publishContest(${Number(c.id)})" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded text-xs">Publish</button>`
+              : `<button disabled class="bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2.5 py-1 rounded text-xs cursor-not-allowed" title="Add problems first">Publish</button>`)
+            : "";
+          return `
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/20">
+              <td class="py-3 px-4 font-medium text-gray-900 dark:text-gray-200">${esc(c.title)}</td>
+              <td class="py-3 px-4">${esc(c.contest_class || "E")}</td>
+              <td class="py-3 px-4">${problemCount}</td>
+              <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs ${c.status === "accepted" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300" : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"}">${esc(c.status)}</span></td>
+              <td class="py-3 px-4 text-center space-x-2">
+                <button onclick="openProblemOverlay(${Number(c.id)})" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1 rounded text-xs">Add Problems</button>
+                ${publishBtn}
+                <button onclick="deleteContest(${Number(c.id)})" class="bg-red-500 hover:bg-red-600 text-white px-2.5 py-1 rounded text-xs">Delete</button>
+              </td>
+            </tr>
+          `;
+        }).join("");
+      } catch (err) {
+        table.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-red-500">${esc(err.message || "Failed to load")}</td></tr>`;
+        console.error("Contest load failed:", err.message);
+      }
+    }
+
+    async function publishContest(id) {
+      if (!confirm("Publish this contest to all users?")) return;
+      try {
+        await fetchJsonSafe(`/superadmin/api/contests/${id}/publish`, { method: "POST" });
+      } catch (err) {
+        return alert(err.message || "Publish failed");
+      }
+      loadContests();
+    }
+
+    async function deleteContest(id) {
+      if (!confirm("Delete this contest?")) return;
+      try {
+        await fetchJsonSafe(`/superadmin/api/contests/${id}`, { method: "DELETE" });
+      } catch (err) {
+        return alert(err.message || "Delete failed");
+      }
+      loadContests();
+    }
+
+    function applyProblemFilters() {
+      const q = (document.getElementById("problemSearch").value || "").trim().toLowerCase();
+      const difficulty = (document.getElementById("difficultyFilter").value || "").trim().toLowerCase();
+      const tag = (document.getElementById("tagFilter").value || "").trim().toLowerCase();
+      overlayState.filtered = problemState.all.filter((p) => {
+        const title = String(p.title || "").toLowerCase();
+        const tags = String(p.tags || "").toLowerCase();
+        const diff = String(p.difficulty || "").toLowerCase();
+        if (difficulty && diff !== difficulty) return false;
+        if (q && !(`${title} ${tags}`.includes(q))) return false;
+        if (tag && !tags.includes(tag)) return false;
+        return true;
+      });
+      renderOverlayProblemList();
+    }
+
+    function renderOverlayProblemList() {
+      const list = document.getElementById("overlayProblemList");
+      if (!overlayState.filtered.length) {
+        list.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400 p-2">No problems match filters.</p>';
+      } else {
+        list.innerHTML = overlayState.filtered.map((p) => `
+          <label class="flex items-start gap-2 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700/60 cursor-pointer">
+            <input type="checkbox" value="${Number(p.id)}" class="overlay-problem-check mt-1" ${overlayState.selectedIds.has(Number(p.id)) ? "checked" : ""}>
+            <span class="text-sm text-gray-700 dark:text-gray-200">
+              <span class="font-medium">${esc(p.title || `Problem #${p.id}`)}</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400 ml-1">#${Number(p.id)}${p.difficulty ? ` · ${esc(p.difficulty)}` : ""}${p.tags ? ` · ${esc(p.tags)}` : ""}</span>
+            </span>
+          </label>
+        `).join("");
+      }
+      document.getElementById("overlayResultCount").textContent = `${overlayState.filtered.length} problems`;
+      document.getElementById("overlaySelectedCount").textContent = String(overlayState.selectedIds.size);
+      document.querySelectorAll(".overlay-problem-check").forEach((el) => {
+        el.addEventListener("change", (e) => {
+          const id = Number(e.target.value);
+          if (e.target.checked) overlayState.selectedIds.add(id);
+          else overlayState.selectedIds.delete(id);
+          document.getElementById("overlaySelectedCount").textContent = String(overlayState.selectedIds.size);
+        });
+      });
+    }
+
+    function openProblemOverlay(contestId) {
+      const contest = state.contests.find((c) => Number(c.id) === Number(contestId));
+      if (!contest) return;
+      overlayState.contestId = Number(contestId);
+      overlayState.selectedIds = new Set(getProblemIdsFromContest(contest));
+      document.getElementById("overlayContestTitle").textContent = contest.title || `Contest #${contestId}`;
+      document.getElementById("problemSearch").value = "";
+      document.getElementById("difficultyFilter").value = "";
+      document.getElementById("tagFilter").value = "";
+      applyProblemFilters();
+      const overlay = document.getElementById("problemOverlay");
+      overlay.classList.remove("hidden");
+      overlay.classList.add("flex");
+    }
+
+    function closeProblemOverlay() {
+      const overlay = document.getElementById("problemOverlay");
+      overlay.classList.add("hidden");
+      overlay.classList.remove("flex");
+      overlayState.contestId = null;
+    }
+
+    async function saveContestProblems() {
+      if (!overlayState.contestId) return;
+      const selected = problemState.all
+        .filter((p) => overlayState.selectedIds.has(Number(p.id)))
+        .map((p) => ({ id: Number(p.id), title: p.title || `Problem #${p.id}` }));
+      try {
+        await fetchJsonSafe(`/superadmin/api/contests/${overlayState.contestId}/problems`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ problems: selected })
+        });
+      } catch (err) {
+        return alert(err.message || "Failed to save problems");
+      }
+      closeProblemOverlay();
+      loadContests();
+    }
+
+    document.getElementById("contestForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const payload = {
+        title: document.getElementById("title").value,
+        description: document.getElementById("description").value,
+        contest_class: document.getElementById("contestClass").value,
+        duration: document.getElementById("duration").value,
+        startDate: document.getElementById("startDate").value || null,
+        endDate: document.getElementById("endDate").value || null,
+        prize: document.getElementById("prize").value,
+        guidelines: document.getElementById("guidelines").value,
+        problems: []
+      };
+      try {
+        await fetchJsonSafe("/superadmin/api/contests", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        return alert(err.message || "Creation failed");
+      }
+      e.target.reset();
+      loadContests();
+    });
+
+    document.getElementById("problemSearch").addEventListener("input", applyProblemFilters);
+    document.getElementById("difficultyFilter").addEventListener("change", applyProblemFilters);
+    document.getElementById("tagFilter").addEventListener("input", applyProblemFilters);
+
+    loadCurrentUser();
+    loadProblems();
+    loadContests();
+  </script>
+</body>
+</html>

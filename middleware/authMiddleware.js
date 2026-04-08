@@ -31,7 +31,7 @@ async function checkScope(req, res, next) {
             
             const [colleges, departments, allSubjects, allSections] = await Promise.all([
                 new Promise(resolve => db.all(`SELECT name FROM colleges`, (err, rows) => resolve(rows || []))),
-                new Promise(resolve => db.all(`SELECT DISTINCT department FROM users WHERE department != ''`, (err, rows) => resolve(rows || []))),
+                new Promise(resolve => db.all(`SELECT DISTINCT department FROM account_users WHERE department != ''`, (err, rows) => resolve(rows || []))),
                 new Promise(resolve => db.all(`SELECT DISTINCT name FROM subjects`, (err, rows) => resolve(rows || []))),
                 new Promise(resolve => db.all(`SELECT DISTINCT name FROM sections`, (err, rows) => resolve(rows || [])))
             ]);
@@ -51,7 +51,7 @@ async function checkScope(req, res, next) {
             req.userScope = { type: 'college', collegeName };
             
             const [departments, collSubjects, collSections] = await Promise.all([
-                new Promise(resolve => db.all(`SELECT DISTINCT department FROM users WHERE collegeName = ? AND department != ''`, [collegeName], (err, rows) => resolve(rows || []))),
+                new Promise(resolve => db.all(`SELECT DISTINCT department FROM account_users WHERE collegeName = ? AND department != ''`, [collegeName], (err, rows) => resolve(rows || []))),
                 new Promise(resolve => db.all(`SELECT DISTINCT name FROM subjects WHERE collegeName = ?`, [collegeName], (err, rows) => resolve(rows || []))),
                 new Promise(resolve => db.all(`SELECT DISTINCT name FROM sections WHERE collegeName = ?`, [collegeName], (err, rows) => resolve(rows || [])))
             ]);
@@ -131,9 +131,9 @@ async function checkScope(req, res, next) {
         if (userRole === 'faculty' || userRole === 'hos') {
             req.userScope = { type: 'specific', collegeName, department, userId: id };
 
-            // Return only their assigned subject, year, and section from user_assignments
+            // Return only their assigned subject, year, and section from faculty_assignments
             const myAssignments = await new Promise(resolve => {
-                db.all(`SELECT subject, year, section FROM user_assignments WHERE user_id = ? AND collegeName = ?`, 
+                db.all(`SELECT subject, year, section FROM faculty_assignments WHERE user_id = ? AND collegeName = ?`, 
                 [id, collegeName], (err, rows) => resolve(rows || []));
             });
 

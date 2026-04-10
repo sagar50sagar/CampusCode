@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusCode - Solve Problem</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { 
+                        sans: ["Poppins", "sans-serif"],
+                        mono: ["JetBrains Mono", "monospace"]
+                    },
+                    colors: {
+                        primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" },
+                        dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" }
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        /* --- IDE Scrollbars --- */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        .dark ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+        /* Split Pane Resizer (Visual only for this demo) */
+        .resizer {
+            width: 4px;
+            cursor: col-resize;
+            background-color: #e2e8f0;
+            transition: background 0.2s;
+        }
+        .dark .resizer { background-color: #374151; }
+        .resizer:hover { background-color: #3b82f6; }
+
+        /* Editor Line Numbers */
+        .line-numbers {
+            user-select: none;
+            text-align: right;
+            color: #94a3b8;
+            padding-right: 1rem;
+            border-right: 1px solid #e2e8f0;
+        }
+        .dark .line-numbers { border-color: #374151; color: #64748b; }
+    </style>
+</head>
+<body class="bg-white dark:bg-gray-900 h-screen flex flex-col font-sans text-gray-800 dark:text-gray-200 overflow-hidden">
+
+    <header class="h-14 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 bg-white dark:bg-gray-800 shrink-0 z-20">
+        <div class="flex items-center gap-4">
+                <i class="fas fa-code text-2xl"></i>
+                <span>CampusCode</span>
+            </a>
+            <div class="h-6 w-px bg-gray-300 dark:bg-gray-600 mx-2"></div>
+            <div class="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300">
+                <a href="problems.html" class="flex items-center gap-2 text-primary-600 dark:text-white font-bold text-xl">
+                <i class="fas fa-list"></i>
+                <span>Problem List</span></a>
+            </div>
+            <button class="text-gray-400 hover:text-gray-600 dark:hover:text-white"><i class="fas fa-chevron-left"></i></button>
+            <button class="text-gray-400 hover:text-gray-600 dark:hover:text-white"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-md text-sm font-mono text-gray-700 dark:text-gray-200">
+                <i class="fas fa-stopwatch text-primary-500"></i>
+                <span id="problemTimer">00:00:00</span>
+            </div>
+
+            <button class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-white px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-2">
+                <i class="fas fa-play text-xs"></i> Run
+            </button>
+            <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-md text-sm font-medium transition-colors shadow-sm">
+                Submit
+            </button>
+
+            <button id="themeToggleBtn" class="p-2 rounded-md text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                <i class="fas fa-moon"></i>
+            </button>
+            <div class="h-8 w-8 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold text-xs cursor-pointer">
+                JD
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 flex overflow-hidden">
+        
+        <div class="w-1/2 flex flex-col min-w-[300px] bg-white dark:bg-gray-900">
+            <div class="flex border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                <button class="px-4 py-2 text-sm font-medium text-primary-600 dark:text-blue-400 border-b-2 border-primary-600 dark:border-blue-400 bg-white dark:bg-gray-900">
+                    <i class="fas fa-file-alt mr-1.5"></i> Description
+                </button>
+                <button class="px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+                    <i class="fas fa-flask mr-1.5"></i> Editorial
+                </button>
+                <button class="px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+                    <i class="fas fa-history mr-1.5"></i> Submissions
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                <div class="flex items-center justify-between mb-4">
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">1. Two Sum</h1>
+                    <div class="flex gap-2">
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">Easy</span>
+                        <span class="text-xs text-gray-500 flex items-center gap-1"><i class="far fa-thumbs-up"></i> 12.4K</span>
+                    </div>
+                </div>
+
+                <div class="prose dark:prose-invert max-w-none text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                    <p class="mb-4">Given an array of integers <code>nums</code> and an integer <code>target</code>, return <em>indices of the two numbers such that they add up to <code>target</code></em>.</p>
+                    <p class="mb-4">You may assume that each input would have <strong>exactly one solution</strong>, and you may not use the same element twice.</p>
+                    <p class="mb-6">You can return the answer in any order.</p>
+
+                    <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-6 border border-gray-200 dark:border-gray-700">
+                        <p class="font-bold text-xs uppercase text-gray-500 dark:text-gray-400 mb-2">Example 1:</p>
+                        <div class="font-mono text-sm">
+                            <p><span class="font-bold">Input:</span> nums = [2,7,11,15], target = 9</p>
+                            <p><span class="font-bold">Output:</span> [0,1]</p>
+                            <p><span class="text-gray-500">Explanation: Because nums[0] + nums[1] == 9, we return [0, 1].</span></p>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-6 border border-gray-200 dark:border-gray-700">
+                        <p class="font-bold text-xs uppercase text-gray-500 dark:text-gray-400 mb-2">Example 2:</p>
+                        <div class="font-mono text-sm">
+                            <p><span class="font-bold">Input:</span> nums = [3,2,4], target = 6</p>
+                            <p><span class="font-bold">Output:</span> [1,2]</p>
+                        </div>
+                    </div>
+
+                    <h3 class="text-sm font-bold uppercase text-gray-500 dark:text-gray-400 mb-2">Constraints:</h3>
+                    <ul class="list-disc pl-5 space-y-1 font-mono text-xs">
+                        <li>2 <= nums.length <= 10<sup>4</sup></li>
+                        <li>-10<sup>9</sup> <= nums[i] <= 10<sup>9</sup></li>
+                        <li>-10<sup>9</sup> <= target <= 10<sup>9</sup></li>
+                        <li><strong>Only one valid answer exists.</strong></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="h-12 border-t border-gray-200 dark:border-gray-700 flex items-center px-4 gap-4 bg-white dark:bg-gray-900 shrink-0">
+                <button class="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors"><i class="far fa-thumbs-up"></i></button>
+                <button class="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors"><i class="far fa-thumbs-down"></i></button>
+                <button class="text-gray-400 hover:text-yellow-500 transition-colors"><i class="far fa-star"></i></button>
+                <button class="ml-auto text-gray-400 hover:text-gray-600 dark:hover:text-white"><i class="fas fa-share-alt"></i></button>
+            </div>
+        </div>
+
+        <div class="resizer shrink-0"></div>
+
+        <div class="flex-1 flex flex-col bg-white dark:bg-gray-900 min-w-[300px]">
+            <div class="h-10 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-3 bg-gray-50 dark:bg-gray-800">
+                <div class="flex items-center gap-2">
+                    <select class="bg-transparent text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary-500">
+                        <option>C++ (G++ 17)</option>
+                        <option>Java 17</option>
+                        <option>Python 3</option>
+                        <option>JavaScript (Node)</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-3 text-gray-500 dark:text-gray-400">
+                    <button class="hover:text-primary-500"><i class="fas fa-cog"></i></button>
+                    <button class="hover:text-primary-500"><i class="fas fa-expand"></i></button>
+                </div>
+            </div>
+
+            <div class="flex-1 flex font-mono text-sm overflow-hidden bg-white dark:bg-[#1e1e1e] relative">
+                <div class="line-numbers py-4 bg-gray-50 dark:bg-[#1e1e1e] text-right min-w-[3rem]">
+                    1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12
+                </div>
+                <textarea spellcheck="false" class="flex-1 p-4 bg-transparent border-0 resize-none outline-none text-gray-800 dark:text-[#d4d4d4] leading-6 w-full h-full">
+class Solution {
+public:
+    vector<int> twoSum(vector<int>& nums, int target) {
+        // Create a map to store the number and its index
+        unordered_map<int, int> numMap;
+        
+        for (int i = 0; i < nums.size(); i++) {
+            int complement = target - nums[i];
+            
+            // If complement exists in map, we found the pair
+            if (numMap.find(complement) != numMap.end()) {
+                return {numMap[complement], i};
+            }
+            
+            // Store current number and index
+            numMap[nums[i]] = i;
+        }
+        
+        return {}; // Should not reach here
+    }
+};
+                </textarea>
+            </div>
+
+            <div class="h-40 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex flex-col">
+                <div class="flex items-center px-4 py-2 gap-4 border-b border-gray-200 dark:border-gray-700">
+                    <button class="text-xs font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                        <i class="fas fa-terminal text-green-500"></i> Testcase
+                    </button>
+                    <button class="text-xs font-medium text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                        Result
+                    </button>
+                    <button class="ml-auto text-gray-400 hover:text-gray-600"><i class="fas fa-chevron-down"></i></button>
+                </div>
+                <div class="flex-1 p-4 font-mono text-xs overflow-auto">
+                    <div class="mb-2 text-gray-500">Input:</div>
+                    <div class="bg-white dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-700 mb-3 text-gray-700 dark:text-gray-300">
+                        nums = [2,7,11,15], target = 9
+                    </div>
+                    <div class="mb-2 text-gray-500">Output:</div>
+                    <div class="bg-white dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
+                        [0,1]
+                    </div>
+                </div>
+            </div>
+
+            <div class="h-14 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-between px-4 shrink-0">
+                <button class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white flex items-center gap-2">
+                    <i class="fas fa-bug"></i> Debugger
+                </button>
+                <div class="flex gap-3">
+                    <button class="px-5 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-sm font-medium text-gray-700 dark:text-white transition-colors">
+                        Run
+                    </button>
+                    <button onclick="submitCode()" class="px-5 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
+                        Submit
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="successModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center transform scale-95 transition-transform duration-300">
+            <div class="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-check text-3xl text-green-500"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Accepted!</h2>
+            <p class="text-gray-500 dark:text-gray-400 mb-6">Runtime: 0ms • Faster than 100%</p>
+            <div class="flex justify-center gap-3">
+                <button onclick="window.location.href='problems.html'" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-white">
+                    Problem List
+                </button>
+                <button onclick="document.getElementById('successModal').classList.add('hidden')" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 rounded-lg text-sm font-medium text-white">
+                    Next Problem
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. Theme Toggle ---
+        const themeBtn = document.getElementById('themeToggleBtn');
+        const html = document.documentElement;
+        
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            html.classList.add('dark');
+            themeBtn.innerHTML = '<i class="fas fa-sun"></i>';
+        }
+
+        themeBtn.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            if (html.classList.contains('dark')) {
+                localStorage.theme = 'dark';
+                themeBtn.innerHTML = '<i class="fas fa-sun"></i>';
+            } else {
+                localStorage.theme = 'light';
+                themeBtn.innerHTML = '<i class="fas fa-moon"></i>';
+            }
+        });
+
+        // --- 2. Timer Logic ---
+        const timerEl = document.getElementById('problemTimer');
+        let seconds = 0;
+        setInterval(() => {
+            seconds++;
+            const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+            const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+            const s = String(seconds % 60).padStart(2, '0');
+            timerEl.textContent = `${h}:${m}:${s}`;
+        }, 1000);
+
+        // --- 3. Submit Simulation ---
+        function submitCode() {
+            const btn = document.querySelector('button[onclick="submitCode()"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Pending...';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                document.getElementById('successModal').classList.remove('hidden');
+                
+                // Animate modal entry
+                const modalBox = document.querySelector('#successModal > div');
+                modalBox.classList.remove('scale-95');
+                modalBox.classList.add('scale-100');
+            }, 1500);
+        }
+    </script>
+</body>
+</html>

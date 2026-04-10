@@ -15,6 +15,7 @@ function requireRole(roles) {
         'hod': ['hod', 'hos', 'faculty', 'student'],
         'hos': ['hos', 'faculty'],
         'faculty': ['faculty'],
+        'individual': ['individual', 'student'],
         'student': ['student']
     };
 

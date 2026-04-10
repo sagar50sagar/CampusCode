@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student - Dashboard</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ["Poppins", "sans-serif"] },
+                    colors: {
+                        primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" },
+                        dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" }
+                    },
+                },
+            },
+        };
+    </script>
+
+    <style>
+        /* --- Scrollbar --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        .dark ::-webkit-scrollbar-track { background: #111827; }
+        ::-webkit-scrollbar-thumb { background: #7ba4d0; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #2e5e99; }
+
+        /* --- Sidebar Logic --- */
+        .sidebar {
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        /* Collapsed State Styles */
+        .sidebar.collapsed .nav-item {
+            justify-content: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+        .sidebar.collapsed .nav-item i {
+            margin-right: 0;
+            font-size: 1.25rem;
+        }
+        .sidebar.collapsed .nav-item span { display: none; }
+        .sidebar.collapsed .bottom-menu span { display: none; }
+        .sidebar.collapsed .bottom-menu .nav-item { justify-content: center; }
+
+        /* --- Nav Item Styling --- */
+        .nav-item {
+            transition: all 0.2s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.25rem;
+            color: #374151;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .nav-item:hover { background-color: #f3f4f6; }
+        .dark .nav-item { color: #d1d5db; }
+        .dark .nav-item:hover { background-color: #374151; }
+        .nav-item.active { background-color: #d0e1f5; color: #1e4a7a; }
+        .dark .nav-item.active { background-color: #1e4a7a; color: #ffffff; }
+        
+        .nav-item.active::before {
+            content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+            height: 60%; width: 4px; background-color: #2e5e99; border-radius: 0 4px 4px 0;
+        }
+        .dark .nav-item.active::before { background-color: #60a5fa; }
+        
+        .nav-item i { width: 1.5rem; text-align: center; margin-right: 0.75rem; font-size: 1.1rem; flex-shrink: 0; }
+        .nav-item span { font-size: 0.875rem; font-weight: 500; }
+
+        /* Widgets */
+        .timer-widget { transition: background-color 0.2s ease; }
+        .streak-count { font-size: 1.875rem; font-weight: 700; color: #1e4a7a; }
+        .dark .streak-count { color: #60a5fa; }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200">
+    <div class="flex h-screen overflow-hidden">
+        <aside id="mainSidebar" class="sidebar w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen flex-shrink-0 transition-colors duration-200 z-50">
+
+            <div class="p-6 flex-shrink-0 flex items-center justify-between h-[88px]">
+                <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2 overflow-hidden whitespace-nowrap">
+                    <i class="fas fa-code text-primary-500 text-2xl flex-shrink-0"></i>
+                    <span id="sidebarLogoText" class="transition-all duration-300 opacity-100 w-auto">CampusCode</span>
+                </h1>
+                
+                <button id="sidebarToggleBtn" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary-500 transition-colors focus:outline-none">
+                    <i class="fas fa-chevron-left transition-transform duration-300"></i>
+                </button>
+            </div>
+
+            <nav class="flex-1 px-4 space-y-1 overflow-y-auto mt-2">
+                <a href="index.html" class="nav-item active"><i class="fas fa-home"></i><span>Home</span></a>
+                <a href="problems.html" class="nav-item"><i class="fas fa-tasks"></i><span>Problems</span></a>
+                <a href="contest.html" class="nav-item"><i class="fas fa-trophy"></i><span>Contests</span></a>
+                <a href="forum.html" class="nav-item"><i class="fas fa-comments"></i><span>Community</span></a>
+                <a href="stats.html" class="nav-item"><i class="fas fa-list"></i><span>Stats</span></a>
+                <a href="report.html" class="nav-item"><i class="fas fa-chart-pie"></i><span>Report</span></a>
+                <a href="profile.html" class="nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+            </nav>
+
+            <div class="p-4 space-y-1 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0 bottom-menu">
+                <a href="support.html" class="nav-item"><i class="far fa-question-circle"></i><span>Help & Support</span></a>
+               <div id="settingsTrigger" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></div>
+            </div>
+        </aside>
+        <div class="flex-1 overflow-y-auto">
+            <header class="bg-white dark:bg-gray-800 shadow-sm transition-colors duration-200 sticky top-0 z-40">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+
+                    <div class="flex-1 max-w-2xl ml-4 flex items-center gap-4">
+                        <h1 id="headerLogoText" class="text-xl font-bold text-gray-800 dark:text-white hidden transition-all duration-300 opacity-0 transform -translate-x-2 whitespace-nowrap">
+                            CampusCode
+                        </h1>
+
+                        <div class="relative flex items-center w-full">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                            <input type="text"
+                                class="block w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
+                                placeholder="Search..." />
+                        </div>
+                    </div>
+
+                    <div class="ml-4 flex items-center gap-3">
+                        <button id="themeToggleBtn" class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none transition-transform active:scale-95">
+                            <i class="fas fa-moon text-xl"></i>
+                        </button>
+                        <div class="relative">
+                            <button id="notificationBtn" class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none">
+                                <i class="fas fa-bell text-xl"></i>
+                                <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-800"></span>
+                            </button>
+                        </div>
+                        <button id="headerProfileBtn" class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <div class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm">JD</div>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block">John Doe</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div class="mb-8">
+                    <h1 id="greetingTitle" class="text-2xl font-bold text-gray-800 dark:text-white">Good to see you!</h1>
+                    <p id="greetingSubtitle" class="text-gray-600 dark:text-gray-400">Here's your progress today</p>
+
+                    <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Current Streak</p>
+                                    <p id="streakCount" class="streak-count">0 days</p>
+                                    <p id="streakHint" class="text-sm text-green-500 mt-1">Keep it up! Fire streak active.</p>
+                                </div>
+                                <div class="p-3 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-500"><i class="fas fa-fire text-2xl"></i></div>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Global Rank</p>
+                                    <p id="globalRankValue" class="text-3xl font-bold text-primary-600 dark:text-blue-400">#-</p>
+                                    <p id="topPercentValue" class="text-sm text-gray-500 dark:text-gray-400 mt-1">Top 100%</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+                            <div class="flex justify-between items-center mb-2">
+                                <p id="levelLabel" class="text-sm font-medium text-gray-700 dark:text-gray-300">Level 1</p>
+                                <p id="xpLabel" class="text-sm font-medium text-primary-600 dark:text-blue-400">0/500 XP</p>
+                            </div>
+                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                                <div id="xpProgressBar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                            </div>
+                            <p id="xpToNext" class="mt-2 text-xs text-gray-500 dark:text-gray-400">500 XP to next level</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Activity Heatmap</h2>
+                                <select class="text-sm border-0 bg-transparent text-primary-600 dark:text-blue-400 font-medium focus:ring-0 cursor-pointer dark:bg-gray-800">
+                                    <option>Last 12 months</option>
+                                </select>
+                            </div>
+                            <div class="overflow-x-auto pb-2">
+                                <div class="flex">
+                                    <div class="flex flex-col text-[10px] text-gray-400 dark:text-gray-500 gap-1 mr-2 mt-1">
+                                        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                                    </div>
+                                    <div id="heatmapGrid" class="grid grid-rows-7 grid-flow-col gap-1 w-max"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+                             <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Performance Overview</h2>
+                             <div class="h-64"><canvas id="performanceChart"></canvas></div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+                            <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Recent Problems</h2>
+                            <div id="recentProblemsList" class="space-y-4">
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mt-1"><i class="fas fa-check text-green-500 text-xs"></i></div>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-200">Two Sum</p>
+                                        <div class="flex items-center mt-1 gap-2"><span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300">Easy</span><span class="text-xs text-gray-500 dark:text-gray-400">2 days ago</span></div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center mt-1"><i class="fas fa-code text-yellow-500 text-xs"></i></div>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-200">Longest Substring...</p>
+                                        <div class="flex items-center mt-1 gap-2"><span class="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300">Medium</span><span class="text-xs text-gray-500 dark:text-gray-400">5 days ago</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="/individual/problems" class="mt-4 inline-flex items-center text-sm font-medium text-primary-600 dark:text-blue-400 hover:text-primary-700">View all problems <i class="fas fa-arrow-right ml-1 text-xs"></i></a>
+                        </div>
+
+                        <div class="timer-widget bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col justify-center items-center relative overflow-hidden">
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider z-10">Current Session</p>
+                            <div class="flex items-center gap-3 mt-2 z-10">
+                                <i class="fas fa-stopwatch text-2xl text-emerald-500 animate-pulse"></i>
+                                <span id="sessionTimer" class="text-3xl font-mono font-bold text-slate-800 timer-display">00:00:00</span>
+                            </div>
+                            <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-50 rounded-full z-0"></div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <div id="notificationDropdown" class="fixed top-16 right-6 z-[70] w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 hidden animate-[fadeIn_0.1s_ease-out]">
+        <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+            <h3 class="font-semibold text-gray-800 dark:text-white">Notifications</h3>
+            <span class="text-xs text-primary-500 cursor-pointer hover:underline">Mark all read</span>
+        </div>
+        <div class="p-2">
+            <div class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer">
+                <p class="text-sm text-gray-800 dark:text-gray-200 font-medium">Contest Reminder</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Weekly contest starts in 1 hour.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="profileOverlay" class="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+        <div class="w-[340px] bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden animate-[fadeIn_0.2s_ease-out]">
+            <div class="bg-[#1E4A7A] dark:bg-[#0f2a4a] relative pt-8 pb-16 px-6 text-center">
+                <button id="closeProfileOverlay" class="absolute top-4 right-4 text-white/70 hover:text-white"><i class="fas fa-times text-lg"></i></button>
+                <div class="absolute top-4 left-4">
+                     <button class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-white hover:bg-white/20"><i class="fas fa-qrcode text-xs"></i></button>
+                </div>
+                <div class="absolute left-1/2 bottom-[-45px] -translate-x-1/2">
+                    <div class="w-24 h-24 rounded-full bg-[#1E4A7A] p-1"> 
+                         <div class="w-full h-full rounded-full bg-[#1E4A7A] flex items-center justify-center text-white text-4xl font-normal border-4 border-white dark:border-gray-800">JD</div>
+                    </div>
+                </div>
+            </div>
+            <div class="pt-14 pb-6 px-6 text-center">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white">John Doe</h2>
+                <div class="flex flex-col items-center mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    
+                    <span>ID: CS2025_001</span>
+                </div>
+                <div class="flex justify-between mt-6 px-2">
+                    <div class="text-center">
+                        <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Solved</div>
+                        <div class="text-xl font-bold text-gray-900 dark:text-white mt-1">124</div>
+                    </div>
+                    <div class="text-center border-l border-r border-gray-100 dark:border-gray-700 px-4">
+                        <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Rank</div>
+                        <div class="text-xl font-bold text-gray-900 dark:text-white mt-1">42</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Points</div>
+                        <div class="text-xl font-bold text-gray-900 dark:text-white mt-1">1.2k</div>
+                    </div>
+                </div>
+                <div class="h-px bg-gray-100 dark:bg-gray-700 my-6"></div>
+                <div class="space-y-1">
+                    <a href="profile.html" class="nav-item"><i class="fas fa-id-card"></i><span>My Profile </span></a>
+                    <a href="edit-profile.html" class="nav-item"><i class="fas fa-pen"></i><span>Edit profile</span></a>
+                    <a href="reports.html" class="nav-item"><i class="fas fa-chart-pie"></i><span>Report</span></a>
+                    <a href="stats.html" class="nav-item"><i class="fas fa-list"></i><span>Stats</span></a>
+                    <button id="logoutBtn" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
+                        <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </div>
+                        <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="settingsMenu" class="hidden fixed bottom-16 left-4 w-72 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-2xl rounded-2xl z-[9999] overflow-hidden transform transition-all duration-200 origin-bottom-left">
+    
+        <div class="p-2 space-y-1">
+            <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Account</div>
+            <a href="profile.html" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors cursor-pointer group">
+                <i class="fas fa-user-circle w-5 text-gray-400 group-hover:text-primary-500 transition-colors"></i>
+                Profile
+            </a>
+        </div>
+
+        <div class="h-px bg-gray-100 dark:bg-gray-700 mx-4"></div>
+
+        <div class="p-2 space-y-1">
+            <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Preferences</div>
+            
+            <button id="themeAccordionBtn" class="w-full flex justify-between items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors cursor-pointer group focus:outline-none">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-palette w-5 text-gray-400 group-hover:text-primary-500 transition-colors"></i>
+                    <span>Theme</span>
+                </div>
+                <i id="themeChevron" class="fas fa-chevron-right text-xs text-gray-400 transition-transform duration-200"></i>
+            </button>
+
+            <div id="themeOptionsContainer" class="hidden pl-4 pr-1 space-y-1 pb-1">
+                <button data-value="light" class="theme-option w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
+                    <span class="flex items-center gap-2"><i class="fas fa-sun text-orange-400 w-4"></i> Light</span>
+                    <i class="fas fa-check text-primary-500 opacity-0 check-icon"></i>
+                </button>
+                <button data-value="dark" class="theme-option w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
+                    <span class="flex items-center gap-2"><i class="fas fa-moon text-indigo-400 w-4"></i> Dark</span>
+                    <i class="fas fa-check text-primary-500 opacity-0 check-icon"></i>
+                </button>
+                <button data-value="system" class="theme-option w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
+                    <span class="flex items-center gap-2"><i class="fas fa-desktop text-gray-400 w-4"></i> System</span>
+                    <i class="fas fa-check text-primary-500 opacity-0 check-icon"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // --- 1. SIDEBAR TOGGLE LOGIC ---
+            const sidebar = document.getElementById('mainSidebar');
+            const toggleBtn = document.getElementById('sidebarToggleBtn');
+            const toggleIcon = toggleBtn ? toggleBtn.querySelector('i') : null;
+            const sidebarLogoText = document.getElementById('sidebarLogoText');
+            const headerLogoText = document.getElementById('headerLogoText');
+
+            if (toggleBtn && sidebar) {
+                toggleBtn.addEventListener('click', () => {
+                    sidebar.classList.toggle('collapsed');
+
+                    // Check if collapsed via class or width logic
+                    if (sidebar.classList.contains('collapsed')) {
+                        // COLLAPSE
+                        sidebar.classList.replace('w-64', 'w-20');
+                        if(toggleIcon) toggleIcon.style.transform = 'rotate(180deg)';
+                        
+                        // Sidebar Text
+                        if(sidebarLogoText) {
+                            sidebarLogoText.style.opacity = '0';
+                            sidebarLogoText.style.width = '0px';
+                        }
+                        
+                        // Header Text
+                        if(headerLogoText) {
+                            headerLogoText.classList.remove('hidden');
+                            setTimeout(() => {
+                                headerLogoText.classList.remove('opacity-0', '-translate-x-2');
+                            }, 50);
+                        }
+
+                    } else {
+                        // EXPAND
+                        sidebar.classList.replace('w-20', 'w-64');
+                        if(toggleIcon) toggleIcon.style.transform = 'rotate(0deg)';
+                        
+                        // Sidebar Text
+                        if(sidebarLogoText) {
+                            sidebarLogoText.style.opacity = '1';
+                            sidebarLogoText.style.width = 'auto';
+                        }
+
+                        // Header Text
+                        if(headerLogoText) {
+                            headerLogoText.classList.add('opacity-0', '-translate-x-2');
+                            setTimeout(() => {
+                                headerLogoText.classList.add('hidden');
+                            }, 300);
+                        }
+                    }
+                });
+            }
+
+            // --- 2. SETTINGS, THEME & ACCORDION LOGIC ---
+            const settingsTrigger = document.getElementById('settingsTrigger');
+            const settingsMenu = document.getElementById('settingsMenu');
+            const themeAccordionBtn = document.getElementById('themeAccordionBtn');
+            const themeOptionsContainer = document.getElementById('themeOptionsContainer');
+            const themeChevron = document.getElementById('themeChevron');
+            const themeOptions = document.querySelectorAll('.theme-option');
+            const headerThemeBtn = document.getElementById('themeToggleBtn');
+            const headerThemeIcon = headerThemeBtn ? headerThemeBtn.querySelector('i') : null;
+
+            // A. Apply Theme Function
+            function applyTheme(themeName) {
+                const html = document.documentElement;
+                
+                if (themeName === 'dark') {
+                    html.classList.add('dark');
+                    localStorage.theme = 'dark';
+                } else if (themeName === 'light') {
+                    html.classList.remove('dark');
+                    localStorage.theme = 'light';
+                } else {
+                    // System Preference
+                    localStorage.removeItem('theme');
+                    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                        html.classList.add('dark');
+                    } else {
+                        html.classList.remove('dark');
+                    }
+                }
+
+                // Update Header Icon
+                if (headerThemeIcon) {
+                    if (html.classList.contains('dark')) {
+                        headerThemeIcon.classList.replace('fa-moon', 'fa-sun');
+                    } else {
+                        headerThemeIcon.classList.replace('fa-sun', 'fa-moon');
+                    }
+                }
+                
+                // Update Chart (if exists)
+                if(window.myPerformanceChart) window.myPerformanceChart.update();
+
+                // Update Settings Menu Checkmarks
+                themeOptions.forEach(btn => {
+                    const checkIcon = btn.querySelector('.check-icon');
+                    const isSelected = btn.getAttribute('data-value') === themeName;
+                    
+                    if (isSelected) {
+                        btn.classList.add('bg-primary-50', 'dark:bg-primary-900/20', 'text-primary-600', 'dark:text-primary-400');
+                        checkIcon.classList.remove('opacity-0');
+                    } else {
+                        btn.classList.remove('bg-primary-50', 'dark:bg-primary-900/20', 'text-primary-600', 'dark:text-primary-400');
+                        checkIcon.classList.add('opacity-0');
+                    }
+                });
+            }
+
+            // B. Toggle Settings Menu
+            if (settingsTrigger && settingsMenu) {
+                settingsTrigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    settingsMenu.classList.toggle('hidden');
+                    
+                    // Adjust position if sidebar is collapsed
+                    if (sidebar && sidebar.classList.contains('collapsed')) {
+                        settingsMenu.style.left = '80px';
+                    } else {
+                        settingsMenu.style.left = '16px';
+                    }
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!settingsMenu.contains(e.target) && !settingsTrigger.contains(e.target)) {
+                        settingsMenu.classList.add('hidden');
+                    }
+                });
+            }
+
+            // C. Toggle Theme Accordion
+            if (themeAccordionBtn && themeOptionsContainer) {
+                themeAccordionBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    themeOptionsContainer.classList.toggle('hidden');
+                    themeChevron.style.transform = themeOptionsContainer.classList.contains('hidden') 
+                        ? 'rotate(0deg)' 
+                        : 'rotate(90deg)';
+                });
+            }
+
+            // D. Theme Option Clicks
+            themeOptions.forEach(option => {
+                option.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const selectedTheme = option.getAttribute('data-value');
+                    applyTheme(selectedTheme);
+                });
+            });
+
+            // E. Header Quick Toggle
+            if (headerThemeBtn) {
+                headerThemeBtn.addEventListener('click', () => {
+                    const isDark = document.documentElement.classList.contains('dark');
+                    applyTheme(isDark ? 'light' : 'dark');
+                });
+            }
+
+            // F. Initialize
+            const savedTheme = localStorage.theme || 'system';
+            applyTheme(savedTheme);
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                if (!localStorage.theme) applyTheme('system');
+            });
+
+
+            // --- 3. OVERLAYS & NOTIFICATIONS ---
+            const overlay = document.getElementById("profileOverlay");
+            const headerProfileBtn = document.getElementById("headerProfileBtn");
+            const closeBtn = document.getElementById("closeProfileOverlay");
+            if(headerProfileBtn && overlay) headerProfileBtn.addEventListener("click", () => overlay.classList.remove("hidden"));
+            if(closeBtn && overlay) closeBtn.addEventListener("click", () => overlay.classList.add("hidden"));
+            if(overlay) overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.classList.add("hidden"); });
+
+            const notifBtn = document.getElementById('notificationBtn');
+            const notifDropdown = document.getElementById('notificationDropdown');
+            if (notifBtn && notifDropdown) {
+                notifBtn.addEventListener('click', (e) => { e.stopPropagation(); notifDropdown.classList.toggle('hidden'); });
+                document.addEventListener('click', (e) => {
+                    if(!notifDropdown.contains(e.target) && !notifBtn.contains(e.target)) notifDropdown.classList.add('hidden');
+                });
+            }
+
+    if(overlay) overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.classList.add("hidden"); });
+
+    // *** PASTE LOGOUT LOGIC HERE ***
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            window.location.href = '/auth/logout';
+        });
+    }
+    // ... rest of code ...
+
+            // --- 4. DASHBOARD WIDGETS (Timer, Heatmap, Chart) ---
+            
+            // Timer
+            const timerDisplay = document.getElementById("sessionTimer");
+            if (timerDisplay) {
+                let totalSeconds = 0;
+                setInterval(() => {
+                    totalSeconds++;
+                    const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+                    const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+                    const s = String(totalSeconds % 60).padStart(2, '0');
+                    timerDisplay.textContent = `${h}:${m}:${s}`;
+                }, 1000);
+            }
+
+            // Heatmap
+            const heatmapGrid = document.getElementById("heatmapGrid");
+            if (heatmapGrid) {
+                for (let i = 0; i < 371; i++) {
+                    const div = document.createElement("div");
+                    div.className = "w-3 h-3 rounded-[2px] m-[1px]";
+                    const r = Math.random();
+                    if (r < 0.15) div.classList.add("bg-green-500");
+                    else if (r < 0.35) div.classList.add("bg-green-400");
+                    else if (r < 0.65) div.classList.add("bg-green-300");
+                    else div.classList.add("bg-gray-100", "dark:bg-gray-700");
+                    heatmapGrid.appendChild(div);
+                }
+            }
+
+            // Chart
+            const chartCanvas = document.getElementById("performanceChart");
+            if (chartCanvas) {
+                const ctx = chartCanvas.getContext("2d");
+                window.myPerformanceChart = new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
+                        datasets: [{
+                            label: "Problems Solved",
+                            data: [12, 19, 15, 27, 23, 35, 42],
+                            borderColor: "#2E5E99",
+                            backgroundColor: "rgba(46, 94, 153, 0.1)",
+                            tension: 0.3,
+                            fill: true,
+                        }],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true, grid: { display: true, color: "rgba(0,0,0,0.05)" } },
+                            x: { grid: { display: false } },
+                        },
+                    },
+                });
+            }
+
+            const formatAgo = (dateValue) => {
+                if (!dateValue) return '';
+                const then = new Date(dateValue);
+                const now = new Date();
+                const diffMs = now - then;
+                const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                if (diffDays <= 0) return 'today';
+                if (diffDays === 1) return '1 day ago';
+                return `${diffDays} days ago`;
+            };
+
+            const difficultyBadgeClass = (difficulty) => {
+                const d = String(difficulty || '').toLowerCase();
+                if (d === 'hard') return 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300';
+                if (d === 'medium') return 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300';
+                return 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300';
+            };
+
+            async function loadDashboardData() {
+                try {
+                    const resp = await fetch('/individual/api/dashboard-data');
+                    const json = await resp.json();
+                    if (!json.success || !json.dashboard) return;
+                    const d = json.dashboard;
+
+                    const greetingTitle = document.getElementById('greetingTitle');
+                    const greetingSubtitle = document.getElementById('greetingSubtitle');
+                    const streakCount = document.getElementById('streakCount');
+                    const globalRankValue = document.getElementById('globalRankValue');
+                    const topPercentValue = document.getElementById('topPercentValue');
+                    const levelLabel = document.getElementById('levelLabel');
+                    const xpLabel = document.getElementById('xpLabel');
+                    const xpProgressBar = document.getElementById('xpProgressBar');
+                    const xpToNext = document.getElementById('xpToNext');
+                    const recentProblemsList = document.getElementById('recentProblemsList');
+
+                    if (greetingTitle) greetingTitle.textContent = `Good to see you, ${d.user.fullName || 'Individual'}!`;
+                    if (greetingSubtitle) greetingSubtitle.textContent = 'Your live progress from the platform database.';
+                    if (streakCount) streakCount.textContent = `${Number(d.streakDays || 0)} days`;
+                    if (globalRankValue) globalRankValue.textContent = d.user.globalRank || '#-';
+                    if (topPercentValue) topPercentValue.textContent = d.user.topPercent || 'Top 100%';
+                    if (levelLabel) levelLabel.textContent = `Level ${Number(d.level || 1)}`;
+                    if (xpLabel) xpLabel.textContent = `${Number(d.levelCurrentXp || 0)}/${Number(d.levelTargetXp || 500)} XP`;
+                    if (xpProgressBar) xpProgressBar.style.width = `${Math.max(0, Math.min(100, Number(d.levelProgress || 0)))}%`;
+                    if (xpToNext) xpToNext.textContent = `${Number(d.xpToNext || 0)} XP to next level`;
+
+                    const headerName = document.querySelector('#headerProfileBtn span');
+                    const headerAvatar = document.querySelector('#headerProfileBtn .h-9.w-9');
+                    const overlayName = document.querySelector('#profileOverlay h2');
+                    const overlaySolved = document.querySelector('#profileOverlay .text-center .text-xl.font-bold');
+                    const initials = String(d.user.fullName || 'U').split(' ').filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase() || 'U';
+                    if (headerName) headerName.textContent = d.user.fullName || 'Individual';
+                    if (headerAvatar) headerAvatar.textContent = initials;
+                    if (overlayName) overlayName.textContent = d.user.fullName || 'Individual';
+                    if (overlaySolved) overlaySolved.textContent = String(Number(d.user.solved || 0));
+
+                    if (recentProblemsList) {
+                        const rows = Array.isArray(d.recentProblems) ? d.recentProblems : [];
+                        if (!rows.length) {
+                            recentProblemsList.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">No solved problems yet.</p>';
+                        } else {
+                            recentProblemsList.innerHTML = rows.map((row) => `
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mt-1"><i class="fas fa-check text-green-500 text-xs"></i></div>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-200">${String(row.title || 'Problem')}</p>
+                                        <div class="flex items-center mt-1 gap-2">
+                                            <span class="px-2 py-0.5 rounded-full text-xs font-medium ${difficultyBadgeClass(row.difficulty)}">${String(row.difficulty || 'Easy')}</span>
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">${formatAgo(row.solvedAt)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('');
+                        }
+                    }
+
+                    if (heatmapGrid && Array.isArray(d.heatmapData)) {
+                        heatmapGrid.innerHTML = '';
+                        d.heatmapData.forEach((day) => {
+                            const div = document.createElement('div');
+                            div.className = 'w-3 h-3 rounded-[2px] m-[1px]';
+                            const value = Number(day.value || 0);
+                            if (value >= 4) div.classList.add('bg-green-600');
+                            else if (value >= 2) div.classList.add('bg-green-500');
+                            else if (value >= 1) div.classList.add('bg-green-300');
+                            else div.classList.add('bg-gray-100', 'dark:bg-gray-700');
+                            heatmapGrid.appendChild(div);
+                        });
+                    }
+
+                    if (window.myPerformanceChart && Array.isArray(d.activityLabels) && Array.isArray(d.activityData)) {
+                        window.myPerformanceChart.data.labels = d.activityLabels;
+                        window.myPerformanceChart.data.datasets[0].data = d.activityData;
+                        window.myPerformanceChart.update();
+                    }
+                } catch (e) {
+                    console.error('Failed to load individual dashboard data', e);
+                }
+            }
+
+            loadDashboardData();
+        });
+    </script>
+</body>
+</html>

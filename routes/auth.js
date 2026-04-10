@@ -8,6 +8,8 @@ module.exports = (db, transporter) => {
         SELECT *, 'student' as source_table FROM student WHERE email = ?
         UNION ALL
         SELECT *, 'faculty' as source_table FROM faculty WHERE email = ?
+        UNION ALL
+        SELECT *, 'users' as source_table FROM users WHERE email = ?
         LIMIT 1
     `;
 
@@ -20,7 +22,7 @@ module.exports = (db, transporter) => {
         if (!email) return res.status(400).json({ success: false, message: 'Email is required.' });
 
         // Check if the email is already registered
-        db.get(USER_LOOKUP_SQL, [email, email], (err, row) => {
+        db.get(USER_LOOKUP_SQL, [email, email, email], (err, row) => {
             if (err) return res.status(500).json({ success: false, message: 'Database error.' });
             if (row) return res.status(400).json({ success: false, message: 'Email is already registered.' });
 
@@ -172,14 +174,16 @@ module.exports = (db, transporter) => {
                 if (otpRow.code !== otp) return res.status(400).send('<h3>Invalid OTP. Please try again.</h3><a href="/">Go Back</a>');
 
                 const college = collegeName ? collegeName.trim() : '';
-                const isIndependentStudent = userRole === 'student' && !college;
+                const isIndividual = userRole === 'individual';
+                const isIndependentStudent = (userRole === 'student' || isIndividual) && !college;
                 const status = isIndependentStudent ? 'active' : 'pending';
                 const verified = isIndependentStudent ? 1 : 0;
+                const storedRole = isIndividual ? 'individual' : userRole;
 
-                const targetTable = userRole === 'student' || userRole === 'superadmin' ? 'student' : 'faculty';
+                const targetTable = (userRole === 'student' || userRole === 'superadmin' || isIndividual) ? 'student' : 'faculty';
                 db.run(
                     `INSERT INTO ${targetTable} (fullName, email, password, role, collegeName, status, is_verified, isVerified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-                    [fullName, email, hashedPassword, userRole, college, status, verified, verified],
+                    [fullName, email, hashedPassword, storedRole, college, status, verified, verified],
                     function (err) {
                         if (err) {
                             console.error("Registration Error:", err.message);
@@ -224,7 +228,7 @@ module.exports = (db, transporter) => {
     router.post('/login', (req, res) => {
         const { email, password } = req.body;
 
-        db.get(USER_LOOKUP_SQL, [email, email], async (err, user) => {
+        db.get(USER_LOOKUP_SQL, [email, email, email], async (err, user) => {
             if (err || !user) {
                 return res.status(400).send('<h2>Invalid email or password.</h2><a href="/">Go Home</a>');
             }
@@ -281,6 +285,7 @@ module.exports = (db, transporter) => {
             else if (userRole === 'hod') res.redirect('/college/hod/dashboard');
             else if (userRole === 'hos') res.redirect('/hos/dashboard');
             else if (userRole === 'faculty') res.redirect('/faculty/dashboard');
+            else if (userRole === 'individual') res.redirect('/individual/dashboard');
             else if (userRole === 'student') res.redirect('/student/dashboard');
             else res.redirect('/');
         });

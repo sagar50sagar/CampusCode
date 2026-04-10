@@ -91,6 +91,7 @@ const facultyRoutes = require('./routes/faculty')(db);
 const studentRoutes = require('./routes/student')(db, transporter);
 const hodRoutes = require('./routes/hod')(db);
 const hosRoutes = require('./routes/hos')(db);
+const individualRoutes = require('./routes/individual')(db);
 const forumRoutes = require('./routes/forum')(db); // Added forum API routes
 const problemRoutes = require('./routes/problems')(db); // Problem Solving System
 const supportRoutes = require('./routes/support')(db);
@@ -104,6 +105,7 @@ app.use('/college', hodRoutes);              // Protected HOD routes
 app.use('/', hosRoutes);                     // Protected HOS routes
 app.use('/faculty', facultyRoutes);          // Protected Faculty routes
 app.use('/student', studentRoutes);          // Protected Student routes
+app.use('/individual', individualRoutes);    // Protected Individual routes
 app.use('/api/forum', forumRoutes);          // JSON API for Forum
 app.use('/api/problems', problemRoutes);      // JSON API for Problems
 app.use('/', problemRoutes);                  // Page routes for student/superadmin problem pages

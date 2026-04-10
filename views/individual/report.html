@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CampusCode - Student Reports</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            fontFamily: { sans: ["Poppins", "sans-serif"], report: ["Roboto", "sans-serif"] },
+            colors: {
+              primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" },
+              dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" },
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      /* --- Global Scrollbar --- */
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      .dark ::-webkit-scrollbar-track { background: #111827; }
+      ::-webkit-scrollbar-thumb { background: #7ba4d0; border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: #2e5e99; }
+
+
+      /* --- Report Preview Styles --- */
+      .report-preview-container {
+          position: relative; 
+          background: white;
+          width: 100%; 
+          max-width: 210mm; /* A4 Width */
+          min-height: 297mm; /* A4 Height */
+          margin: 0 auto;
+          padding: 15mm; 
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          font-family: 'Roboto', sans-serif;
+          color: #1f2937;
+          overflow: hidden; /* Clips the watermark if it rotates out of bounds */
+      }
+
+      .nav-item {
+        transition: all 0.2s ease;
+        position: relative;
+        display: flex;
+        align-items: center; 
+        padding: 0.75rem 1rem; 
+        margin-bottom: 0.25rem;
+        color: #374151; 
+        border-radius: 0.5rem; 
+        cursor: pointer;
+      }
+
+      
+      /* Watermark Style */
+      .watermark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        font-size: 8rem;
+        font-weight: 800;
+        color: rgba(0, 0, 0, 0.04); /* Very faint grey */
+        white-space: nowrap;
+        pointer-events: none; 
+        user-select: none; /* Prevents selecting the watermark text */
+        z-index: 0;
+      }
+
+      /* Ensure content sits above watermark */
+      .report-preview-container > *:not(.watermark) {
+        position: relative;
+        z-index: 10;
+      }
+
+      /* Dark Mode Report Styles (Screen Only) */
+      .dark .report-preview-container {
+          background: #1f2937; 
+          color: #e5e7eb; 
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+      }
+      /* In dark mode, make watermark white but very faint */
+      .dark .watermark { color: rgba(255, 255, 255, 0.03); }
+      
+      .dark .report-preview-container h1, 
+      .dark .report-preview-container h3 { color: white !important; }
+      .dark .report-preview-container p { color: #9ca3af; }
+      
+      /* Report Tables */
+      .report-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 0.85rem; }
+      .report-table th, .report-table td { border: 1px solid #e5e7eb; padding: 0.6rem 0.8rem; text-align: left; }
+      .report-table th { background-color: #f8fafc; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; color: #374151; }
+      
+      /* Dark Mode Tables */
+      .dark .report-table th, .dark .report-table td { border-color: #374151; }
+      .dark .report-table th { background-color: #111827; color: #e5e7eb; }
+      .dark .report-table td { color: #d1d5db; }
+
+      /* Custom Checkbox */
+      input[type="checkbox"] {
+        accent-color: #0284c7; 
+        width: 1.1rem;
+        height: 1.1rem;
+        cursor: pointer;
+      }
+
+      .section-hidden { display: none !important; }
+    </style>
+  </head>
+  <body class="bg-primary-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200">
+    <div class="flex h-screen overflow-hidden"> 
+     
+      <div class="flex-1 overflow-y-auto">        
+        <header class="bg-white dark:bg-gray-800 shadow-sm transition-colors duration-200 sticky top-0 z-50">
+
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+            <div class="flex-1 max-w-2xl ml-4">
+              <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+            <i class="fas fa-code text-primary-500"></i> 
+            <span>CampusCode</span>
+            </h1>
+            </div>
+            <div class="ml-4 flex items-center gap-3">
+              <button id="themeToggleBtn" class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"><i class="fas fa-moon text-xl"></i></button>
+
+            <div class="relative">
+                    <button id="notificationBtn"class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none"><i class="fas fa-bell text-xl"></i><span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-800"></span>
+                    </button>
+            </div>
+
+              <button id="headerProfileBtn" class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+  <div class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm">JD</div>
+  <span class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block">John Doe</span>
+</button>
+            </div>
+          </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="mb-6"><a href="dashboard.html" class="inline-flex items-center gap-2 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-white transition-colors duration-200 group">
+             <div class="w-8 h-8 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center shadow-sm group-hover:border-primary-300 dark:group-hover:border-gray-500"><i class="fas fa-arrow-left text-sm group-hover:-translate-x-0.5 transition-transform duration-200"></i>
+                </div><span class="font-medium text-sm">Back to Dashboard</span> </a>
+</div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-primary-100 dark:border-gray-700 p-5 sticky top-24">
+                        <div class="flex items-center gap-2 mb-6">
+                            <i class="fas fa-filter text-primary-600 dark:text-blue-400 text-lg"></i>
+                            <h3 class="text-xl font-bold text-gray-800 dark:text-white">Filters</h3>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-xs font-bold uppercase text-gray-500 dark:text-gray-400 mb-2 tracking-wide">Time Period</label>
+                            <select class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none shadow-sm">
+                                <option>Last 6 Months</option>
+                                <option>Last 30 Days</option>
+                                <option>All Time</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-4 mb-8">
+                            <p class="block text-xs font-bold uppercase text-gray-500 dark:text-gray-400 mb-2 tracking-wide">Sections to Include</p>
+                            
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input type="checkbox" checked onchange="toggleSection('sec-profile')" class="rounded border-gray-300">
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Student Profile</span>
+                            </label>
+                            
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input type="checkbox" checked onchange="toggleSection('sec-performance')" class="rounded border-gray-300">
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Performance Summary</span>
+                            </label>
+
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input type="checkbox" checked onchange="toggleSection('sec-difficulty')" class="rounded border-gray-300">
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Difficulty Analysis</span>
+                            </label>
+
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input type="checkbox" checked onchange="toggleSection('sec-topics')" class="rounded border-gray-300">
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Topic Proficiency</span>
+                            </label>
+
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input type="checkbox" checked onchange="toggleSection('sec-contests')" class="rounded border-gray-300">
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Contest History</span>
+                            </label>
+
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input type="checkbox" checked onchange="toggleSection('sec-remarks')" class="rounded border-gray-300">
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Faculty Remarks</span>
+                            </label>
+                        </div>
+
+                        <div class="space-y-3 pt-4 border-t border-gray-100 dark:border-gray-700">
+                            <button onclick="downloadPDF()" class="w-full flex justify-center items-center gap-2 bg-red-600 hover:bg-red-700 text-white py-2.5 px-4 rounded-lg font-bold transition-transform active:scale-95 shadow-md">
+                                <i class="fas fa-file-pdf"></i> Download PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-3">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold text-gray-700 dark:text-gray-200">Live Preview</h2>
+                        <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded border border-yellow-200">Ready</span>
+                    </div>
+
+                    <div id="report-content" class="report-preview-container">
+                        
+                        <div class="watermark">CampusCode</div>
+
+                        <header class="flex justify-between items-start border-b-2 border-gray-800 dark:border-gray-600 pb-6 mb-8">
+                            <div class="flex items-center gap-4">
+                                <div class="w-16 h-16 bg-gray-900 text-white flex items-center justify-center font-bold text-2xl rounded">CC</div>
+                                <div>
+                                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">STUDENT CODING REPORT</h1>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 font-medium mt-1">Generated by CampusCode Platform</p>
+                                </div>
+                            </div>
+                            <div class="text-right dark:text-gray-300">
+                                <p class="text-sm"><span class="font-bold">Date:</span> <span id="reportDate"></span></p>
+                                <p class="text-sm"><span class="font-bold">ID:</span> RPT-2025-8921</p>
+                            </div>
+                        </header>
+
+                        <div id="sec-profile" class="mb-8">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white border-l-4 border-blue-600 dark:border-blue-400 pl-3 mb-3">1. STUDENT PROFILE</h3>
+                            <table class="report-table">
+                                <tr><th class="w-1/3">Name</th><td class="font-bold text-gray-800 dark:text-white">Sample Student</td></tr>
+                                <tr><th>Roll No</th><td>CS2025_001</td></tr>
+                                <tr><th>Report Period</th><td>Last 6 Months</td></tr>
+                            </table>
+                        </div>
+
+                        <div id="sec-performance" class="mb-8">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white border-l-4 border-blue-600 dark:border-blue-400 pl-3 mb-3">2. PERFORMANCE SUMMARY</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <table class="report-table">
+                                    <tr><th class="w-1/2">Problems Solved</th><td class="font-bold text-blue-700 dark:text-blue-400">458</td></tr>
+                                    <tr><th>Accuracy</th><td>51.4%</td></tr>
+                                </table>
+                                <table class="report-table">
+                                    <tr><th class="w-1/2">Global Rank</th><td class="font-bold text-gray-800 dark:text-white">#1,245</td></tr>
+                                    <tr><th>Skill Score</th><td class="font-bold text-green-600 dark:text-green-400">850</td></tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div id="sec-difficulty" class="mb-8">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white border-l-4 border-blue-600 dark:border-blue-400 pl-3 mb-3">3. DIFFICULTY DISTRIBUTION</h3>
+                            <table class="report-table text-center">
+                                <thead>
+                                    <tr><th class="text-left">Level</th><th>Solved</th><th>Attempted</th><th>Accuracy</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td class="text-left font-medium text-green-600 dark:text-green-400">Easy</td><td>250</td><td>270</td><td>92.5%</td></tr>
+                                    <tr><td class="text-left font-medium text-yellow-600 dark:text-yellow-400">Medium</td><td>158</td><td>250</td><td>63.2%</td></tr>
+                                    <tr><td class="text-left font-medium text-red-600 dark:text-red-400">Hard</td><td>50</td><td>180</td><td>27.7%</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div id="sec-topics" class="mb-8">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white border-l-4 border-blue-600 dark:border-blue-400 pl-3 mb-3">4. TOPIC PROFICIENCY</h3>
+                            <div class="grid grid-cols-2 gap-x-8">
+                                <table class="report-table">
+                                    <thead><tr><th>Topic</th><th>Solved</th><th>Proficiency</th></tr></thead>
+                                    <tbody>
+                                        <tr><td>Arrays</td><td>120</td><td class="text-green-600 dark:text-green-400 font-bold">Expert</td></tr>
+                                        <tr><td>Strings</td><td>85</td><td class="text-green-600 dark:text-green-400 font-bold">Expert</td></tr>
+                                        <tr><td>Linked List</td><td>45</td><td class="text-blue-600 dark:text-blue-400 font-bold">Advanced</td></tr>
+                                    </tbody>
+                                </table>
+                                <table class="report-table">
+                                    <thead><tr><th>Topic</th><th>Solved</th><th>Proficiency</th></tr></thead>
+                                    <tbody>
+                                        <tr><td>Graphs</td><td>30</td><td class="text-yellow-600 dark:text-yellow-400 font-bold">Intermediate</td></tr>
+                                        <tr><td>Dynamic Prog.</td><td>25</td><td class="text-red-500 dark:text-red-400 font-bold">Beginner</td></tr>
+                                        <tr><td>DBMS</td><td>38</td><td class="text-green-600 dark:text-green-400 font-bold">Expert</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div id="sec-contests" class="mb-8">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white border-l-4 border-blue-600 dark:border-blue-400 pl-3 mb-3">5. CONTEST HISTORY</h3>
+                            <table class="report-table">
+                                <thead>
+                                    <tr><th>Contest Name</th><th>Date</th><th>Solved</th><th>Rank</th><th>Percentile</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>Weekly Challenge #42</td><td>Dec 15</td><td>4 / 5</td><td>320</td><td class="font-bold text-green-600 dark:text-green-400">92.5%</td></tr>
+                                    <tr><td>Monthly Marathon Nov</td><td>Nov 30</td><td>3 / 6</td><td>850</td><td>78.0%</td></tr>
+                                    <tr><td>Weekly Challenge #38</td><td>Nov 10</td><td>5 / 5</td><td>45</td><td class="font-bold text-green-600 dark:text-green-400">99.1%</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div id="sec-remarks" class="mb-8 border-2 border-gray-300 dark:border-gray-600 rounded p-4 bg-gray-50 dark:bg-gray-800">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">FACULTY REMARKS</h3>
+                            <p class="text-sm text-gray-700 dark:text-gray-300 italic">"Student maintains excellent consistency. Strong in foundational data structures but needs improvement in advanced DP algorithms. Overall readiness for internships is high."</p>
+                        </div>
+
+                        <div class="mt-12 pt-8 border-t border-gray-300 dark:border-gray-600 text-sm text-gray-500 dark:text-gray-400 flex justify-between">
+                            <p>Computer-generated document.</p>
+                            <p>CampusCode Dept.</p>
+                        </div>
+
+                    </div>
+                    </div>
+            </div>
+        </main>
+      </div>
+    </div>
+
+   <!-- Profile Overlay -->
+    <div id="profileOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+        <div class="w-[340px] bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden animate-[fadeIn_0.2s_ease-out]">
+            <div class="bg-[#1E4A7A] dark:bg-[#0f2a4a] relative pt-8 pb-16 px-6 text-center">
+                <button id="closeProfileOverlay" class="absolute top-4 right-4 text-white/70 hover:text-white"><i class="fas fa-times text-lg"></i></button>
+                <div class="absolute top-4 left-4">
+                     <button class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-white hover:bg-white/20"><i class="fas fa-qrcode text-xs"></i></button>
+                </div>
+                <div class="absolute left-1/2 bottom-[-45px] -translate-x-1/2">
+                    <div class="w-24 h-24 rounded-full bg-[#1E4A7A] p-1"> 
+                         <div class="w-full h-full rounded-full bg-[#1E4A7A] flex items-center justify-center text-white text-4xl font-normal border-4 border-white dark:border-gray-800">JD</div>
+                    </div>
+                </div>
+            </div>
+            <div class="pt-14 pb-6 px-6 text-center">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white">John Doe</h2>
+                <div class="flex flex-col items-center mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    <span>ID: CS2025_001</span>
+                </div>
+                <div class="flex justify-between mt-6 px-2">
+                    <div class="text-center">
+                        <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Solved</div>
+                        <div class="text-xl font-bold text-gray-900 dark:text-white mt-1">124</div>
+                    </div>
+                    <div class="text-center border-l border-r border-gray-100 dark:border-gray-700 px-4">
+                        <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Rank</div>
+                        <div class="text-xl font-bold text-gray-900 dark:text-white mt-1">42</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-[10px] font-bold text-[#1E4A7A] dark:text-blue-400 uppercase tracking-wide">Points</div>
+                        <div class="text-xl font-bold text-gray-900 dark:text-white mt-1">1.2k</div>
+                    </div>
+                </div>
+                <div class="h-px bg-gray-100 dark:bg-gray-700 my-6"></div>
+                <div class="space-y-1">
+                    <a href="profile.html" class="nav-item"><i class="fas fa-id-card"></i><span>My Profile </span></a>
+                    <a href="edit-profile.html" class="nav-item"><i class="fas fa-pen"></i><span>Edit profile</span></a>
+                    <a href="reports.html" class="nav-item"><i class="fas fa-chart-pie"></i><span>Report</span></a>
+                    <a href="stats.html" class="nav-item"><i class="fas fa-list"></i><span>Stats</span></a>
+                    <button id="logoutBtn" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
+                        <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </div>
+                        <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Profile Overlay End -->
+
+    <div id="notificationDropdown" class="fixed top-16 right-6 z-50 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 hidden animate-[fadeIn_0.1s_ease-out]">
+        <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+            <h3 class="font-semibold text-gray-800 dark:text-white">Notifications</h3>
+            <span class="text-xs text-primary-500 cursor-pointer hover:underline">Mark all read</span>
+        </div>
+        <div class="p-2">
+            <div class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer">
+                <p class="text-sm text-gray-800 dark:text-gray-200 font-medium">Contest Reminder</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Weekly contest starts in 1 hour.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+      // 1. Set Date
+      document.getElementById('reportDate').textContent = new Date().toLocaleDateString();
+
+      // 2. Toggle Sections Logic
+      function toggleSection(sectionId) {
+          const section = document.getElementById(sectionId);
+          if (section) {
+              section.classList.toggle('section-hidden');
+          }
+      }
+
+      // --- 2. Theme Toggle ---
+            const themeBtn = document.getElementById('themeToggleBtn');
+            const themeIcon = themeBtn.querySelector('i');
+            const html = document.documentElement;
+
+            // Check saved preference
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                html.classList.add('dark');
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+            }
+
+            themeBtn.addEventListener('click', () => {
+                html.classList.toggle('dark');
+                if (html.classList.contains('dark')) {
+                    localStorage.theme = 'dark';
+                    themeIcon.classList.replace('fa-moon', 'fa-sun');
+                } else {
+                    localStorage.theme = 'light';
+                    themeIcon.classList.replace('fa-sun', 'fa-moon');
+                }
+                if(window.myPerformanceChart) window.myPerformanceChart.update();
+            });
+
+            // --- 3. Profile Overlay & Notifications ---
+            const overlay = document.getElementById("profileOverlay");
+            const headerProfileBtn = document.getElementById("headerProfileBtn");
+            const closeBtn = document.getElementById("closeProfileOverlay");
+            if(headerProfileBtn) headerProfileBtn.addEventListener("click", () => overlay.classList.remove("hidden"));
+            if(closeBtn) closeBtn.addEventListener("click", () => overlay.classList.add("hidden"));
+            overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.classList.add("hidden"); });
+
+            const notifBtn = document.getElementById('notificationBtn');
+            const notifDropdown = document.getElementById('notificationDropdown');
+            notifBtn.addEventListener('click', (e) => { e.stopPropagation(); notifDropdown.classList.toggle('hidden'); });
+            document.addEventListener('click', (e) => {
+                if(!notifDropdown.contains(e.target) && !notifBtn.contains(e.target)) notifDropdown.classList.add('hidden');
+            });
+
+
+      // 5. PDF DOWNLOAD LOGIC
+      function downloadPDF() {
+        const element = document.getElementById('report-content');
+        
+        // Config options
+        const opt = {
+            margin: 10,
+            filename: 'Student_Report_Card.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        // FORCE LIGHT MODE styles just for the generation
+        const wasDark = document.documentElement.classList.contains('dark');
+        if(wasDark) {
+            document.documentElement.classList.remove('dark');
+        }
+
+        // Generate and Save
+        html2pdf().set(opt).from(element).save().then(() => {
+            // Restore Dark Mode if it was active
+            if(wasDark) {
+                document.documentElement.classList.add('dark');
+            }
+        });
+      }
+    </script>
+  </body>
+</html>

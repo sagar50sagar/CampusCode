@@ -1138,7 +1138,7 @@ async function acSendOTP(isResend = false) {
         return;
     }
 
-    const role = roleRaw === 'individual' ? 'student' : roleRaw;
+    const role = roleRaw === 'individual' ? 'individual' : roleRaw;
     const collegeName = roleRaw === 'individual' ? '' : collegeNameRaw;
 
     signupDraft = { name, email, password, role, collegeName };

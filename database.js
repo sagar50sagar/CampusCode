@@ -103,6 +103,11 @@ const db = new sqlite3.Database(dbPath, (err) => {
                     SET branch = department
                     WHERE TRIM(COALESCE(branch, '')) = ''
                       AND TRIM(COALESCE(department, '')) != ''`, () => {});
+            // Migrate legacy independent signups: empty-college students should be individual role
+            db.run(`UPDATE users
+                    SET role = 'individual'
+                    WHERE LOWER(TRIM(COALESCE(role, ''))) = 'student'
+                      AND TRIM(COALESCE(collegeName, '')) = ''`, () => {});
 
             // ==========================================
             // 1.5. ROLE-SPLIT TABLES (student + faculty)
@@ -194,7 +199,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
             });
             db.run(`INSERT OR REPLACE INTO student (${mirrorCols})
                     SELECT ${mirrorCols} FROM users
-                    WHERE LOWER(COALESCE(role, '')) IN ('student', 'superadmin')`, (err) => {
+                    WHERE LOWER(COALESCE(role, '')) IN ('student', 'individual', 'superadmin')`, (err) => {
                 if (err) console.error("Error backfilling student table from users:", err.message);
             });
             db.run(`INSERT OR REPLACE INTO faculty (${mirrorCols})
@@ -229,7 +234,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
                             NEW.joiningDate, NEW.course, NEW.subject, NEW.points, NEW.solvedCount, NEW.rank, NEW.is_hod,
                             NEW.notif_contest_alerts, NEW.notif_submission_results, NEW.notif_deadline_reminders,
                             NEW.pending_college_name, NEW.college_request_status, NEW.createdAt
-                        WHERE LOWER(COALESCE(NEW.role, '')) IN ('student', 'superadmin');
+                        WHERE LOWER(COALESCE(NEW.role, '')) IN ('student', 'individual', 'superadmin');
 
                         INSERT INTO faculty (${mirrorCols})
                         SELECT
@@ -256,7 +261,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
                             NEW.joiningDate, NEW.course, NEW.subject, NEW.points, NEW.solvedCount, NEW.rank, NEW.is_hod,
                             NEW.notif_contest_alerts, NEW.notif_submission_results, NEW.notif_deadline_reminders,
                             NEW.pending_college_name, NEW.college_request_status, NEW.createdAt
-                        WHERE LOWER(COALESCE(NEW.role, '')) IN ('student', 'superadmin');
+                        WHERE LOWER(COALESCE(NEW.role, '')) IN ('student', 'individual', 'superadmin');
 
                         INSERT INTO faculty (${mirrorCols})
                         SELECT

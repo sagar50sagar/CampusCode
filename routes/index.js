@@ -43,7 +43,7 @@ module.exports = (db) => {
             stats: {
                 activeCoders: 0,
                 campusesJoined: 0,
-                acceptedRuns: 0
+                availableUsers: 0 // Changed from acceptedRuns
             },
             topCoders: []
         };
@@ -67,14 +67,15 @@ module.exports = (db) => {
                         if (err2) return res.status(500).json({ success: false, error: err2.message });
                         out.stats.campusesJoined = Number(collegesRow?.count || 0);
 
+                        // Changed this block to query all available/active users instead of submissions
                         db.get(
                             `SELECT COUNT(*) AS count
-                             FROM submissions
-                             WHERE LOWER(COALESCE(status, '')) IN ('accepted', 'ac', 'pass')`,
+                             FROM account_users
+                             WHERE LOWER(COALESCE(status, 'active')) != 'inactive'`,
                             [],
-                            (err3, acceptedRow) => {
+                            (err3, usersRow) => {
                                 if (err3) return res.status(500).json({ success: false, error: err3.message });
-                                out.stats.acceptedRuns = Number(acceptedRow?.count || 0);
+                                out.stats.availableUsers = Number(usersRow?.count || 0);
 
                                 db.all(
                                     `SELECT

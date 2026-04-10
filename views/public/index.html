@@ -264,8 +264,8 @@ body { transition: background-color 0.5s ease; overflow-x: hidden; }
             <p class="text-[10px] font-black uppercase tracking-[.2em] opacity-40">Campuses Joined</p>
         </div>
         <div>
-            <p id="statAcceptedRuns" class="font-black text-3xl text-midnight dark:text-cloud">0</p>
-            <p class="text-[10px] font-black uppercase tracking-[.2em] opacity-40">Accepted Runs</p>
+            <p id="statAvailableUsers" class="font-black text-3xl text-midnight dark:text-cloud">0</p>
+            <p class="text-[10px] font-black uppercase tracking-[.2em] opacity-40">Active Users</p>
         </div>
       </div>
     </div>
@@ -1019,14 +1019,20 @@ async function initLandingDynamicData() {
 
         const activeCodersEl = document.getElementById('statActiveCoders');
         const campusesEl = document.getElementById('statCampusesJoined');
-        const acceptedEl = document.getElementById('statAcceptedRuns');
+        // Changed to target the new ID
+        const usersEl = document.getElementById('statAvailableUsers'); 
+
         if (activeCodersEl) activeCodersEl.textContent = formatCompactNumber(data.stats?.activeCoders);
         if (campusesEl) campusesEl.textContent = formatCompactNumber(data.stats?.campusesJoined);
-        if (acceptedEl) acceptedEl.textContent = formatCompactNumber(data.stats?.acceptedRuns);
+        // Bind the availableUsers stat from your new backend setup
+        if (usersEl) usersEl.textContent = formatCompactNumber(data.stats?.availableUsers); 
 
+        // Top Coders Logic
         const list = document.getElementById('topCodersList');
         if (!list) return;
+
         const rows = Array.isArray(data.topCoders) ? data.topCoders : [];
+
         if (!rows.length) {
             list.innerHTML = `
                 <div class="p-5 bg-white/60 dark:bg-white/5 rounded-2xl border border-navy/10">
@@ -1042,22 +1048,28 @@ async function initLandingDynamicData() {
             const badgeClass = rank === 1 ? 'text-accent' : 'opacity-40';
             const rowBg = rank === 1 ? 'bg-navy/5 dark:bg-white/5 border-l-4 border-accent' : 'bg-transparent border-l-4 border-transparent';
             const score = Number(row.solved || 0);
+
             return `
                 <div class="flex items-center justify-between p-5 ${rowBg} rounded-2xl">
                     <div class="flex items-center gap-5">
-                        <span class="font-black text-2xl ${badgeClass} italic">#${String(rank).padStart(2, '0')}</span>
-                        <div class="w-12 h-12 rounded-full bg-slate-200 dark:bg-white/10 flex items-center justify-center font-bold text-midnight dark:text-cloud">${initials(row.fullName)}</div>
+                        <span class="font-black text-2xl ${badgeClass} italic">#0${rank}</span>
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-navy to-midnight flex items-center justify-center font-bold text-white shadow-[0_4px_15px_rgba(0,0,0,0.1)]">
+                            ${getInitials(row.fullName)}
+                        </div>
                         <div>
                             <p class="font-black">${row.fullName || 'Anonymous'}</p>
-                            <p class="text-[10px] uppercase opacity-40">${(row.collegeName || 'Independent')} Â· ${score} solved</p>
+                            <p class="text-[10px] uppercase opacity-40 mt-0.5 truncate max-w-[120px]" title="${row.collegeName || 'Unknown College'}">${row.collegeName || 'Unknown College'}</p>
                         </div>
                     </div>
-                    <span class="font-mono ${rank === 1 ? 'text-accent font-bold' : 'opacity-50'}">${formatCompactNumber(row.points || 0)} XP</span>
+                    <div class="text-right">
+                        <span class="font-mono text-accent font-bold text-xl">${score}</span>
+                        <p class="text-[9px] uppercase opacity-40 tracking-widest mt-0.5">Solved</p>
+                    </div>
                 </div>
             `;
         }).join('');
-    } catch (_) {
-        // Keep static fallback UI on network failure
+    } catch (err) {
+        console.error('Error fetching landing dynamic data:', err);
     }
 }
 

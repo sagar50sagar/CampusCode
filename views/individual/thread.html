@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thread Discussion - CampusCode</title>
+  <link rel="icon" href="/campuscode-logo.jpeg" type="image/jpeg" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: { sans: ["Poppins", "sans-serif"] },
+          colors: {
+            primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" },
+            dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" },
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    /* --- Global Styles --- */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    .dark ::-webkit-scrollbar-track { background: #111827; }
+    ::-webkit-scrollbar-thumb { background: #7ba4d0; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #2e5e99; }
+
+    /* --- Sidebar Specifics --- */
+    .sidebar { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
+    .nav-item {
+      transition: all 0.2s ease;
+      position: relative;
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.25rem;
+      color: #374151;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .dark .nav-item { color: #d1d5db; }
+    .nav-item:hover { background-color: #f3f4f6; }
+    .dark .nav-item:hover { background-color: #374151; }
+    .nav-item.active { background-color: #d0e1f5; color: #1e4a7a; }
+    .dark .nav-item.active { background-color: #1e4a7a; color: #ffffff; }
+    .nav-item.active::before {
+      content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+      height: 60%; width: 4px; background-color: #2e5e99; border-radius: 0 4px 4px 0;
+    }
+    .dark .nav-item.active::before { background-color: #60a5fa; }
+    .nav-item i { width: 1.5rem; text-align: center; margin-right: 0.75rem; font-size: 1.1rem; flex-shrink: 0; }
+    .nav-item span { font-size: 0.875rem; font-weight: 500; }
+    
+    /* Collapsed Sidebar overrides */
+    .sidebar.collapsed .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
+    .sidebar.collapsed .nav-item i { margin-right: 0; font-size: 1.25rem; }
+    .sidebar.collapsed .nav-item span { display: none; }
+
+    /* Markdown/Thread Content Styles */
+    .prose a { color: #3b82f6; text-decoration: none; }
+    .prose a:hover { text-decoration: underline; }
+    .prose code { background-color: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-size: 0.875em; color: #ef4444; }
+    .dark .prose code { background-color: #334155; color: #f87171; }
+    .prose pre { background-color: #1e293b; color: #f8fafc; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-top: 1rem; margin-bottom: 1rem; }
+    .dark .prose pre { background-color: #0f172a; border: 1px solid #334155; }
+    .prose pre code { background-color: transparent; color: inherit; padding: 0; }
+  </style>
+</head>
+
+<body class="bg-primary-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200">
+  <div class="flex h-screen overflow-hidden">
+
+    <aside id="mainSidebar"
+      class="sidebar w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen flex-shrink-0 transition-colors duration-200 z-50">
+      <div class="p-6 flex-shrink-0 flex items-center justify-between h-[88px]">
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2 overflow-hidden whitespace-nowrap">
+          <i class="fas fa-code text-primary-500 text-2xl flex-shrink-0"></i>
+          <span id="sidebarLogoText" class="transition-all duration-300 opacity-100 w-auto">CampusCode</span>
+        </h1>
+        <button id="sidebarToggleBtn"
+          class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary-500 transition-colors focus:outline-none">
+          <i class="fas fa-chevron-left transition-transform duration-300"></i>
+        </button>
+      </div>
+
+      <nav class="flex-1 px-4 space-y-1 overflow-y-auto mt-2">
+        <a href="dashboard.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="problems.html" class="nav-item"><i class="fas fa-tasks"></i><span>Problems</span></a>
+        <a href="contest.html" class="nav-item"><i class="fas fa-trophy"></i><span>Contests</span></a>
+        <a href="forum.html" class="nav-item active"><i class="fas fa-comments"></i><span>Community</span></a>
+        <a href="stats.html" class="nav-item"><i class="fas fa-list"></i><span>Stats</span></a>
+        <a href="report.html" class="nav-item"><i class="fas fa-chart-pie"></i><span>Report</span></a>
+        <a href="profile.html" class="nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+      </nav>
+
+      <div class="p-4 space-y-1 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0 bottom-menu">
+        <a href="support.html" class="nav-item"><i class="far fa-question-circle"></i><span>Help & Support</span></a>
+        <a href="settings.html" class="nav-item"><i class="fa fa-cog"></i><span>Settings</span></a>
+      </div>
+    </aside>
+
+    <div class="flex-1 overflow-y-auto relative w-full">
+      <header class="bg-white dark:bg-gray-800 shadow-sm transition-colors duration-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+          <div class="flex-1 max-w-2xl ml-4 flex items-center gap-4">
+            <a href="forum.html" class="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 transition-colors border border-gray-200 dark:border-gray-600">
+              <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1 id="headerLogoText" class="text-xl font-bold text-gray-800 dark:text-white hidden transition-all duration-300 opacity-0 transform -translate-x-2 whitespace-nowrap">
+              CampusCode
+            </h1>
+            <div class="relative w-full">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i class="fas fa-search text-gray-400"></i>
+              </div>
+              <input id="headerSearchInput" type="text"
+                class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-transparent bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500"
+                placeholder="Search..." />
+            </div>
+          </div>
+          <div class="ml-4 flex items-center gap-3">
+            <button id="themeToggleBtn" class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none transition-transform active:scale-95">
+              <i class="fas fa-moon text-xl"></i>
+            </button>
+            <div class="relative">
+              <button id="notificationBtn" class="relative p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none">
+                <i class="fas fa-bell text-xl"></i>
+                <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-800"></span>
+              </button>
+            </div>
+            <button id="headerProfileBtn" class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              <div id="headerProfileInitials" class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm">U</div>
+              <span id="headerProfileName" class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block">User</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-gray-800 dark:text-gray-100">
+        
+        <div id="loadingState" class="py-20 flex flex-col items-center justify-center">
+            <i class="fas fa-circle-notch fa-spin text-4xl text-primary-500 dark:text-primary-400 mb-4"></i>
+            <p class="text-gray-500 dark:text-gray-400 font-medium">Loading thread...</p>
+        </div>
+
+        <div id="threadContentArea" class="hidden">
+            <article class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8 mb-6 transition-colors duration-200 relative">
+                
+                <div class="flex items-start justify-between gap-4 mb-6">
+                    <div class="flex items-center gap-3">
+                        <div id="opAvatar" class="w-12 h-12 rounded-full bg-primary-100 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400 flex items-center justify-center font-bold text-lg border border-primary-200 dark:border-primary-800 shadow-sm">
+                            U
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 id="opName" class="font-bold text-gray-900 dark:text-white">Loading User...</h3>
+                                <span id="opRole" class="text-[10px] bg-primary-50 text-primary-600 border border-primary-200 dark:bg-primary-900/30 dark:text-primary-400 dark:border-primary-800 px-2 py-0.5 rounded font-bold uppercase tracking-wider">User</span>
+                            </div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-2">
+                                <span id="opDate">Just now</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="threadCategory" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-xs font-semibold text-gray-600 dark:text-gray-300">
+                        <i class="fas fa-tag"></i> <span id="opTopic">General</span>
+                    </div>
+                </div>
+
+                <h1 id="threadTitle" class="text-2xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
+                    Loading Title...
+                </h1>
+                
+                <div id="threadBody" class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed text-sm sm:text-base">
+                </div>
+
+                <div class="mt-8 pt-5 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <button id="upvoteBtn" class="flex items-center gap-2 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors font-semibold text-sm bg-gray-50 dark:bg-gray-700/50 hover:bg-primary-50 dark:hover:bg-gray-700 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600">
+                            <i class="fas fa-arrow-up"></i>
+                            <span id="upvoteCount">0</span>
+                        </button>
+                        <button id="downvoteBtn" class="flex items-center gap-2 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors font-semibold text-sm bg-gray-50 dark:bg-gray-700/50 hover:bg-primary-50 dark:hover:bg-gray-700 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600">
+                            <i class="fas fa-arrow-down"></i>
+                            <span id="downvoteCount">0</span>
+                        </button>
+                    </div>
+                    <button id="deleteThreadBtn" class="hidden flex items-center gap-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors font-semibold text-sm bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-800">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            </article>
+
+            <div class="mb-6 flex items-center gap-3">
+                <h3 class="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                    <i class="fas fa-comments text-primary-500"></i>
+                    <span id="replyCountTitle">0 Replies</span>
+                </h3>
+                <div class="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+
+            <div id="repliesContainer" class="space-y-4 mb-8">
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8 transition-colors duration-200">
+                <h4 class="text-base font-bold text-gray-800 dark:text-white mb-4">Add your reply</h4>
+                <form id="replyForm" class="space-y-4">
+                    <div class="border border-gray-300 dark:border-gray-600 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-primary-400 focus-within:border-transparent transition-all bg-white dark:bg-gray-700">
+                        <textarea id="replyContent" rows="4" required placeholder="Write your response here. Be respectful and helpful..." 
+                            class="w-full px-4 py-3 bg-transparent text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 outline-none resize-y border-0 focus:ring-0"></textarea>
+                        <div class="bg-gray-50 dark:bg-gray-700/80 px-4 py-3 border-t border-gray-200 dark:border-gray-600 flex justify-between items-center">
+                            <span class="text-xs font-medium text-gray-500 dark:text-gray-400"><i class="fab fa-markdown mr-1"></i> Markdown supported</span>
+                            <button type="submit" id="submitReplyBtn" class="px-5 py-2 rounded-xl text-sm font-semibold bg-primary-500 text-white hover:bg-primary-600 shadow-sm transition-all flex justify-center items-center gap-2">
+                                <i class="fas fa-paper-plane"></i> Post Reply
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.5/purify.min.js"></script>
+  <script>
+    // Theme logic and toggle handling (Mapped to forum.html standard)
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const themeIcon = themeToggleBtn.querySelector('i');
+
+    function updateThemeIcon(isDark) {
+      themeIcon.className = isDark ? 'fas fa-sun text-xl' : 'fas fa-moon text-xl';
+    }
+
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+        updateThemeIcon(true);
+    } else {
+        document.documentElement.classList.remove('dark');
+        updateThemeIcon(false);
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+        const html = document.documentElement;
+        const isDark = html.classList.contains('dark');
+        if (isDark) {
+            html.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+            updateThemeIcon(false);
+        } else {
+            html.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+            updateThemeIcon(true);
+        }
+    });
+
+    // Sidebar Toggle Logic
+    const sidebar = document.getElementById('mainSidebar');
+    const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+    const sidebarLogoText = document.getElementById('sidebarLogoText');
+    const headerLogoText = document.getElementById('headerLogoText');
+    
+    sidebarToggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('w-64');
+      sidebar.classList.toggle('w-20');
+      sidebar.classList.toggle('collapsed');
+      
+      const icon = sidebarToggleBtn.querySelector('i');
+      if (sidebar.classList.contains('collapsed')) {
+        icon.classList.replace('fa-chevron-left', 'fa-chevron-right');
+        sidebarLogoText.classList.add('opacity-0', 'w-0');
+        setTimeout(() => sidebarLogoText.classList.add('hidden'), 300);
+        headerLogoText.classList.remove('hidden');
+        setTimeout(() => {
+          headerLogoText.classList.remove('opacity-0', '-translate-x-2');
+          headerLogoText.classList.add('opacity-100', 'translate-x-0');
+        }, 50);
+      } else {
+        icon.classList.replace('fa-chevron-right', 'fa-chevron-left');
+        sidebarLogoText.classList.remove('hidden');
+        setTimeout(() => {
+          sidebarLogoText.classList.remove('opacity-0', 'w-0');
+          sidebarLogoText.classList.add('opacity-100', 'w-auto');
+        }, 50);
+        headerLogoText.classList.remove('opacity-100', 'translate-x-0');
+        headerLogoText.classList.add('opacity-0', '-translate-x-2');
+        setTimeout(() => headerLogoText.classList.add('hidden'), 300);
+      }
+    });
+
+    // Discussion Logic Variables
+    let currentUser = null;
+    let currentThreadId = new URLSearchParams(window.location.search).get('id');
+
+    async function init() {
+        if (!currentThreadId) {
+            alert('No thread specified.');
+            window.location.href = 'forum.html';
+            return;
+        }
+        await loadCurrentUser();
+        await loadThread();
+    }
+
+    async function loadCurrentUser() {
+        try {
+            const response = await fetch('/api/forum/me');
+            const data = await response.json();
+            if (data.success && data.user) {
+                currentUser = data.user;
+                const fullName = currentUser.fullName || 'User';
+                const initials = fullName.split(' ').filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase() || 'U';
+                document.getElementById('headerProfileName').textContent = fullName;
+                document.getElementById('headerProfileInitials').textContent = initials;
+            }
+        } catch (error) {
+            console.error('Failed to load profile details', error);
+        }
+    }
+
+    function escapeHTML(str) {
+        return String(str).replace(/[&<>'"]/g, tag => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+        }[tag]));
+    }
+
+    function formatTime(isoString) {
+        if (!isoString) return 'Just now';
+        const date = new Date(isoString);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function renderMarkdown(content) {
+        if (!content) return '';
+        const rawHtml = marked.parse(content);
+        return DOMPurify.sanitize(rawHtml);
+    }
+
+    async function loadThread() {
+        const loadingState = document.getElementById('loadingState');
+        const contentArea = document.getElementById('threadContentArea');
+        
+        try {
+            const response = await fetch(`/api/forum/threads/${currentThreadId}`);
+            const data = await response.json();
+            
+            if (!data.success) throw new Error(data.error || 'Failed to load thread');
+            
+            const thread = data.thread;
+            
+            // Populate OP
+            const authorName = thread.author_name || 'Unknown User';
+            const initials = authorName.split(' ').slice(0,2).map(n => n[0]).join('').toUpperCase() || 'U';
+            
+            document.getElementById('opAvatar').textContent = initials;
+            document.getElementById('opName').textContent = escapeHTML(authorName);
+            document.getElementById('opRole').textContent = escapeHTML(thread.author_role || 'User');
+            document.getElementById('opDate').textContent = formatTime(thread.created_at);
+            document.getElementById('threadTitle').textContent = escapeHTML(thread.title);
+            document.getElementById('threadBody').innerHTML = renderMarkdown(thread.content);
+            document.getElementById('upvoteCount').textContent = thread.upvotes || 0;
+            document.getElementById('downvoteCount').textContent = thread.downvotes || 0;
+            setThreadVoteActiveState(thread.user_vote || 0);
+            
+            const topicEl = document.getElementById('opTopic');
+            topicEl.textContent = escapeHTML(thread.topic || 'General').toUpperCase();
+            
+            // Show delete button for SA or author
+            if (currentUser && (currentUser.role === 'superadmin' || currentUser.id === thread.author_id)) {
+                const delBtn = document.getElementById('deleteThreadBtn');
+                delBtn.classList.remove('hidden');
+                delBtn.onclick = () => deleteThread(thread.id);
+            }
+
+            // Upvote and downvote events
+            document.getElementById('upvoteBtn').onclick = () => handleThreadVote(thread.id, 'upvote');
+            document.getElementById('downvoteBtn').onclick = () => handleThreadVote(thread.id, 'downvote');
+
+            // Populate Replies
+            renderReplies(thread.replies || []);
+
+            loadingState.classList.add('hidden');
+            contentArea.classList.remove('hidden');
+            
+        } catch (error) {
+            console.error('Error loading thread:', error);
+            loadingState.innerHTML = `<div class="text-red-500 text-center"><i class="fas fa-triangle-exclamation text-4xl mb-3"></i><p class="font-bold text-lg">Error loading discussion</p><p class="text-sm mt-1">${escapeHTML(error.message)}</p><a href="forum.html" class="inline-block mt-4 text-primary-500 hover:underline text-sm font-medium">Return to Forum</a></div>`;
+        }
+    }
+
+    function renderReplies(replies) {
+        const container = document.getElementById('repliesContainer');
+        const countTitle = document.getElementById('replyCountTitle');
+        
+        countTitle.textContent = `${replies.length} ${replies.length === 1 ? 'Reply' : 'Replies'}`;
+        
+        if (replies.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-10 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
+                    <div class="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 dark:text-gray-500 mx-auto mb-3 text-xl"><i class="fas fa-comment-slash"></i></div>
+                    <p class="text-gray-500 dark:text-gray-400 font-medium text-sm">No replies yet. Be the first to share your thoughts!</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = replies.map(reply => {
+            const rName = reply.author_name || 'User';
+            const rInitials = rName.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase() || 'U';
+            const rRole = reply.author_role || 'User';
+            
+            // SA logic for deleting a reply
+            const canDelete = currentUser && (currentUser.role === 'superadmin' || currentUser.id === reply.author_id);
+            const deleteHtml = canDelete ? `
+                <button onclick="deleteReply(${reply.id})" class="text-red-400 hover:text-red-600 transition-colors p-2" title="Delete Reply">
+                    <i class="fas fa-trash text-sm"></i>
+                </button>
+            ` : '';
+
+            return `
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-5 transition-colors duration-200">
+                    <div class="flex items-start justify-between gap-4 mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 flex items-center justify-center font-bold text-sm border border-gray-200 dark:border-gray-600">
+                                ${rInitials}
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-bold text-sm text-gray-900 dark:text-white">${escapeHTML(rName)}</h4>
+                                    <span class="text-[9px] bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">${escapeHTML(rRole)}</span>
+                                </div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400">${formatTime(reply.created_at)}</div>
+                            </div>
+                        </div>
+                        ${deleteHtml}
+                    </div>
+                    <div class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 text-sm pl-12 sm:pl-13">
+                        ${renderMarkdown(reply.content)}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function setThreadVoteActiveState(vote) {
+        const upvoteBtn = document.getElementById('upvoteBtn');
+        const downvoteBtn = document.getElementById('downvoteBtn');
+
+        if (!upvoteBtn || !downvoteBtn) return;
+
+        upvoteBtn.classList.toggle('bg-primary-100', vote === 1);
+        upvoteBtn.classList.toggle('text-primary-600', vote === 1);
+        upvoteBtn.classList.toggle('dark:bg-primary-900/30', vote === 1);
+        upvoteBtn.classList.toggle('dark:text-primary-400', vote === 1);
+
+        downvoteBtn.classList.toggle('bg-primary-100', vote === -1);
+        downvoteBtn.classList.toggle('text-primary-600', vote === -1);
+        downvoteBtn.classList.toggle('dark:bg-primary-900/30', vote === -1);
+        downvoteBtn.classList.toggle('dark:text-primary-400', vote === -1);
+    }
+
+    async function handleThreadVote(id, type) {
+        try {
+            const res = await fetch(`/api/forum/threads/${id}/${type}`, { method: 'POST' });
+            const data = await res.json();
+            if (data.success) {
+                if (typeof data.upvotes !== 'undefined') {
+                    document.getElementById('upvoteCount').textContent = data.upvotes;
+                }
+                if (typeof data.downvotes !== 'undefined') {
+                    document.getElementById('downvoteCount').textContent = data.downvotes;
+                }
+                if (typeof data.currentVote !== 'undefined') {
+                    setThreadVoteActiveState(data.currentVote);
+                }
+            } else {
+                console.error('Vote failed', data.message || 'Unknown error');
+            }
+        } catch (error) {
+            console.error('Vote failed', error);
+        }
+    }
+
+    async function deleteThread(id) {
+        if (!confirm('Are you sure you want to delete this discussion permanently?')) return;
+        try {
+            const res = await fetch(`/api/forum/threads/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                window.location.href = 'forum.html';
+            } else {
+                alert(data.error || 'Failed to delete thread');
+            }
+        } catch (error) {
+            alert('Network error while deleting thread');
+        }
+    }
+
+    async function deleteReply(replyId) {
+        if (!confirm('Are you sure you want to delete this reply?')) return;
+        try {
+            const res = await fetch(`/api/forum/replies/${replyId}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                await loadThread(); 
+            } else {
+                alert(data.error || 'Failed to delete reply');
+            }
+        } catch (error) {
+            alert('Network error while deleting reply');
+        }
+    }
+
+    document.getElementById('replyForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const contentEl = document.getElementById('replyContent');
+        const content = contentEl.value.trim();
+        if (!content) return;
+
+        const btn = document.getElementById('submitReplyBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch(`/api/forum/replies`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ thread_id: currentThreadId, content })
+            });
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                contentEl.value = '';
+                await loadThread(); 
+            } else {
+                alert(data.message || data.error || 'Failed to post reply');
+            }
+        } catch (error) {
+            console.error('Reply error:', error);
+            alert('A network error occurred');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

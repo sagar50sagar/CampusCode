@@ -307,153 +307,152 @@
     </div>
 
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        
-        // --- 1. SIDEBAR TOGGLE LOGIC ---
-        const sidebar = document.getElementById('mainSidebar');
-        const toggleBtn = document.getElementById('sidebarToggleBtn');
-        const toggleIcon = toggleBtn ? toggleBtn.querySelector('i') : null;
-        const sidebarLogoText = document.getElementById('sidebarLogoText');
-        const headerLogoText = document.getElementById('headerLogoText');
+  document.addEventListener("DOMContentLoaded", () => {
+    
+    // --- 1. SIDEBAR TOGGLE LOGIC ---
+    const sidebar = document.getElementById('mainSidebar');
+    const toggleBtn = document.getElementById('sidebarToggleBtn');
+    const toggleIcon = toggleBtn ? toggleBtn.querySelector('i') : null;
+    const sidebarLogoText = document.getElementById('sidebarLogoText');
+    const headerLogoText = document.getElementById('headerLogoText');
 
-        if (toggleBtn && sidebar) {
-            toggleBtn.addEventListener('click', () => {
-                sidebar.classList.toggle('collapsed');
+    if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
 
-                if (sidebar.classList.contains('collapsed')) {
-                    // Collapse Logic
-                    sidebar.classList.replace('w-64', 'w-20');
-                    if(toggleIcon) toggleIcon.style.transform = 'rotate(180deg)';
-                    
-                    if(sidebarLogoText) {
-                        sidebarLogoText.style.opacity = '0';
-                        sidebarLogoText.style.width = '0px';
-                    }
-                    if(headerLogoText) {
-                        headerLogoText.classList.remove('hidden');
-                        setTimeout(() => { headerLogoText.classList.remove('opacity-0', '-translate-x-2'); }, 50);
-                    }
-                } else {
-                    // Expand Logic
-                    sidebar.classList.replace('w-20', 'w-64');
-                    if(toggleIcon) toggleIcon.style.transform = 'rotate(0deg)';
-                    
-                    if(sidebarLogoText) {
-                        sidebarLogoText.style.opacity = '1';
-                        sidebarLogoText.style.width = 'auto';
-                    }
-                    if(headerLogoText) {
-                        headerLogoText.classList.add('opacity-0', '-translate-x-2');
-                        setTimeout(() => { headerLogoText.classList.add('hidden'); }, 300);
-                    }
+            if (sidebar.classList.contains('collapsed')) {
+                // Collapse Logic
+                sidebar.classList.replace('w-64', 'w-20');
+                if(toggleIcon) toggleIcon.style.transform = 'rotate(180deg)';
+                
+                if(sidebarLogoText) {
+                    sidebarLogoText.style.opacity = '0';
+                    sidebarLogoText.style.width = '0px';
                 }
-            });
-        }
-
-        // --- 2. SETTINGS, THEME & ACCORDION LOGIC ---
-        const settingsTrigger = document.getElementById('settingsTrigger');
-        const settingsMenu = document.getElementById('settingsMenu');
-        const themeAccordionBtn = document.getElementById('themeAccordionBtn');
-        const themeOptionsContainer = document.getElementById('themeOptionsContainer');
-        const themeChevron = document.getElementById('themeChevron');
-        const themeOptions = document.querySelectorAll('.theme-option');
-        const headerThemeBtn = document.getElementById('themeToggleBtn');
-        const headerThemeIcon = headerThemeBtn ? headerThemeBtn.querySelector('i') : null;
-
-        function applyTheme(themeName) {
-            const html = document.documentElement;
-            if (themeName === 'dark') {
-                html.classList.add('dark'); localStorage.theme = 'dark';
-            } else if (themeName === 'light') {
-                html.classList.remove('dark'); localStorage.theme = 'light';
+                if(headerLogoText) {
+                    headerLogoText.classList.remove('hidden');
+                    setTimeout(() => { headerLogoText.classList.remove('opacity-0', '-translate-x-2'); }, 50);
+                }
             } else {
-                localStorage.removeItem('theme');
-                if (window.matchMedia('(prefers-color-scheme: dark)').matches) html.classList.add('dark');
-                else html.classList.remove('dark');
-            }
-            
-            if (headerThemeIcon) {
-                if (html.classList.contains('dark')) headerThemeIcon.classList.replace('fa-moon', 'fa-sun');
-                else headerThemeIcon.classList.replace('fa-sun', 'fa-moon');
-            }
-
-            themeOptions.forEach(btn => {
-                const checkIcon = btn.querySelector('.check-icon');
-                const isSelected = btn.getAttribute('data-value') === themeName;
-                if (isSelected) {
-                    btn.classList.add('bg-primary-50', 'dark:bg-primary-900/20', 'text-primary-600', 'dark:text-primary-400');
-                    checkIcon.classList.remove('opacity-0');
-                } else {
-                    btn.classList.remove('bg-primary-50', 'dark:bg-primary-900/20', 'text-primary-600', 'dark:text-primary-400');
-                    checkIcon.classList.add('opacity-0');
+                // Expand Logic
+                sidebar.classList.replace('w-20', 'w-64');
+                if(toggleIcon) toggleIcon.style.transform = 'rotate(0deg)';
+                
+                if(sidebarLogoText) {
+                    sidebarLogoText.style.opacity = '1';
+                    sidebarLogoText.style.width = 'auto';
                 }
-            });
-        }
-
-        // Settings Toggle
-        if (settingsTrigger && settingsMenu) {
-            settingsTrigger.addEventListener('click', (e) => {
-                e.stopPropagation();
-                settingsMenu.classList.toggle('hidden');
-                if (sidebar && sidebar.classList.contains('collapsed')) settingsMenu.style.left = '80px';
-                else settingsMenu.style.left = '16px';
-            });
-            document.addEventListener('click', (e) => {
-                if (!settingsMenu.contains(e.target) && !settingsTrigger.contains(e.target)) settingsMenu.classList.add('hidden');
-            });
-        }
-
-        // Theme Accordion
-        if (themeAccordionBtn && themeOptionsContainer) {
-            themeAccordionBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                themeOptionsContainer.classList.toggle('hidden');
-                themeChevron.style.transform = themeOptionsContainer.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(90deg)';
-            });
-        }
-
-        // Theme Select
-        themeOptions.forEach(option => {
-            option.addEventListener('click', (e) => {
-                e.stopPropagation();
-                applyTheme(option.getAttribute('data-value'));
-            });
+                if(headerLogoText) {
+                    headerLogoText.classList.add('opacity-0', '-translate-x-2');
+                    setTimeout(() => { headerLogoText.classList.add('hidden'); }, 300);
+                }
+            }
         });
+    }
 
-        // Header Quick Toggle
-        if (headerThemeBtn) {
-            headerThemeBtn.addEventListener('click', () => {
-                const isDark = document.documentElement.classList.contains('dark');
-                applyTheme(isDark ? 'light' : 'dark');
-            });
+    // --- 2. SETTINGS, THEME & ACCORDION LOGIC ---
+    const settingsTrigger = document.getElementById('settingsTrigger');
+    const settingsMenu = document.getElementById('settingsMenu');
+    const themeAccordionBtn = document.getElementById('themeAccordionBtn');
+    const themeOptionsContainer = document.getElementById('themeOptionsContainer');
+    const themeChevron = document.getElementById('themeChevron');
+    const themeOptions = document.querySelectorAll('.theme-option');
+    const headerThemeBtn = document.getElementById('themeToggleBtn');
+    const headerThemeIcon = headerThemeBtn ? headerThemeBtn.querySelector('i') : null;
+
+    function applyTheme(themeName) {
+        const html = document.documentElement;
+        if (themeName === 'dark') {
+            html.classList.add('dark'); localStorage.theme = 'dark';
+        } else if (themeName === 'light') {
+            html.classList.remove('dark'); localStorage.theme = 'light';
+        } else {
+            localStorage.removeItem('theme');
+            if (window.matchMedia('(prefers-color-scheme: dark)').matches) html.classList.add('dark');
+            else html.classList.remove('dark');
+        }
+        
+        if (headerThemeIcon) {
+            if (html.classList.contains('dark')) headerThemeIcon.classList.replace('fa-moon', 'fa-sun');
+            else headerThemeIcon.classList.replace('fa-sun', 'fa-moon');
         }
 
-        // Initialize Theme
-        applyTheme(localStorage.theme || 'system');
-
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-            if (!localStorage.theme) applyTheme('system');
+        themeOptions.forEach(btn => {
+            const checkIcon = btn.querySelector('.check-icon');
+            const isSelected = btn.getAttribute('data-value') === themeName;
+            if (isSelected) {
+                btn.classList.add('bg-primary-50', 'dark:bg-primary-900/20', 'text-primary-600', 'dark:text-primary-400');
+                checkIcon.classList.remove('opacity-0');
+            } else {
+                btn.classList.remove('bg-primary-50', 'dark:bg-primary-900/20', 'text-primary-600', 'dark:text-primary-400');
+                checkIcon.classList.add('opacity-0');
+            }
         });
+    }
 
-        // --- 3. OVERLAYS & NOTIFICATIONS ---
-        const overlay = document.getElementById("profileOverlay");
-        const headerProfileBtn = document.getElementById("headerProfileBtn");
-        const closeBtn = document.getElementById("closeProfileOverlay");
-        if(headerProfileBtn && overlay) headerProfileBtn.addEventListener("click", () => overlay.classList.remove("hidden"));
-        if(closeBtn && overlay) closeBtn.addEventListener("click", () => overlay.classList.add("hidden"));
-        if(overlay) overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.classList.add("hidden"); });
+    // Settings Toggle
+    if (settingsTrigger && settingsMenu) {
+        settingsTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            settingsMenu.classList.toggle('hidden');
+            if (sidebar && sidebar.classList.contains('collapsed')) settingsMenu.style.left = '80px';
+            else settingsMenu.style.left = '16px';
+        });
+        document.addEventListener('click', (e) => {
+            if (!settingsMenu.contains(e.target) && !settingsTrigger.contains(e.target)) settingsMenu.classList.add('hidden');
+        });
+    }
 
-        const notifBtn = document.getElementById('notificationBtn');
-        const notifDropdown = document.getElementById('notificationDropdown');
-        if (notifBtn && notifDropdown) {
-            notifBtn.addEventListener('click', (e) => { e.stopPropagation(); notifDropdown.classList.toggle('hidden'); });
-            document.addEventListener('click', (e) => {
-                if(!notifDropdown.contains(e.target) && !notifBtn.contains(e.target)) notifDropdown.classList.add('hidden');
-            });
-        }
-         if(overlay) overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.classList.add("hidden"); });
+    // Theme Accordion
+    if (themeAccordionBtn && themeOptionsContainer) {
+        themeAccordionBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            themeOptionsContainer.classList.toggle('hidden');
+            themeChevron.style.transform = themeOptionsContainer.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(90deg)';
+        });
+    }
 
-    // *** PASTE LOGOUT LOGIC HERE ***
+    // Theme Select
+    themeOptions.forEach(option => {
+        option.addEventListener('click', (e) => {
+            e.stopPropagation();
+            applyTheme(option.getAttribute('data-value'));
+        });
+    });
+
+    // Header Quick Toggle
+    if (headerThemeBtn) {
+        headerThemeBtn.addEventListener('click', () => {
+            const isDark = document.documentElement.classList.contains('dark');
+            applyTheme(isDark ? 'light' : 'dark');
+        });
+    }
+
+    // Initialize Theme
+    applyTheme(localStorage.theme || 'system');
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        if (!localStorage.theme) applyTheme('system');
+    });
+
+    // --- 3. OVERLAYS & NOTIFICATIONS ---
+    const overlay = document.getElementById("profileOverlay");
+    const headerProfileBtn = document.getElementById("headerProfileBtn");
+    const closeBtn = document.getElementById("closeProfileOverlay");
+    if(headerProfileBtn && overlay) headerProfileBtn.addEventListener("click", () => overlay.classList.remove("hidden"));
+    if(closeBtn && overlay) closeBtn.addEventListener("click", () => overlay.classList.add("hidden"));
+    if(overlay) overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.classList.add("hidden"); });
+
+    const notifBtn = document.getElementById('notificationBtn');
+    const notifDropdown = document.getElementById('notificationDropdown');
+    if (notifBtn && notifDropdown) {
+        notifBtn.addEventListener('click', (e) => { e.stopPropagation(); notifDropdown.classList.toggle('hidden'); });
+        document.addEventListener('click', (e) => {
+            if(!notifDropdown.contains(e.target) && !notifBtn.contains(e.target)) notifDropdown.classList.add('hidden');
+        });
+    }
+
+    // Logout Logic
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
@@ -461,25 +460,49 @@
         });
     }
 
-        // --- 4. FORM SUBMISSION LOGIC ---
-        const form = document.getElementById('createPostForm');
-        const submitBtn = document.getElementById('submitBtn');
+    // --- 4. FORM SUBMISSION LOGIC ---
+    const form = document.getElementById('createPostForm');
+    const submitBtn = document.getElementById('submitBtn');
 
-        if(form && submitBtn) {
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                submitBtn.disabled = true;
-                const originalContent = submitBtn.innerHTML;
-                submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Posting...';
-                
-                setTimeout(() => {
-                    alert('Post created successfully!');
+    if(form && submitBtn) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            submitBtn.disabled = true;
+            const originalContent = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Posting...';
+            
+            const title = document.getElementById('postTitle').value;
+            const content = document.getElementById('postBody').value;
+            const topic = document.getElementById('postCategory').value;
+
+            try {
+                const response = await fetch('/api/forum/threads', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ title, content, topic })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
                     window.location.href = 'forum.html'; 
-                }, 1500);
-            });
-        }
+                } else {
+                    alert('Failed to create post: ' + (data.message || data.error));
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalContent;
+                }
+            } catch (error) {
+                console.error('Error creating post:', error);
+                alert('An error occurred. Please try again.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalContent;
+            }
+        });
+    }
 
-      });
-    </script>
+  });
+</script>
   </body>
 </html>

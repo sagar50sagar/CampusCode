@@ -38,6 +38,9 @@ module.exports = (db) => {
     router.get('/forum.html', requireIndividual, (req, res) => res.redirect('/individual/forum'));
     router.get('/new-post', requireIndividual, serve('new-post.html'));
     router.get('/new-post.html', requireIndividual, (req, res) => res.redirect('/individual/new-post'));
+    router.get('/thread', requireIndividual, serve('thread.html'));
+    router.get('/thread.html', requireIndividual, serve('thread.html'));
+
 
     router.get('/report', requireIndividual, serve('report.html'));
     router.get('/report.html', requireIndividual, (req, res) => res.redirect('/individual/report'));
@@ -498,30 +501,49 @@ module.exports = (db) => {
                 }
             });
 
+            // 1. Get actual points earned per month based on problem difficulty
             const byMonth = await dbAll(`
                 SELECT
-                    strftime('%Y-%m', createdAt) as month_key,
-                    COUNT(*) as cnt
-                FROM submissions
-                WHERE user_id = ?
-                  AND DATE(createdAt) >= DATE('now', '-5 months')
-                GROUP BY strftime('%Y-%m', createdAt)
+                    strftime('%Y-%m', s.createdAt) as month_key,
+                    SUM(COALESCE(p.points, CASE 
+                        WHEN LOWER(p.difficulty) = 'hard' THEN 50
+                        WHEN LOWER(p.difficulty) = 'medium' THEN 30
+                        ELSE 10 
+                    END)) as points_earned
+                FROM submissions s
+                JOIN problems p ON p.id = s.problem_id
+                WHERE s.user_id = ?
+                  AND LOWER(COALESCE(s.status, '')) IN ('accepted', 'ac', 'pass')
+                  AND DATE(s.createdAt) >= DATE('now', '-5 months')
+                GROUP BY strftime('%Y-%m', s.createdAt)
                 ORDER BY month_key ASC
             `, [userId]);
-            const monthMap = new Map(byMonth.map((row) => [String(row.month_key), Number(row.cnt || 0)]));
+            
+            const monthMap = new Map(byMonth.map((row) => [String(row.month_key), Number(row.points_earned || 0)]));
             const ratingLabels = [];
-            const ratingData = [];
-            let runningScore = 1000;
+            const earnedData = [];
+            
+            // Get labels and points earned for the last 6 months
             for (let i = 5; i >= 0; i -= 1) {
                 const dt = new Date();
                 dt.setDate(1);
                 dt.setMonth(dt.getMonth() - i);
                 const monthKey = dt.toISOString().slice(0, 7);
                 const label = dt.toLocaleDateString('en-US', { month: 'short' });
-                const monthlySubmissions = monthMap.get(monthKey) || 0;
-                runningScore += monthlySubmissions * 3;
+                
                 ratingLabels.push(label);
-                ratingData.push(runningScore);
+                earnedData.push(monthMap.get(monthKey) || 0);
+            }
+
+            // 2. Calculate backwards so the graph perfectly ends at their CURRENT live points
+            let currentPoints = points; // Pulled from the user query at the top
+            const ratingData = new Array(6).fill(0);
+            ratingData[5] = currentPoints;
+            
+            for (let i = 4; i >= 0; i -= 1) {
+                currentPoints -= earnedData[i + 1]; // Subtract the month's earned points going backward
+                ratingData[i] = Math.max(0, currentPoints); // Prevent negative points
+            
             }
 
             const languageRows = await dbAll(`
@@ -535,17 +557,18 @@ module.exports = (db) => {
                 LIMIT 6
             `, [userId]);
 
+            // 3. Extract live topics accurately, handling both JSON and comma-separated formats
             const topicRows = await dbAll(`
                 SELECT
                     TRIM(value) as topic,
-                    COUNT(*) as solved
+                    COUNT(DISTINCT p.id) as solved
                 FROM submissions s
                 JOIN problems p ON p.id = s.problem_id
                 JOIN json_each(
                     CASE
                         WHEN p.tags IS NULL OR TRIM(p.tags) = '' THEN '[]'
                         WHEN substr(TRIM(p.tags), 1, 1) = '[' THEN p.tags
-                        ELSE '[]'
+                        ELSE '["' || REPLACE(TRIM(p.tags), ',', '","') || '"]'
                     END
                 )
                 WHERE s.user_id = ?

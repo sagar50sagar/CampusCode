@@ -1066,7 +1066,6 @@ router.put('/api/contests/:id', requireRole('admin'), (req, res) => {
         let finalScope = scope || 'college';
         if (role === 'superadmin') finalScope = 'global';
 
-<<<<<<< HEAD
         db.run(`UPDATE contests
                 SET title=?, scope=?, level=?, date=?, deadline=?, duration=?, eligibility=?, description=?, rulesAndDescription=?,
                     guidelines=?, contest_class=?, prize=?, startDate=?, endDate=?, status=?, colleges=?,
@@ -1076,37 +1075,6 @@ router.put('/api/contests/:id', requireRole('admin'), (req, res) => {
                 title, finalScope, level, date, deadline, duration, eligibility, finalDescription, finalGuidelines,
                 finalGuidelines, normalizedClass, prize || '', finalStartDate, finalEndDate, status || 'upcoming', collegesStr,
                 reward || '', targetProgramsStr, finalAllowedRoles, req.params.id
-=======
-        // ⭐ Fix: Instead of using 'allowed_roles', we use 'target_programs' 
-        // which exists in your database.js schema.
-        const targetProgramsStr = target_programs ? JSON.stringify(target_programs) : JSON.stringify(["All"]);
-
-        // We remove 'allowed_roles' from the SQL SET clause to avoid the SQLite error
-        db.run(`UPDATE contests
-                SET title=?, level=?, date=?, deadline=?, duration=?, eligibility=?, description=?, rulesAndDescription=?,
-                    guidelines=?, contest_class=?, prize=?, startDate=?, endDate=?, status=?, colleges=?,
-                    target_programs=?, reward=?
-                WHERE id=?`,
-            [
-                title, 
-                level, 
-                date, 
-                deadline, 
-                duration, 
-                eligibility, 
-                finalDescription, 
-                finalGuidelines,
-                finalGuidelines, 
-                normalizedClass, 
-                prize || '', 
-                finalStartDate, 
-                finalEndDate, 
-                status || 'upcoming', 
-                collegesStr,
-                targetProgramsStr, // Saved to existing column
-                reward || prize || '', // Saving reward data
-                req.params.id
->>>>>>> 0590900 (update sidenavbar image and ui)
             ],
             function(err) {
                 if (err) {

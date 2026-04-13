@@ -3,55 +3,64 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CampusCode • Admin Profile</title>
+  <title>CampusCode</title>
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
-          fontFamily: { sans: ['Poppins', 'sans-serif'] },
+          fontFamily: { sans: ["Poppins", "sans-serif"] },
           colors: {
-            primary: { 50: '#E7F0FA', 100: '#D0E1F5', 200: '#7BA4D0', 300: '#4D84C0', 400: '#2E5E99', 500: '#1E4A7A', 600: '#0D2440' }
+            primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" },
+            dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" }
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
           }
         }
       }
     }
   </script>
+<<<<<<< HEAD
+=======
+  <script>
+    if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+    }
+  </script>
+>>>>>>> c2c38a5 (match profile overlay)
   <style>
-    /* --- Scrollbar --- */
+    /* Scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     .dark ::-webkit-scrollbar-track { background: #111827; }
     ::-webkit-scrollbar-thumb { background: #7ba4d0; border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: #2e5e99; }
-
-    /* --- Sidebar Logic --- */
+    
+    /* Sidebar Logic */
     .sidebar { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
     .sidebar.collapsed { width: 5rem; }
     .sidebar.collapsed .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
     .sidebar.collapsed .nav-item i { margin-right: 0; font-size: 1.25rem; }
-    .sidebar.collapsed .nav-item span,
-    .sidebar.collapsed .logo-text,
-    .sidebar.collapsed .bottom-menu span { display: none; }
+    .sidebar.collapsed .nav-item span, .sidebar.collapsed .logo-text, .sidebar.collapsed .bottom-menu span { display: none; }
     .sidebar.collapsed .bottom-menu .nav-item { justify-content: center; }
-
-    /* --- Nav Item Styling (Synced with Dashboard) --- */
+    
+    /* Nav Item Styling */
     .nav-item {
         transition: all 0.2s ease; position: relative; display: flex; align-items: center;
         padding: 0.75rem 1rem; margin-bottom: 0.25rem; color: #374151; border-radius: 0.5rem;
         cursor: pointer; white-space: nowrap; text-decoration: none;
     }
-    .nav-item:hover { background-color: #f3f4f6; }
+    .nav-item:hover { background-color: #f3f4f6; color: #111827; }
     .dark .nav-item { color: #d1d5db; }
-    .dark .nav-item:hover { background-color: #374151; }
-    .nav-item.active { background-color: #d0e1f5; color: #1e4a7a; }
+    .dark .nav-item:hover { background-color: #374151; color: #ffffff; }
+    .nav-item.active { background-color: #d0e1f5; color: #1e4a7a; font-weight: 600; }
     .dark .nav-item.active { background-color: #1e4a7a; color: #ffffff; }
     .nav-item.active::before {
         content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
@@ -60,35 +69,11 @@
     .dark .nav-item.active::before { background-color: #60a5fa; }
     .nav-item i { width: 1.5rem; text-align: center; margin-right: 0.75rem; font-size: 1.1rem; flex-shrink: 0; }
     .nav-item span { font-size: 0.875rem; font-weight: 500; }
-    
-    /* --- Body & Profile specific styles --- */
-    body { transition: background-color 0.3s, color 0.3s; }
-    .glass-card { background: white; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-    .dark .glass-card { background: #1f2937; border-color: #374151; }
-    
-    .modal-overlay { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(6px); transition: opacity 0.3s ease; }
-    .img-controls { opacity: 0; transform: translateY(10px); transition: all 0.3s ease; }
-    .group:hover .img-controls { opacity: 1; transform: translateY(0); }
-    
-    /* Notification Panel Animation */
-    #notificationPanel { 
-        display: none; 
-        transform-origin: top right;
-    }
-    #notificationPanel.active { display: block; animation: slideIn 0.2s ease-out; }
-    @keyframes slideIn {
-        from { opacity: 0; transform: scale(0.95) translateY(-10px); }
-        to { opacity: 1; transform: scale(1) translateY(0); }
-    }
-
-    .profile-modal-overlay { display: none; }
-    .profile-modal-overlay.active { display: flex !important; }
   </style>
 </head>
 
-<body class="bg-gray-50 dark:bg-gray-900 font-sans overflow-hidden transition-colors duration-200">
-
-<div class="flex h-screen">
+<body class="bg-gray-50 dark:bg-gray-900 font-sans text-slate-900 dark:text-slate-100 transition-colors overflow-hidden">
+<div class="flex h-screen overflow-hidden">
   
   <aside id="mainSidebar" class="sidebar w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen flex-shrink-0 transition-colors duration-200 z-50">
     <div class="p-6 flex-shrink-0 flex items-center justify-between h-[88px]">
@@ -100,22 +85,24 @@
             <i class="fas fa-chevron-left transition-transform duration-300"></i>
         </button>
     </div>
+
     <nav class="flex-1 px-4 space-y-1 overflow-y-auto mt-2">
         <a href="/college/dashboard" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
         <a href="/college/program" class="nav-item"><i class="fa-solid fa-layer-group"></i><span>Programs</span></a>
         <a href="/college/contest" class="nav-item"><i class="fas fa-trophy"></i><span>Contests</span></a>
         <a href="/college/manage_user" class="nav-item"><i class="fa-solid fa-users"></i><span>User</span></a>
-         <a href="/college/community" class="nav-item"><i class="fas fa-comments"></i><span>Community</span></a>
+        <a href="/college/community" class="nav-item"><i class="fas fa-comments"></i><span>Community</span></a>
         <a href="/college/report" class="nav-item"><i class="fas fa-file-invoice"></i><span>Reports</span></a>
         <a href="/college/profile" class="nav-item active"><i class="fas fa-user"></i><span>Profile</span></a>
     </nav>
 
     <div class="p-4 space-y-1 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0 bottom-menu">
-        <a href="/college/help_support" class="nav-item"><i class="far fa-question-circle"></i><span>Help &amp; Support</span></a>
+        <a href="/college/help_support" class="nav-item"><i class="far fa-question-circle"></i><span>Help & Support</span></a>
         <a href="/college/setting" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
     </div>
   </aside>
 
+<<<<<<< HEAD
   <div class="flex-1 flex flex-col overflow-hidden">
     <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-8 py-4 flex justify-end items-center gap-8 relative z-40 transition-colors duration-200 shadow-sm">
       
@@ -133,268 +120,231 @@
             <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
                 <h4 class="font-bold text-gray-800 dark:text-white">Notifications</h4>
                 <button onclick="clearNotif(event)" class="text-[10px] text-primary-500 font-bold uppercase hover:text-primary-600">Clear all</button>
+=======
+  <div class="flex-1 flex flex-col overflow-hidden relative">
+    
+    <header class="bg-white dark:bg-gray-800 shadow-sm transition-colors duration-200 sticky top-0 z-40">
+        <div class="px-8 py-3 flex justify-between items-center h-[88px]">
+            <div class="flex-1 max-w-2xl flex items-center gap-4">
+                <div class="relative flex items-center w-full">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                    <input type="text" id="globalSearchInput" class="block w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all" placeholder="Search across programs, branches, subjects..." />
+                </div>
+>>>>>>> c2c38a5 (match profile overlay)
             </div>
-            <div id="notificationList" class="max-h-80 overflow-y-auto">
-                <div class="p-4 border-b border-gray-50 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors">
-                    <p class="text-xs font-bold text-gray-800 dark:text-gray-200">Welcome to CampusCode</p>
-                    <p class="text-[11px] text-gray-500 mt-0.5">Your profile is ready.</p>
+
+            <div class="ml-4 flex items-center gap-3 relative">
+                <button id="themeToggleBtn" class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none transition-transform active:scale-95">
+                    <i id="themeIcon" class="fas fa-moon text-xl transition-all duration-300"></i>
+                </button>
+
+                <div class="relative">
+                    <button id="notificationBtn" class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-800"></span>
+                    </button>
+                    <div id="notifDropdown" class="hidden absolute right-0 mt-3 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 z-50">
+                        <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                            <h3 class="font-semibold text-gray-800 dark:text-white text-sm">Notifications</h3>
+                            <button class="text-xs text-primary-500 font-medium hover:text-primary-600">Mark all read</button>
+                        </div>
+                        <div class="max-h-64 overflow-y-auto p-4 text-center text-xs text-gray-500">
+                            No new notifications
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <button onclick="toggleProfile()" class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none">
+                        <div class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm shadow-sm" id="headerInitials">AD</div>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block truncate max-w-[150px]" id="headerName">Admin</span>
+                    </button>
                 </div>
             </div>
         </div>
-      </div>
-
-      <div class="flex items-center gap-3 cursor-pointer group hover:opacity-90 transition-opacity" onclick="toggleProfileOverlay()">
-        <div class="avatar-initials w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm shadow-sm">
-          --
-        </div>
-        <span id="headerName" class="text-gray-700 dark:text-gray-200 font-semibold text-sm">Loading...</span>
-      </div>
     </header>
 
-   <main class="flex-1 px-8 py-6 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-      <div class="grid grid-cols-12 gap-6">
+    <main class="flex-1 overflow-y-auto p-4 sm:p-8">
+      <div class="max-w-6xl mx-auto space-y-6">
         
-        <div class="col-span-12 lg:col-span-4 xl:col-span-3 glass-card rounded-3xl p-6 flex flex-col items-center">
-          <div class="relative group mt-4">
-            <div class="w-32 h-32 rounded-full border-4 border-primary-100 dark:border-gray-700 shadow-xl overflow-hidden bg-gray-100">
-                <img id="mainAvatar" class="w-full h-full object-cover" src="https://ui-avatars.com/api/?name=Admin&background=1E4A7A&color=fff" alt="Profile Avatar" />
-            </div>
-            <div class="img-controls absolute -bottom-2 flex gap-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <button type="button" onclick="document.getElementById('profileUpload').click()" class="bg-primary-500 text-white w-8 h-8 rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform" title="Change Picture">
-                    <i class="fas fa-pencil-alt text-xs"></i>
-                </button>
-                <button type="button" onclick="removeProfilePic()" class="bg-red-500 text-white w-8 h-8 rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform" title="Remove Picture">
-                    <i class="fas fa-trash-alt text-xs"></i>
-                </button>
-            </div>
-            <input type="file" id="profileUpload" class="hidden" accept="image/*" onchange="previewImage(event)">
-          </div>
-          
-          <h2 id="displayName" class="mt-6 text-xl font-bold text-gray-800 dark:text-white text-center break-words w-full">Loading...</h2>
-          <p id="displayDesig" class="text-xs font-semibold text-primary-500 dark:text-primary-400 uppercase tracking-widest mt-1 text-center">...</p>
-          
-          <span id="displayStatus" class="mt-3 px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full text-[10px] font-bold uppercase tracking-wider">Active</span>
-
-          <div class="mt-6 w-full space-y-4 border-t border-gray-100 dark:border-gray-700 pt-6">
-            <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Contact & Info</h4>
-            
-            <div class="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-400 w-full">
-                <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center shrink-0">
-                    <i class="fas fa-university text-primary-400"></i>
-                </div>
-                <div class="pt-1 flex-1 min-w-0">
-                    <p class="text-[10px] text-gray-400 font-semibold mb-0.5">Institution</p>
-                    <div id="displayInst" class="font-medium text-gray-700 dark:text-gray-300 break-words">...</div>
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden relative">
+            <div class="h-32 sm:h-48 bg-gradient-to-r from-[#153A6A] via-[#1E4A7A] to-[#2E5E99] w-full relative">
+                <div class="absolute inset-0 bg-black/10"></div>
+                
+                <div class="absolute bottom-4 right-4 bg-green-500/20 backdrop-blur-md px-4 py-1.5 rounded-full text-green-50 text-xs font-bold border border-green-400/50 shadow-[0_0_15px_rgba(34,197,94,0.4)] animate-pulse-slow flex items-center gap-1.5 z-20">
+                    <i class="fas fa-check-circle text-green-400 shadow-sm"></i> 
+                    <span class="tracking-wide uppercase">Verified Admin</span>
                 </div>
             </div>
             
-            <div class="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-400 w-full">
-                <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center shrink-0">
-                    <i class="fas fa-envelope text-primary-400"></i>
-                </div>
-                <div class="pt-1 flex-1 min-w-0">
-                    <p class="text-[10px] text-gray-400 font-semibold mb-0.5">Email</p>
-                    <div id="displayEmail" class="font-medium text-gray-700 dark:text-gray-300 break-all">...</div>
+            <div class="px-8 pb-8">
+                <div class="flex flex-col sm:flex-row gap-6 sm:items-end -mt-16 sm:-mt-20 relative z-10 mb-6">
+                    <div class="relative w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0">
+                        <div id="largeInitials" class="w-full h-full rounded-2xl border-4 border-white dark:border-gray-800 shadow-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white text-4xl sm:text-5xl font-bold uppercase tracking-wider">
+                            AD
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1 pt-4 sm:pt-0">
+                        <h2 id="displayName" class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Loading...</h2>
+                        <p class="text-gray-600 dark:text-gray-300 font-medium mt-1 flex items-center gap-2">
+                            <i class="fas fa-university text-primary-500"></i> <span id="displayCollege">Loading College...</span>
+                        </p>
+                    </div>
+
+                    <div class="flex gap-4 sm:ml-auto w-full sm:w-auto">
+                        <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl border border-gray-200 dark:border-gray-600 flex-1 text-center sm:min-w-[100px] shadow-sm">
+                            <p class="text-xs text-gray-500 dark:text-gray-300 uppercase font-bold">Users</p>
+                            <p id="statUsers" class="text-xl font-bold text-gray-900 dark:text-white mt-1">-</p>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl border border-gray-200 dark:border-gray-600 flex-1 text-center sm:min-w-[100px] shadow-sm">
+                            <p class="text-xs text-gray-500 dark:text-gray-300 uppercase font-bold">Contests</p>
+                            <p id="statContests" class="text-xl font-bold text-gray-900 dark:text-white mt-1">-</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <div class="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-400 w-full">
-                <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center shrink-0">
-                    <i class="fas fa-building text-primary-400"></i>
-                </div>
-                <div class="pt-1 flex-1 min-w-0">
-                    <p class="text-[10px] text-gray-400 font-semibold mb-0.5">Department</p>
-                    <div id="displayDept" class="font-medium text-gray-700 dark:text-gray-300 break-words">N/A</div>
-                </div>
-            </div>
-          </div>
-
-          <div class="mt-8 w-full space-y-3">
-            <button type="button" onclick="toggleModal('editModal')" class="w-full py-3 rounded-xl bg-primary-600 text-white font-bold text-xs shadow-md hover:bg-primary-700 transition-colors">
-                EDIT PROFILE
-            </button>
-            <a href="/college/setting" class="block w-full text-center py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-bold text-xs hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                ACCOUNT SETTINGS
-            </a>
-          </div>
         </div>
 
-        <div class="col-span-12 lg:col-span-8 xl:col-span-9 flex flex-col gap-6">
-          
-          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-            <div class="glass-card rounded-[1.5rem] p-6 flex items-center gap-4 transition-transform hover:-translate-y-1">
-                <div class="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600"><i class="fas fa-user-graduate text-2xl"></i></div>
-                <div><p class="text-xs font-bold text-gray-400 uppercase">Students</p><p id="statStudents" class="text-2xl font-black text-gray-800 dark:text-white">0</p></div>
-            </div>
-            <div class="glass-card rounded-[1.5rem] p-6 flex items-center gap-4 transition-transform hover:-translate-y-1">
-                <div class="p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 text-purple-600"><i class="fas fa-chalkboard-teacher text-2xl"></i></div>
-                <div><p class="text-xs font-bold text-gray-400 uppercase">Faculty</p><p id="statFaculty" class="text-2xl font-black text-gray-800 dark:text-white">0</p></div>
-            </div>
-            <div class="glass-card rounded-[1.5rem] p-6 flex items-center gap-4 transition-transform hover:-translate-y-1">
-                <div class="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 text-green-600"><i class="fas fa-code-branch text-2xl"></i></div>
-                <div><p class="text-xs font-bold text-gray-400 uppercase">Programs</p><p id="statPrograms" class="text-2xl font-black text-gray-800 dark:text-white">0</p></div>
-            </div>
-            <div class="glass-card rounded-[1.5rem] p-6 flex items-center gap-4 transition-transform hover:-translate-y-1">
-                <div class="p-4 rounded-xl bg-orange-50 dark:bg-orange-900/20 text-orange-600"><i class="fas fa-bolt text-2xl"></i></div>
-                <div><p class="text-xs font-bold text-gray-400 uppercase">Contests</p><p id="statContests" class="text-2xl font-black text-gray-800 dark:text-white">0</p></div>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[400px]">
-            <div class="glass-card rounded-[1.5rem] p-8 flex flex-col">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="font-bold text-gray-800 dark:text-white">Platform Usage</h3>
-                    <span class="text-[10px] font-semibold bg-gray-100 dark:bg-gray-800 text-gray-500 px-2 py-1 rounded">Last 6 Months</span>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <div class="space-y-6">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                    <h3 class="text-base font-bold text-gray-900 dark:text-white mb-4">Professional Links</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1.5"><i class="fab fa-linkedin text-blue-600 dark:text-blue-400 text-lg align-middle mr-1"></i> LinkedIn</label>
+                            <input type="url" id="linkedin" placeholder="https://linkedin.com/in/..." class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1.5"><i class="fab fa-github text-gray-800 dark:text-gray-200 text-lg align-middle mr-1"></i> GitHub</label>
+                            <input type="url" id="github" placeholder="https://github.com/..." class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all" />
+                        </div>
+                    </div>
                 </div>
-                <div class="relative flex-1 min-h-[250px]"><canvas id="usageChart"></canvas></div>
+
+                <div class="bg-primary-50 dark:bg-primary-900/20 rounded-2xl shadow-sm border border-primary-200 dark:border-primary-800 p-6">
+                    <h3 class="text-base font-bold text-primary-900 dark:text-primary-300 mb-4 flex items-center gap-2">
+                        <i class="fas fa-shield-alt text-primary-500"></i> Access Level: Admin
+                    </h3>
+                    <ul class="space-y-3 text-sm text-primary-800 dark:text-primary-200">
+                        <li class="flex items-start gap-3"><i class="fas fa-check-circle text-primary-600 dark:text-primary-400 mt-0.5"></i> <span>Manage College Users & Roles</span></li>
+                        <li class="flex items-start gap-3"><i class="fas fa-check-circle text-primary-600 dark:text-primary-400 mt-0.5"></i> <span>Create & Edit Global Contests</span></li>
+                        <li class="flex items-start gap-3"><i class="fas fa-check-circle text-primary-600 dark:text-primary-400 mt-0.5"></i> <span>View System Analytics & Reports</span></li>
+                        <li class="flex items-start gap-3"><i class="fas fa-check-circle text-primary-600 dark:text-primary-400 mt-0.5"></i> <span>Modify College Workspace Settings</span></li>
+                    </ul>
+                </div>
             </div>
-            <div class="glass-card rounded-[1.5rem] p-8 flex flex-col">
-                <h3 class="font-bold text-gray-800 dark:text-white mb-6">User Account Status</h3>
-                <div class="relative flex-1 min-h-[250px]"><canvas id="performanceChart"></canvas></div>
+
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6 border-b border-gray-100 dark:border-gray-700 pb-4">Personal Information</h3>
+                    
+                    <form id="profileForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-1.5">
+                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300">First Name</label>
+                                <input type="text" id="firstName" class="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-3 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all shadow-sm" />
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Last Name</label>
+                                <input type="text" id="lastName" class="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-3 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all shadow-sm" />
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Email Address <span class="text-xs font-normal text-gray-500">(Read Only)</span></label>
+                                <div class="relative">
+                                    <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                    <input type="email" id="email" readonly class="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 cursor-not-allowed pl-10 pr-4 py-3 text-sm text-gray-500 dark:text-gray-400 shadow-sm" />
+                                </div>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Mobile Number</label>
+                                <input type="tel" id="mobile" class="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-3 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all shadow-sm" />
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Gender</label>
+                                <select id="gender" class="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-3 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all appearance-none shadow-sm">
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div class="space-y-1.5">
+                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Program</label>
+                                <select id="program" onchange="updateBranches()" class="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-3 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all appearance-none shadow-sm">
+                                    <option value="">Select Program</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Department / Branch</label>
+                                <select id="branch" class="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-3 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all appearance-none shadow-sm">
+                                    <option value="">Select Branch</option>
+                                </select>
+                            </div>
+
+                        </div>
+                        
+                        <div class="pt-6 border-t border-gray-100 dark:border-gray-700 flex justify-end">
+                            <button type="button" onclick="saveProfile()" class="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-medium py-2.5 px-6 rounded-xl shadow-lg shadow-primary-500/30 transition-all flex items-center gap-2 transform active:scale-95">
+                                <i class="fas fa-save"></i> Save Profile Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-          </div>
         </div>
+
       </div>
     </main>
-
-    <div id="editModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm transition-opacity">
-        <div class="bg-white dark:bg-gray-800 w-full max-w-lg rounded-2xl shadow-2xl p-8 transform transition-all">
-            <div class="flex justify-between items-center mb-6 border-b border-gray-100 dark:border-gray-700 pb-4">
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Edit Profile</h3>
-                <button onclick="toggleModal('editModal')" class="text-gray-400 hover:text-red-500 transition-colors">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
-            </div>
-            
-            <form id="profileForm" onsubmit="event.preventDefault(); saveProfile();" class="space-y-5">
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">First Name</label>
-                        <input type="text" id="inputFirstName" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Last Name</label>
-                        <input type="text" id="inputLastName" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none">
-                    </div>
-                </div>
-                
-                <div class="pt-4 border-t border-gray-100 dark:border-gray-700">
-                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Change Password <span class="text-gray-400 font-normal">(Leave blank to keep current)</span></label>
-                    <input type="password" id="inputPassword" placeholder="Enter new password" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none">
-                </div>
-
-                <div class="flex justify-end gap-3 mt-8">
-                    <button type="button" onclick="toggleModal('editModal')" class="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">Cancel</button>
-                    <button type="submit" id="saveBtn" class="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-primary-600 hover:bg-primary-700 shadow-md transition-colors flex items-center gap-2">
-                        <i class="fas fa-save"></i> Save Changes
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="editModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm transition-opacity">
-        <div class="bg-white dark:bg-gray-800 w-full max-w-lg rounded-2xl shadow-2xl p-8 transform transition-all">
-            <div class="flex justify-between items-center mb-6 border-b border-gray-100 dark:border-gray-700 pb-4">
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Edit Profile</h3>
-                <button onclick="toggleModal('editModal')" class="text-gray-400 hover:text-red-500 transition-colors">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
-            </div>
-            
-            <form id="profileForm" onsubmit="event.preventDefault(); saveProfile();" class="space-y-5">
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">First Name</label>
-                        <input type="text" id="inputFirstName" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Last Name</label>
-                        <input type="text" id="inputLastName" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none">
-                    </div>
-                </div>
-                
-                <div class="pt-4 border-t border-gray-100 dark:border-gray-700">
-                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Change Password <span class="text-gray-400 font-normal">(Leave blank to keep current)</span></label>
-                    <input type="password" id="inputPassword" placeholder="Enter new password" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none">
-                </div>
-
-                <div class="flex justify-end gap-3 mt-8">
-                    <button type="button" onclick="toggleModal('editModal')" class="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">Cancel</button>
-                    <button type="submit" id="saveBtn" class="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-primary-600 hover:bg-primary-700 shadow-md transition-colors flex items-center gap-2">
-                        <i class="fas fa-save"></i> Save Changes
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
   </div>
 </div>
 
-<div id="profileOverlay" class="hidden fixed inset-0 z-[150] profile-modal-overlay flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-    <div class="bg-white dark:bg-gray-800 rounded-[2rem] w-full max-w-[340px] shadow-2xl overflow-hidden relative border border-gray-100 dark:border-gray-700 transform transition-all">
-        <button onclick="toggleProfileOverlay()" class="absolute top-4 right-4 text-white/80 hover:text-white z-10"><i class="fas fa-times text-lg"></i></button>
-        <div class="h-32 bg-primary-600 w-full"></div>
-        <div class="relative -mt-12 flex justify-center mb-3">
-            <div class="avatar-initials w-24 h-24 rounded-full bg-primary-500 border-[4px] border-white dark:border-gray-800 flex items-center justify-center shadow-md text-3xl font-bold text-white">
-                --
+<div id="profileOverlay" class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div class="bg-white dark:bg-gray-800 w-[320px] rounded-3xl overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-700">
+        <div class="bg-[#1e4a7a] p-6 text-center relative h-32">
+            <button onclick="toggleProfile()" class="absolute top-4 right-4 text-white/80 hover:text-white"><i class="fas fa-times text-lg"></i></button>
+            <div class="absolute -bottom-10 left-1/2 -translate-x-1/2">
+                <div id="modalInitials" class="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 bg-[#1e4a7a] flex items-center justify-center text-white text-2xl font-bold">AD</div>
             </div>
         </div>
-        <div class="text-center px-6 pb-8">
-            <h2 class="text-xl font-bold text-gray-800 dark:text-white" id="overlayName">Loading...</h2>
-            <p class="text-xs font-semibold text-primary-500 uppercase tracking-wide mt-1" id="overlayDesig">...</p>
-            <p class="text-xs text-gray-500 mb-4 mt-2 flex items-center justify-center gap-1" id="overlayInst"><i class="fas fa-university"></i> ...</p>
-
-            <div class="flex justify-between border-y border-gray-100 dark:border-gray-700 py-4 mb-6">
-                <div><p class="text-[10px] font-bold text-gray-400 uppercase">Contests</p><p class="text-lg font-bold text-gray-800 dark:text-white" id="overlayContests">0</p></div>
-                <div class="border-x border-gray-100 dark:border-gray-700 px-6"><p class="text-[10px] font-bold text-gray-400 uppercase">Users</p><p class="text-lg font-bold text-gray-800 dark:text-white" id="overlayUsers">0</p></div>
-                <div><p class="text-[10px] font-bold text-gray-400 uppercase">Programs</p><p class="text-lg font-bold text-gray-800 dark:text-white" id="overlayPrograms">0</p></div>
-            </div>
-            
+        <div class="pt-12 pb-6 px-6 text-center">
+            <h3 id="modalName" class="text-xl font-bold text-gray-800 dark:text-white">Admin</h3>
+            <p id="modalCollege" class="text-xs text-gray-500 flex items-center justify-center gap-1 mt-1"><i class="fas fa-university"></i> Loading College...</p>
+            <p id="modalRole" class="text-xs text-gray-500 mb-6 uppercase flex items-center justify-center gap-1 mt-1">Admin</p>
+              <div class="space-y-1">
+                    <div class="flex justify-between border-y border-gray-100 dark:border-gray-700 py-4 mb-6">
+                    <div><p class="text-[10px] font-bold text-primary-400 uppercase">Contest</p><p id="statContests" class="text-lg font-bold dark:text-white">0</p></div>
+                    <div class="border-x border-gray-100 dark:border-gray-700 px-6"><p class="text-[10px] font-bold text-primary-400 uppercase">Users</p><p id="statUsers" class="text-lg font-bold dark:text-white">0</p></div>
+                    <div><p class="text-[10px] font-bold text-primary-400 uppercase">Programs</p><p id="statPrograms" class="text-lg font-bold dark:text-white">0</p></div>
+                </div>
             <div class="space-y-1">
-                <a href="/college/profile" class="block">   
+                <a href="/college/profile" class="block">
                     <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
-                        <div class="flex items-center gap-3"><i class="fas fa-user-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200"> My Profile</span></div>
+                        <div class="flex items-center gap-3"><i class="fas fa-user-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">My Profile</span></div>
                         <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
                     </button>
                 </a>
-                    
-                <a href="/college/help_support" class="block">  
-                    <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                <a href="help_support.html">  <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
                         <div class="flex items-center gap-3"><i class="fas fa-question-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">Help & Support</span></div>
                         <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
-                    </button>
-                </a>
-
-                <button onclick="handleLogout()" class="mt-4 flex items-center justify-center gap-3 w-full py-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 font-bold text-sm hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors">
-                    <i class="fas fa-sign-out-alt"></i> Log out
+                    </button></a>
+                <button id="modalLogoutBtn" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
+                    <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center"><i class="fas fa-sign-out-alt"></i></div>
+                    <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
                 </button>
+                <button onclick="toggleProfile()" class="mt-4 text-[10px] font-bold text-gray-400 uppercase hover:text-gray-600 transition-colors">Close</button>
+           
             </div>
-        </div>
-    </div>
-</div>
-
-<div id="editModal" class="hidden fixed inset-0 z-[160] modal-overlay flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-gray-800 rounded-[2rem] w-full max-w-md p-8 shadow-2xl border border-gray-100 dark:border-gray-700">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-bold text-gray-800 dark:text-white">Update Profile</h3>
-            <button onclick="toggleModal('editModal')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white"><i class="fas fa-times"></i></button>
-        </div>
-        
-        <label class="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">First Name</label>
-        <input type="text" id="inputFirstName" class="w-full mt-1 mb-4 px-4 py-3 rounded-xl border border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-white outline-none focus:border-primary-500 transition-colors">
-        
-        <label class="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Last Name</label>
-        <input type="text" id="inputLastName" class="w-full mt-1 mb-4 px-4 py-3 rounded-xl border border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-white outline-none focus:border-primary-500 transition-colors">
-        
-        <div class="flex gap-3 mt-6">
-            <button onclick="toggleModal('editModal')" class="flex-1 py-3 border border-gray-200 rounded-xl text-gray-700 font-semibold dark:text-white dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancel</button>
-            <button onclick="saveProfile()" class="flex-1 py-3 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-colors shadow-md">Save Changes</button>
         </div>
     </div>
 </div>
 
 <script>
+<<<<<<< HEAD
   let mixedChartInstance = null;
   let pieChartInstance = null;
   
@@ -701,52 +651,236 @@
           overlay.classList.toggle('active'); 
       }
   }
-
-  function previewImage(event) {
-      const reader = new FileReader();
-      reader.onload = function(){ 
-          const avatar = document.getElementById('mainAvatar');
-          if (avatar) avatar.src = reader.result; 
-      };
-      if(event.target.files[0]) reader.readAsDataURL(event.target.files[0]);
-  }
-
-  function removeProfilePic() {
-      const nameEl = document.getElementById('displayName');
-      const name = nameEl ? nameEl.innerText : 'Admin';
-      const avatar = document.getElementById('mainAvatar');
-      const upload = document.getElementById('profileUpload');
-      
-      if (avatar) avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1E4A7A&color=fff`;
-      if (upload) upload.value = "";
-  }
-
-  // CLOSE DROPDOWNS ON OUTSIDE CLICK
-  window.addEventListener('click', function(e) {
-    const panel = document.getElementById('notificationPanel');
-    const bell = document.getElementById('bellBtn');
-    if (panel && bell && !panel.contains(e.target) && !bell.contains(e.target)) {
-        panel.classList.remove('active');
+=======
+    // --- Theme Logic ---
+    const html = document.documentElement;
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const themeIcon = document.getElementById('themeIcon');
+    
+    function updateThemeIcon() {
+        if (html.classList.contains('dark')) {
+            themeIcon.classList.replace('fa-moon', 'fa-sun');
+        } else {
+            themeIcon.classList.replace('fa-sun', 'fa-moon');
+        }
     }
-  });
+    
+    themeToggleBtn.addEventListener('click', () => {
+        html.classList.toggle('dark');
+        if (html.classList.contains('dark')) localStorage.theme = 'dark';
+        else localStorage.theme = 'light';
+        updateThemeIcon();
+    });
+    updateThemeIcon();
 
-  // --- SIDEBAR TOGGLE LOGIC ---
-  const sidebar = document.getElementById('mainSidebar');
-  const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
-  const toggleIcon = sidebarToggleBtn ? sidebarToggleBtn.querySelector('i') : null;
+    // --- Sidebar & Profile Overlay Logic ---
+    document.getElementById('sidebarToggleBtn').addEventListener('click', () => {
+        const sidebar = document.getElementById('mainSidebar');
+        const icon = document.getElementById('sidebarToggleBtn').querySelector('i');
+        sidebar.classList.toggle('collapsed');
+        if (sidebar.classList.contains('collapsed')) {
+            icon.classList.replace('fa-chevron-left', 'fa-chevron-right');
+        } else {
+            icon.classList.replace('fa-chevron-right', 'fa-chevron-left');
+        }
+    });
 
-  if(sidebarToggleBtn) {
-      sidebarToggleBtn.addEventListener('click', () => {
-          if (sidebar) sidebar.classList.toggle('collapsed');
-          if (toggleIcon) {
-              if (sidebar && sidebar.classList.contains('collapsed')) {
-                  toggleIcon.classList.replace('fa-chevron-left', 'fa-chevron-right');
-              } else {
-                  toggleIcon.classList.replace('fa-chevron-right', 'fa-chevron-left');
-              }
-          }
-      });
-  }
+    function toggleProfile() {
+        document.getElementById('profileOverlay').classList.toggle('hidden');
+    }
+>>>>>>> c2c38a5 (match profile overlay)
+
+    const notifBtn = document.getElementById('notificationBtn');
+    const notifDropdown = document.getElementById('notifDropdown');
+
+    notifBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        notifDropdown.classList.toggle('hidden');
+    });
+
+    window.addEventListener('click', () => {
+        notifDropdown.classList.add('hidden');
+    });
+
+    // --- Logout Logic ---
+    document.getElementById('modalLogoutBtn').addEventListener('click', async () => {
+        try {
+            const response = await fetch('/college/logout', { method: 'POST' });
+            if (response.ok) {
+                localStorage.removeItem("adminLogin");
+                window.location.href = "/"; 
+            }
+        } catch (error) {
+            window.location.href = "/";
+        }
+    });
+
+    // --- Dynamic Profile & Hierarchical Loading Logic ---
+    let allBranches = [];
+
+    // Helper to get initials (First Name + Last Name)
+    function getInitials(firstName, lastName) {
+        let f = firstName ? firstName.charAt(0).toUpperCase() : '';
+        let l = lastName ? lastName.charAt(0).toUpperCase() : '';
+        return f + l || 'A';
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+        try {
+            // Fetch Programs and Branches for hierarchical dropdown
+            const [progRes, branchRes] = await Promise.all([
+                fetch('/college/programs'),
+                fetch('/college/branches')
+            ]);
+            
+            const progData = await progRes.json();
+            const branchData = await branchRes.json();
+
+            if(progData.success) {
+                const programSelect = document.getElementById('program');
+                progData.data.forEach(p => {
+                    programSelect.add(new Option(p.name, p.name));
+                });
+            }
+            
+            if(branchData.success) {
+                allBranches = branchData.data;
+            }
+
+            // Fetch Dashboard Stats (Users & Contests)
+            const statsRes = await fetch('/college/api/dashboard-data');
+            const statsData = await statsRes.json();
+            if (statsData.success && statsData.stats) {
+                document.getElementById('statUsers').innerText = statsData.stats.totalUsers || 0;
+                document.getElementById('statContests').innerText = statsData.stats.totalContests || 0;
+            }
+
+            // Fetch User Profile Data
+            const profileRes = await fetch('/college/api/profile');
+            const profileData = await profileRes.json();
+            
+            if(profileData.success && profileData.user) {
+                const u = profileData.user;
+                const fullName = u.fullName || 'Admin User';
+                
+                // Fallbacks if first/last name isn't cleanly split in DB
+                const parts = fullName.split(' ');
+                const firstName = u.firstName || parts[0] || 'Admin';
+                const lastName = u.lastName || (parts.length > 1 ? parts.slice(1).join(' ') : '');
+                
+                const initials = getInitials(firstName, lastName);
+                const collegeDisplay = u.collegeName || 'Unknown College';
+
+                // Update UI Texts
+                document.getElementById('displayName').innerText = fullName;
+                // Force full name in Header Top Right
+                document.getElementById('headerName').innerText = fullName;
+                
+                document.getElementById('headerInitials').innerText = initials;
+                document.getElementById('largeInitials').innerText = initials;
+                document.getElementById('displayCollege').innerText = collegeDisplay;
+                
+                // Force full name in Profile Overlay (Modal)
+                document.getElementById('modalName').innerText = fullName;
+                document.getElementById('modalInitials').innerText = initials;
+                document.getElementById('modalCollege').innerHTML = `<i class="fas fa-university"></i> ${collegeDisplay}`;
+                document.getElementById('modalRole').innerText = u.role || 'Admin';
+                
+                // Update Inputs
+                document.getElementById('firstName').value = firstName;
+                document.getElementById('lastName').value = lastName;
+                document.getElementById('email').value = u.email || '';
+                document.getElementById('mobile').value = u.mobileNo || '';
+                document.getElementById('gender').value = u.gender || '';
+                
+                // Update Professional Links (Try fetching camelCase variants just in case the backend uses them)
+                document.getElementById('linkedin').value = u.linkedin || u.linkedIn || '';
+                document.getElementById('github').value = u.github || u.gitHub || '';
+                
+                // Set Program and trigger branch update
+                if (u.program) {
+                    document.getElementById('program').value = u.program;
+                }
+                updateBranches(); // Populate branches based on selected program
+                
+                if (u.branch) {
+                    document.getElementById('branch').value = u.branch;
+                }
+            }
+        } catch(e) {
+            console.error("Error loading profile data:", e);
+        }
+    });
+
+    // Filter branches based on selected program
+    function updateBranches() {
+        const programSelect = document.getElementById('program');
+        const branchSelect = document.getElementById('branch');
+        const selectedProgram = programSelect.value;
+        
+        branchSelect.innerHTML = '<option value="">Select Branch</option>';
+        
+        if (!selectedProgram) return;
+
+        const filteredBranches = allBranches.filter(b => b.program_name === selectedProgram);
+        filteredBranches.forEach(b => {
+            branchSelect.add(new Option(b.name, b.name));
+        });
+    }
+
+    async function saveProfile() {
+        const btn = event.currentTarget;
+        const ogContent = btn.innerHTML;
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Saving...`;
+        btn.disabled = true;
+        
+        try {
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const fullName = `${firstName} ${lastName}`.trim();
+            const mobileNo = document.getElementById('mobile').value;
+            const gender = document.getElementById('gender').value;
+            const program = document.getElementById('program').value;
+            const branch = document.getElementById('branch').value;
+            const linkedin = document.getElementById('linkedin').value.trim();
+            const github = document.getElementById('github').value.trim();
+
+            const response = await fetch('/college/update-profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                // Sends the link strings to the backend API here
+                body: JSON.stringify({ fullName, mobileNo, gender, program, branch, linkedin, github })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                document.getElementById('displayName').innerText = fullName;
+                // Apply Full Name everywhere upon saving
+                document.getElementById('headerName').innerText = fullName;
+                document.getElementById('modalName').innerText = fullName;
+                
+                const initials = getInitials(firstName, lastName);
+                document.getElementById('headerInitials').innerText = initials;
+                document.getElementById('largeInitials').innerText = initials;
+                document.getElementById('modalInitials').innerText = initials;
+
+                btn.innerHTML = `<i class="fas fa-check"></i> Saved!`;
+            } else {
+                alert(data.message || "Failed to update profile");
+                btn.innerHTML = ogContent;
+            }
+        } catch (error) {
+            console.error("Error saving profile:", error);
+            alert("An error occurred while saving the profile.");
+            btn.innerHTML = ogContent;
+        } finally {
+            setTimeout(() => {
+                btn.innerHTML = ogContent;
+                btn.disabled = false;
+            }, 2000);
+        }
+    }
 </script>
 </body>
 </html>

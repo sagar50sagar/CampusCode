@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>CampusCode – Manage Users</title>
+  <title>CampusCode</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -283,8 +283,7 @@
                 Requests <span id="requestBadge" class="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full" style="display: none;">0</span>
             </button>
         </div>
-
-      <div id="bulkInviteSection" class="bg-theme-card rounded-3xl border border-theme-default shadow-sm p-6">
+<div id="bulkInviteSection" class="bg-theme-card rounded-3xl border border-theme-default shadow-sm p-6">
             <div class="flex justify-between items-center">
                 <div>
                     <h3 class="text-lg font-bold dark:text-white">Batch Onboarding</h3>
@@ -304,6 +303,28 @@
                 </div>
             </div>
         </div>
+
+        <div class="mt-4 flex flex-wrap justify-between items-center bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-sm p-4 gap-4">
+            
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+                <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-xs font-bold mr-2">
+                    <i class="fas fa-filter"></i> Filter:
+                </div>
+                
+                <select id="programFilter" onchange="render()" class="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl px-4 py-2 text-xs font-bold focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition-all cursor-pointer">
+                    <option value="">All Programs</option>
+                </select>
+                
+                <select id="branchFilter" onchange="render()" class="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl px-4 py-2 text-xs font-bold focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition-all cursor-pointer">
+                    <option value="">All Branches</option>
+                </select>
+            </div>
+
+            <button id="bulkDeleteBtn" onclick="bulkDelete()" class="hidden px-6 py-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/40 text-xs font-bold rounded-xl transition-all flex items-center gap-2">
+                <i class="fas fa-trash"></i> Delete Selected
+            </button>
+        </div>
+
 
         <div class="bg-theme-card rounded-3xl border border-theme-default shadow-md overflow-hidden">
             <div class="table-container">
@@ -342,50 +363,62 @@
     </div>
 </div>
 
-<div id="profileOverlay" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm">
-    <div class="bg-white dark:bg-gray-800 w-[320px] rounded-3xl overflow-hidden shadow-2xl transform transition-all">
-        <div class="bg-[#1e4a7a] p-6 text-center relative h-32">
-            <button onclick="toggleProfile()" class="absolute top-4 right-4 text-white/80 hover:text-white">
-                <i class="fas fa-times text-lg"></i>
-            </button>
-            <div class="absolute -bottom-10 left-1/2 -translate-x-1/2">
-                <div class="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 bg-[#1e4a7a] flex items-center justify-center text-white text-2xl font-bold" id="modalInitials"></div>
+ <div id="profileOverlay" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white dark:bg-gray-800 w-[320px] rounded-3xl overflow-hidden shadow-2xl transform transition-all duration-300 scale-95 opacity-0">
+            <div class="bg-[#1e4a7a] p-6 text-center relative h-32">
+                <button onclick="toggleProfile()" class="absolute top-4 right-4 text-white/80 hover:text-white">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+                <div class="absolute -bottom-10 left-1/2 -translate-x-1/2">
+                    <div id="profileOverlayInitials" class="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 bg-[#1e4a7a] flex items-center justify-center text-white text-2xl font-bold">--</div>
+                </div>
             </div>
-        </div>
-        <div class="pt-12 pb-6 px-6 text-center">
-            <h3 class="text-xl font-bold text-gray-800 dark:text-white" id="modalName"></h3>
-            <p class="text-xs text-gray-500 flex items-center justify-center gap-1" id="modalCollege"></p>
-            <p class="text-xs text-gray-500 mb-3 flex items-center justify-center gap-1" id="modalRoleDisplay"></p>
+            <div class="pt-12 pb-6 px-6 text-center">
+                <h3 id="profileOverlayName" class="text-xl font-bold text-gray-800 dark:text-white">Loading...</h3>
+                <p id="profileOverlayCollege" class="text-xs text-gray-500 flex items-center justify-center gap-1 mt-1"><i class="fas fa-university"></i> Loading...</p>
+                <p id="profileOverlayRole" class="text-xs text-gray-500 mb-3 flex items-center justify-center gap-1">Role: Loading...</p>
 
-            <div class="space-y-1 mt-4">
-              <a href="/college/profile">  
-                <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
-                    <div class="flex items-center gap-3"><i class="fas fa-user-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">My Profile</span></div>
-                    <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
-                </button>
-              </a>
-              <a href="/college/help_support"> 
-                <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
-                    <div class="flex items-center gap-3"><i class="fas fa-question-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">Help & Support</span></div>
-                    <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
-                </button>
-              </a>
-                <button id="logoutBtn" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
-                    <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </div>
-                    <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
-                </button>
+                <div class="flex justify-between border-y border-gray-100 dark:border-gray-700 py-4 mb-6">
+                    <div><p class="text-[10px] font-bold text-primary-400 uppercase">Contest</p><p id="statContests" class="text-lg font-bold dark:text-white">0</p></div>
+                    <div class="border-x border-gray-100 dark:border-gray-700 px-6"><p class="text-[10px] font-bold text-primary-400 uppercase">Users</p><p id="statUsers" class="text-lg font-bold dark:text-white">0</p></div>
+                    <div><p class="text-[10px] font-bold text-primary-400 uppercase">Programs</p><p id="statPrograms" class="text-lg font-bold dark:text-white">0</p></div>
+                </div>
+                
+                <div class="space-y-1">
+                    <a href="profile.html" class="block">
+                        <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                            <div class="flex items-center gap-3"><i class="fas fa-user-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">My Profile</span></div>
+                            <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </a>
+                    
+                    <a href="help_support.html" class="block">
+                        <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                            <div class="flex items-center gap-3"><i class="fas fa-question-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">Help & Support</span></div>
+                            <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </a>
+
+                    <button id="logoutBtn" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
+                        <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </div>
+                        <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
+                    </button>
+                </div>
+                <button onclick="toggleProfile()" class="mt-4 text-[10px] font-bold text-gray-400 uppercase hover:text-gray-600 transition-colors">Close</button>
             </div>
         </div>
     </div>
-</div>
 
 <script>
-// ====== CORE UI LOGIC ======
+// ==========================================
+// ====== CORE UI & NAVIGATION LOGIC ======
+// ==========================================
 const sidebar = document.getElementById('mainSidebar');
 const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
 const toggleIcon = sidebarToggleBtn ? sidebarToggleBtn.querySelector('i') : null;
+
 if (sidebarToggleBtn) {
     sidebarToggleBtn.addEventListener('click', () => {
         if (sidebar) sidebar.classList.toggle('collapsed');
@@ -404,11 +437,25 @@ if(notificationBtn) {
     notificationBtn.addEventListener('click', (e) => { e.stopPropagation(); notifDropdown.classList.toggle('hidden'); });
 }
 
-function toggleProfile() { document.getElementById('profileOverlay').classList.toggle('hidden'); }
-document.addEventListener('click', (e) => {
-    if (notifDropdown && !notifDropdown.contains(e.target) && !notificationBtn.contains(e.target)) notifDropdown.classList.add('hidden');
-    if (e.target === document.getElementById('profileOverlay')) toggleProfile();
-});
+function toggleProfile(e) {
+    if (e) e.stopPropagation();
+    const overlay = document.getElementById('profileOverlay');
+    const card = overlay.querySelector('div');
+    
+    if (overlay.classList.contains('hidden')) {
+        overlay.classList.remove('hidden');
+        setTimeout(() => {
+            card.classList.remove('scale-95', 'opacity-0');
+            card.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    } else {
+        card.classList.remove('scale-100', 'opacity-100');
+        card.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            overlay.classList.add('hidden');
+        }, 300); 
+    }
+}
 
 // ====== UNIFIED LOGOUT FUNCTION ======
 async function performLogout(e) {
@@ -441,7 +488,40 @@ if (themeToggleBtn) {
     });
 }
 
+<<<<<<< HEAD
 // ====== DYNAMIC DATA LOGIC ======
+=======
+document.addEventListener('DOMContentLoaded', () => {
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const themeIcon = document.getElementById('themeIcon'); 
+
+    function updateIcon() {
+        if (!themeIcon) return;
+        if (html.classList.contains('dark')) {
+            themeIcon.classList.remove('fa-moon');
+            themeIcon.classList.add('fa-sun');
+        } else {
+            themeIcon.classList.remove('fa-sun');
+            themeIcon.classList.add('fa-moon');
+        }
+    }
+
+    updateIcon();
+
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
+            updateIcon();
+        });
+    }
+});
+
+
+// ==========================================
+// ====== DYNAMIC DATA & RENDER LOGIC ======
+// ==========================================
+>>>>>>> c2c38a5 (match profile overlay)
 let activeTab = localStorage.getItem('activeTab') || 'student';
 let modalUserType = 'student';
 let users = [];
@@ -449,31 +529,65 @@ let requests = [];
 let editingId = null; 
 let dbPrograms = []; 
 let dbBranches = []; 
-let dbSections = []; // Added for dynamic year/section hierarchy
+let dbSections = []; 
 
 async function fetchData() {
     try {
-        const profileRes = await fetch('/college/api/profile');
+       const profileRes = await fetch('/college/api/profile');
         if(profileRes.ok) {
             const pData = await profileRes.json();
             const u = pData.user || pData;
             
-            if(u.fullName) {
-                document.getElementById('headerName').textContent = u.fullName;
-                document.getElementById('modalName').textContent = u.fullName;
-                const nameParts = u.fullName.split(' ');
-                const initials = nameParts.length > 1 ? (nameParts[0][0] + nameParts[1][0]).toUpperCase() : nameParts[0].substring(0,2).toUpperCase();
-                document.getElementById('headerInitials').textContent = initials;
-                document.getElementById('modalInitials').textContent = initials;
+            const name = u.fullName || 'Admin User';
+            const nameParts = name.split(' ');
+            const initials = nameParts.length > 1 ? (nameParts[0][0] + nameParts[1][0]).toUpperCase() : nameParts[0].substring(0,2).toUpperCase();
+
+            // Update Header
+            if (document.getElementById('headerName')) document.getElementById('headerName').textContent = name;
+            if (document.getElementById('headerInitials')) document.getElementById('headerInitials').textContent = initials;
+
+            // Update New Modal Overlay
+            if (document.getElementById('profileOverlayName')) document.getElementById('profileOverlayName').textContent = name;
+            if (document.getElementById('profileOverlayInitials')) document.getElementById('profileOverlayInitials').textContent = initials;
+            
+            if (document.getElementById('profileOverlayCollege')) {
+                document.getElementById('profileOverlayCollege').innerHTML = `<i class="fas fa-university"></i> ${u.collegeName || 'Unknown Institute'}`;
             }
-            if(u.collegeName) {
-                document.getElementById('modalCollege').innerHTML = `<i class="fas fa-university"></i> ${u.collegeName}`;
-            }
-            if(u.role) {
-                document.getElementById('modalRoleDisplay').innerHTML = `Role: ${u.role.charAt(0).toUpperCase() + u.role.slice(1)}`;
+            if (document.getElementById('profileOverlayRole')) {
+                const roleText = u.role ? (u.role.charAt(0).toUpperCase() + u.role.slice(1)) : 'Admin';
+                document.getElementById('profileOverlayRole').textContent = `Role: ${roleText}`;
             }
         }
 
+        // Fetch Stats for the Modal Overlay
+        try {
+            const [contestsRes, usersRes, programsRes] = await Promise.all([
+                fetch('/college/api/contests'),
+                fetch('/college/api/users'),
+                fetch('/college/api/programs')
+            ]);
+
+            const contestsData = await contestsRes.json();
+            const usersData = await usersRes.json();
+            const programsData = await programsRes.json();
+
+            if (contestsData.success) {
+                const el = document.getElementById('statContests');
+                if (el) el.textContent = contestsData.data.length || 0;
+            }
+            if (usersData.success || usersData.users) { 
+                const el = document.getElementById('statUsers');
+                const usersArray = usersData.users || usersData;
+                if (el) el.textContent = Array.isArray(usersArray) ? usersArray.length : 0;
+            }
+            if (programsData.success || Array.isArray(programsData) || programsData.data) {
+                const el = document.getElementById('statPrograms');
+                const programsArray = Array.isArray(programsData) ? programsData : (programsData.data || []);
+                if (el) el.textContent = programsArray.length || 0;
+            }
+        } catch (statsErr) {
+            console.error("Error fetching overlay stats:", statsErr);
+        }
         const resUsers = await fetch('/college/api/users');
         if(resUsers.ok) {
             const data = await resUsers.json();
@@ -514,6 +628,17 @@ async function fetchData() {
 
         const resSec = await fetch('/college/sections');
         if (resSec.ok) dbSections = (await resSec.json()).data || [];
+        const resPrograms = await fetch('/college/api/programs');
+        if (resPrograms.ok) dbPrograms = (await resPrograms.json()).data || [];
+
+        const resBranches = await fetch('/college/api/branches');
+        if (resBranches.ok) dbBranches = (await resBranches.json()).data || [];
+
+        const resSec = await fetch('/college/api/sections');
+        if (resSec.ok) dbSections = (await resSec.json()).data || [];
+
+        // ⭐ Populate main global UI dropdown filters (Programs, Branches, Sections)
+        populateMainFilters();
 
         const resReq = await fetch('/college/api/pending-faculty');
         if(resReq.ok) {
@@ -541,12 +666,45 @@ async function fetchData() {
     }
 }
 
+function populateMainFilters() {
+    const progFilter = document.getElementById('programFilter');
+    const branchFilter = document.getElementById('branchFilter');
+    const sectionFilter = document.getElementById('sectionFilter'); // ⭐ Added section filter target
+    
+    if(progFilter) {
+        progFilter.innerHTML = '<option value="">All Programs</option>' + 
+            dbPrograms.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+    }
+    
+    if(branchFilter) {
+        branchFilter.innerHTML = '<option value="">All Branches</option>' + 
+            dbBranches.map(b => {
+                const displayText = b.abbreviation ? `${b.abbreviation} (${b.name})` : b.name;
+                return `<option value="${b.name}">${displayText}</option>`;
+            }).join('');
+    }
+
+    // ⭐ Added dynamic population for Sections
+    if(sectionFilter) {
+        sectionFilter.innerHTML = '<option value="">All Sections</option>' + 
+            dbSections.map(s => {
+                // Uses s.name if it's an object, or just s if your DB returns a flat array of strings
+                const sectionValue = s.name || s; 
+                return `<option value="${sectionValue}">${sectionValue}</option>`;
+            }).join('');
+    }
+}
+
 function setTab(tab) {
     activeTab = tab;
     localStorage.setItem('activeTab', tab); 
 
     const onboardBtn = document.getElementById('onboardBtn');
     const bulkInviteSection = document.getElementById('bulkInviteSection'); 
+    
+    // Hide bulk delete button when switching tabs
+    const bulkBtn = document.getElementById('bulkDeleteBtn');
+    if(bulkBtn) bulkBtn.classList.add('hidden');
 
     if (tab === 'requests') {
         if(onboardBtn) onboardBtn.style.display = 'none';
@@ -569,23 +727,11 @@ function setTab(tab) {
 
     render();
 }
-
-// ⭐ HIERARCHY LOGIC: Filters branches inside inline "Requests" row
-function updateRowBranch(id, programName) {
-    const branchSelect = document.getElementById(`branch-${id}`);
-    const program = dbPrograms.find(p => p.name === programName);
-    branchSelect.innerHTML = '<option value="" disabled selected>Branch</option>';
-    if (program) {
-        dbBranches.filter(b => b.program_id === program.id).forEach(b => {
-             // Display abbreviation if available, otherwise fallback to name
-            const displayText = b.abbreviation ? `${b.abbreviation} (${b.name})` : b.name;
-            branchSelect.innerHTML += `<option value="${b.name}">${displayText}</option>`;
-        });
-    }
-}
-
 function render() {
-    const searchVal = document.getElementById('searchInput').value.toLowerCase();
+    const searchVal = document.getElementById('searchInput') ? document.getElementById('searchInput').value.toLowerCase() : '';
+    const progFilterVal = document.getElementById('programFilter') ? document.getElementById('programFilter').value : '';
+    const branchFilterVal = document.getElementById('branchFilter') ? document.getElementById('branchFilter').value : '';
+    
     const thead = document.getElementById('tableHead');
     const tbody = document.getElementById('userTableBody');
     const emptyState = document.getElementById('emptyState');
@@ -595,9 +741,11 @@ function render() {
 
     let dataToRender = [];
 
+    // Table Headers
     if (activeTab === 'student') {
         dataToRender = users.filter(u => u.type === 'student');
         thead.innerHTML = `<tr>
+            <th class="p-4 text-left w-12"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" class="rounded border-gray-300 text-primary-500 focus:ring-primary-500 cursor-pointer"></th>
             <th class="p-4 text-left">Student Info</th>
             <th class="p-4 text-left">Email</th>
             <th class="p-4 text-left">Academic</th>
@@ -614,6 +762,7 @@ function render() {
     } else if (activeTab === 'faculty') {
         dataToRender = users.filter(u => u.type === 'faculty');
         thead.innerHTML = `<tr>
+            <th class="p-4 text-left w-12"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" class="rounded border-gray-300 text-primary-500 focus:ring-primary-500 cursor-pointer"></th>
             <th class="p-4 text-left">Faculty Info</th>
             <th class="p-4 text-left">Email</th>
             <th class="p-4 text-left">Role/Branch</th>
@@ -632,13 +781,22 @@ function render() {
         </tr>`;
     }
 
-    if (searchVal) {
-        dataToRender = dataToRender.filter(u => 
-            (u.fullName && u.fullName.toLowerCase().includes(searchVal)) || 
-            (u.email && u.email.toLowerCase().includes(searchVal)) ||
-            (u.id && u.id.toString().toLowerCase().includes(searchVal))
-        );
-    }
+    // ⭐ Apply Search AND Dropdown Filters
+    dataToRender = dataToRender.filter(u => {
+        let matchesSearch = true;
+        let matchesProg = true;
+        let matchesBranch = true;
+        
+        if(searchVal) {
+            matchesSearch = (u.fullName && u.fullName.toLowerCase().includes(searchVal)) || 
+                            (u.email && u.email.toLowerCase().includes(searchVal)) ||
+                            (u.id && u.id.toString().toLowerCase().includes(searchVal));
+        }
+        if(progFilterVal && u.type !== 'requests') matchesProg = u.program === progFilterVal;
+        if(branchFilterVal && u.type !== 'requests') matchesBranch = u.branch === branchFilterVal;
+        
+        return matchesSearch && matchesProg && matchesBranch;
+    });
 
     if (dataToRender.length === 0) {
         emptyState.classList.remove('hidden');
@@ -649,6 +807,7 @@ function render() {
         document.querySelector('.table-container').style.display = 'block';
     }
 
+    // Render Rows
     dataToRender.forEach(u => {
         let tr = document.createElement('tr');
         tr.className = "hover:bg-gray-50 dark:hover:bg-gray-800/50";
@@ -656,8 +815,9 @@ function render() {
 
         if (activeTab === 'student') {
             tr.innerHTML = `
+                <td class="p-4"><input type="checkbox" class="user-checkbox rounded border-gray-300 text-primary-500 focus:ring-primary-500 cursor-pointer" value="${u.id}" onchange="toggleBulkDeleteBtn()"></td>
                 <td class="p-4">
-                    <div class="flex items-center gap-3 cursor-pointer group" onclick="window.location.href='/college/view_student?id=${u.id}'" title="View Student Profile">
+                    <div class="flex items-center gap-3 cursor-pointer group" onclick="window.location.href='/college/view_student?id=${u.id}'" title="View Profile">
                         <div class="h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0 group-hover:bg-blue-200 transition-colors">${initial}</div>
                         <div>
                             <p class="text-sm font-bold text-gray-900 dark:text-white group-hover:text-primary-500 transition-colors">${u.fullName}</p>
@@ -679,8 +839,8 @@ function render() {
                 <td class="p-4 text-center text-xs font-bold text-purple-600">${u.level}</td>
                 <td class="p-4 text-center text-[10px] text-gray-500">${u.last_active}</td>
                 <td class="p-4 text-center">
-                    <button onclick="openEditModal(${u.id})" class="text-blue-500 hover:text-blue-700 mr-2 transition-colors"><i class="fas fa-pen"></i></button>
-                    <button onclick="deleteUser(${u.id}, 'student')" class="text-red-500 hover:text-red-700 transition-colors"><i class="fas fa-trash"></i></button>
+                    <button onclick="openEditModal(${u.id})" class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-pen"></i></button>
+                    <button onclick="deleteUser(${u.id}, 'student')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
                 </td>
             `;
         } else if (activeTab === 'faculty') {
@@ -690,6 +850,7 @@ function render() {
                 : `<span class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 text-[10px] font-bold px-2 py-1 rounded-md">Faculty</span>`;
 
             tr.innerHTML = `
+                <td class="p-4"><input type="checkbox" class="user-checkbox rounded border-gray-300 text-primary-500 focus:ring-primary-500 cursor-pointer" value="${u.id}" onchange="toggleBulkDeleteBtn()"></td>
                 <td class="p-4">
                     <div class="flex items-center gap-3 cursor-pointer group" onclick="window.location.href='/college/view_faculty?id=${u.id}'" title="View Profile">
                         <div class="h-8 w-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-bold text-xs shrink-0 group-hover:bg-green-200 transition-colors">${initial}</div>
@@ -712,9 +873,9 @@ function render() {
                 <td class="p-4 text-center"><span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-md">${u.status}</span></td>
                 <td class="p-4 text-center text-[10px] text-gray-500">${u.last_active}</td>
                 <td class="p-4 text-center">
-                    <button onclick="toggleHOD(${u.id}, ${u.is_hod})" class="text-purple-500 hover:text-purple-700 mr-2 transition-colors" title="${u.is_hod ? 'Remove HOD' : 'Make HOD'}"><i class="fas fa-user-tie"></i></button>
-                    <button onclick="openEditModal(${u.id})" class="text-blue-500 hover:text-blue-700 mr-2 transition-colors"><i class="fas fa-pen"></i></button>
-                    <button onclick="deleteUser(${u.id}, 'faculty')" class="text-red-500 hover:text-red-700 transition-colors"><i class="fas fa-trash"></i></button>
+                    <button onclick="toggleHOD(${u.id}, ${u.is_hod})" class="text-purple-500 hover:text-purple-700 mr-2" title="${u.is_hod ? 'Remove HOD' : 'Make HOD'}"><i class="fas fa-user-tie"></i></button>
+                    <button onclick="openEditModal(${u.id})" class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-pen"></i></button>
+                    <button onclick="deleteUser(${u.id}, 'faculty')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
                 </td>
             `;
         } else {
@@ -738,8 +899,8 @@ function render() {
                         <select id="branch-${u.id}" required class="text-xs p-1.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded focus:ring-1 focus:ring-primary-500 outline-none w-32">
                             <option value="" disabled selected>Branch</option>
                         </select>
-                        <button type="submit" class="bg-green-500 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-green-600 transition-colors whitespace-nowrap">Verify &amp; Assign</button>
-                        <button type="button" onclick="handleRequest(${u.id}, 'reject')" class="bg-red-500 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-red-600 transition-colors">Reject</button>
+                        <button type="submit" class="bg-green-500 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-green-600">Verify</button>
+                        <button type="button" onclick="handleRequest(${u.id}, 'reject')" class="bg-red-500 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-red-600">Reject</button>
                     </form>
                 </td>
             `;
@@ -748,55 +909,64 @@ function render() {
     });
 }
 
-// ⭐ HIERARCHY LOGIC: Update Branches based on chosen program
+
+// ==========================================
+// ====== HIERARCHY FILTER LOGIC ======
+// ==========================================
+function updateRowBranch(id, programName) {
+    const branchSelect = document.getElementById(`branch-${id}`);
+    const program = dbPrograms.find(p => p.name === programName);
+    branchSelect.innerHTML = '<option value="" disabled selected>Branch</option>';
+    if (program) {
+        dbBranches.filter(b => b.program_id === program.id).forEach(b => {
+            const displayText = b.abbreviation ? `${b.abbreviation} (${b.name})` : b.name;
+            branchSelect.innerHTML += `<option value="${b.name}">${displayText}</option>`;
+        });
+    }
+}
+
 function filterBranches(programName, selectedBranch = '') {
     const branchSelect = document.getElementById('modalBranch');
     if(!branchSelect) return;
-    
     const program = dbPrograms.find(p => p.name === programName);
     branchSelect.innerHTML = '<option value="">Select Branch</option>';
-    
     if (program) {
         dbBranches.filter(b => b.program_id === program.id).forEach(b => {
-            // Display abbreviation if available, otherwise fallback to name
             const displayText = b.abbreviation ? `${b.abbreviation} (${b.name})` : b.name;
             branchSelect.innerHTML += `<option value="${b.name}" ${selectedBranch === b.name ? 'selected' : ''}>${displayText}</option>`;
         });
     }
 }
 
-// ⭐ HIERARCHY LOGIC: Update Years/Sections based on chosen branch
 function filterYearsSections(branchName, selectedYear = '', selectedSection = '') {
     const yearSelect = document.getElementById('modalYear');
     const sectionSelect = document.getElementById('modalSection');
     if(!yearSelect || !sectionSelect) return;
-
     const branch = dbBranches.find(b => b.name === branchName);
     yearSelect.innerHTML = '<option value="">Select Year</option>';
     sectionSelect.innerHTML = '<option value="">Select Section</option>';
-
     if (branch) {
         const branchSections = dbSections.filter(s => s.branch_id === branch.id);
-        
         const years = [...new Set(branchSections.map(s => s.year))].sort();
         years.forEach(y => { yearSelect.innerHTML += `<option value="${y}" ${selectedYear == y ? 'selected' : ''}>${y}</option>`; });
-
         const sections = [...new Set(branchSections.map(s => s.name))].sort();
         sections.forEach(s => { sectionSelect.innerHTML += `<option value="${s}" ${selectedSection === s ? 'selected' : ''}>${s}</option>`; });
     }
 }
 
+
+// ==========================================
+// ====== CRUD & MODAL LOGIC ======
+// ==========================================
 function openAddModal() {
     editingId = null;
     document.getElementById('modalTitle').innerText = 'Onboard Member';
     document.getElementById('modalSaveBtn').innerText = 'Save User';
-    
-    // Clear out any previous data from the fields
     setModalUserType(activeTab === 'requests' ? 'student' : activeTab, {}); 
-    
     document.getElementById('addModal').classList.remove('hidden');
     document.getElementById('addModal').classList.add('flex');
 }
+
 function closeAddModal() {
     document.getElementById('addModal').classList.add('hidden');
     document.getElementById('addModal').classList.remove('flex');
@@ -810,11 +980,39 @@ function openEditModal(userId) {
         return;
     }
 
+
+// ⭐ Fixed to match Excel case-sensitivity
+function openEditModal(userId) {
+    const originalUser = users.find(u => u.id === userId);
+    if (!originalUser) return;
+    const user = { ...originalUser };
+
+    if (user.program) {
+        const match = dbPrograms.find(p => p.name.toLowerCase() === String(user.program).toLowerCase());
+        if (match) user.program = match.name;
+    }
+    if (user.branch) {
+        const match = dbBranches.find(b => b.name.toLowerCase() === String(user.branch).toLowerCase());
+        if (match) user.branch = match.name;
+    }
+    if (user.year) {
+        const normalizedYear = String(user.year).toLowerCase().replace(/(st|nd|rd|th)$/, '');
+        const match = dbSections.find(s => String(s.year).toLowerCase() === normalizedYear || String(s.year).toLowerCase() === String(user.year).toLowerCase());
+        if (match) user.year = match.year;
+    }
+    if (user.section) {
+        const match = dbSections.find(s => s.name.toLowerCase() === String(user.section).toLowerCase());
+        if (match) user.section = match.name;
+    }
+
     editingId = userId;
     document.getElementById('modalTitle').innerText = 'Edit Member';
     document.getElementById('modalSaveBtn').innerText = 'Update User';
     
+<<<<<<< HEAD
     // Pass the user data into the render function to pre-fill
+=======
+>>>>>>> c2c38a5 (match profile overlay)
     setModalUserType(user.type, user);
     
     document.getElementById('addModal').classList.remove('hidden');
@@ -824,7 +1022,6 @@ function openEditModal(userId) {
 function setModalUserType(type, userData = {}) {
     modalUserType = type;
     document.getElementById('modalUserType').value = type;
-    
     if (type === 'student') {
         document.getElementById('modalTabStudent').className = 'flex-1 py-2 text-xs font-bold rounded-lg modal-tab-active';
         document.getElementById('modalTabFaculty').className = 'flex-1 py-2 text-xs font-bold rounded-lg text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors';
@@ -838,142 +1035,71 @@ function setModalUserType(type, userData = {}) {
 
 function renderModalFields(type, userData = {}) {
     const mf = document.getElementById('modalFields');
-    
     let programOptions = '<option value="">Select Program</option>';
-    dbPrograms.forEach(p => {
-        programOptions += `<option value="${p.name}" ${userData.program === p.name ? 'selected' : ''}>${p.name}</option>`;
-    });
+    dbPrograms.forEach(p => { programOptions += `<option value="${p.name}" ${userData.program === p.name ? 'selected' : ''}>${p.name}</option>`; });
 
     let html = `
         <div class="col-span-2">
             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
-            <input type="text" id="modalFullName" value="${userData.fullName || ''}" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition-all dark:text-white" placeholder="Enter full name">
+            <input type="text" id="modalFullName" value="${userData.fullName || ''}" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:ring-2 focus:ring-primary-400 outline-none dark:text-white" placeholder="Enter full name">
         </div>
         <div class="col-span-2">
             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
-            <input type="email" id="modalEmail" value="${userData.email || ''}" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition-all dark:text-white" placeholder="user@college.edu">
+            <input type="email" id="modalEmail" value="${userData.email || ''}" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:ring-2 focus:ring-primary-400 outline-none dark:text-white" placeholder="user@college.edu">
         </div>
-        
         <div class="col-span-2">
-            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
-                Password ${userData.id ? '<span class="text-gray-500 font-normal">(Leave blank to keep current)</span>' : '<span class="text-red-500">*</span>'}
-            </label>
-            <input type="text" id="modalPassword" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition-all dark:text-white" placeholder="${userData.id ? 'Enter new password if changing...' : 'e.g. Welcome@123'}">
-            ${!userData.id ? '<p class="text-[10px] text-gray-500 mt-1">This default password will be sent to the user\'s email.</p>' : ''}
+            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Password ${userData.id ? '<span class="text-gray-500 font-normal">(Leave blank to keep current)</span>' : '<span class="text-red-500">*</span>'}</label>
+            <input type="text" id="modalPassword" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:ring-2 focus:ring-primary-400 outline-none dark:text-white" placeholder="${userData.id ? 'Enter new password if changing...' : 'e.g. Welcome@123'}">
         </div>
     `;
 
     if (type === 'student') {
         html += `
-            <div>
-                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Program</label>
-                <select id="modalProgram" onchange="filterBranches(this.value)" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white">
-                    ${programOptions}
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Branch</label>
-                <select id="modalBranch" onchange="filterYearsSections(this.value)" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white">
-                    <option value="">Select Branch</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Year</label>
-                <select id="modalYear" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white">
-                    <option value="">Select Year</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Section</label>
-                <select id="modalSection" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white">
-                    <option value="">Select Section</option>
-                </select>
-            </div>
+            <div><label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Program</label><select id="modalProgram" onchange="filterBranches(this.value)" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white">${programOptions}</select></div>
+            <div><label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Branch</label><select id="modalBranch" onchange="filterYearsSections(this.value)" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white"><option value="">Select Branch</option></select></div>
+            <div><label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Year</label><select id="modalYear" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white"><option value="">Select Year</option></select></div>
+            <div><label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Section</label><select id="modalSection" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white"><option value="">Select Section</option></select></div>
         `;
     } else {
         html += `
-            <div class="col-span-2">
-                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Program</label>
-                <select id="modalProgram" onchange="filterBranches(this.value)" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white">
-                    ${programOptions}
-                </select>
-            </div>
-            <div class="col-span-2">
-                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Branch</label>
-                <select id="modalBranch" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white">
-                     <option value="">Select Branch</option>
-                </select>
-            </div>
+            <div class="col-span-2"><label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Program</label><select id="modalProgram" onchange="filterBranches(this.value)" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white">${programOptions}</select></div>
+            <div class="col-span-2"><label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Branch</label><select id="modalBranch" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none dark:text-white"><option value="">Select Branch</option></select></div>
         `;
     }
-    
     mf.innerHTML = html;
 
-    // Trigger cascades immediately if loading existing user values
     if(userData.program) {
         filterBranches(userData.program, userData.branch);
-        if(userData.branch && type === 'student') {
-            filterYearsSections(userData.branch, userData.year, userData.section);
-        }
+        if(userData.branch && type === 'student') filterYearsSections(userData.branch, userData.year, userData.section);
     }
 }
 
 async function saveUser() {
     const fullName = document.getElementById('modalFullName').value.trim();
     const email = document.getElementById('modalEmail').value.trim();
-    
     const password = document.getElementById('modalPassword') ? document.getElementById('modalPassword').value.trim() : null;
     
     if(!fullName || !email) { alert("Name and Email are required!"); return; }
-    
-    if(!editingId && !password) {
-        alert("A default password is required for new members!"); 
-        return; 
-    }
+    if(!editingId && !password) { alert("A default password is required for new members!"); return; }
     
     const payload = { 
-        fullName, 
-        email, 
-        role: modalUserType,
+        fullName, email, role: modalUserType,
         program: document.getElementById('modalProgram') ? document.getElementById('modalProgram').value : null,
         branch: document.getElementById('modalBranch') ? document.getElementById('modalBranch').value : null
     };
 
-    if (password) {
-        payload.password = password;
-    }
-
+    if (password) payload.password = password;
     if (modalUserType === 'student') {
         payload.year = document.getElementById('modalYear').value;
         payload.section = document.getElementById('modalSection').value;
     }
     
     try {
-        let url = '/college/api/users';
-        let method = 'POST';
-        
-        if(editingId) {
-            url = `/college/api/users/${editingId}`;
-            method = 'PUT';
-        }
-        
-        const res = await fetch(url, {
-            method,
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(payload)
-        });
-        
+        let url = editingId ? `/college/api/users/${editingId}` : '/college/api/users';
+        const res = await fetch(url, { method: editingId ? 'PUT' : 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
         const data = await res.json();
-        if(data.success) {
-            closeAddModal();
-            fetchData();
-        } else {
-            alert(data.error || "Failed to save user.");
-        }
-    } catch(err) {
-        console.error(err);
-        alert("An error occurred while saving.");
-    }
+        if(data.success) { closeAddModal(); fetchData(); } else alert(data.error || "Failed to save user.");
+    } catch(err) { console.error(err); alert("An error occurred while saving."); }
 }
 
 async function deleteUser(id, type) {
@@ -981,175 +1107,175 @@ async function deleteUser(id, type) {
     try {
         const res = await fetch(`/college/api/users/${id}`, { method: 'DELETE' });
         const data = await res.json();
-        if(data.success) {
-            fetchData();
-        } else {
-            alert(data.error || "Failed to delete user.");
-        }
-    } catch(err) {
-        console.error(err);
+        if(data.success) fetchData(); else alert(data.error || "Failed to delete user.");
+    } catch(err) { console.error(err); }
+}
+
+
+// ==========================================
+// ====== BULK SELECT & DELETE LOGIC ======
+// ==========================================
+function toggleSelectAll(selectAllCheckbox) {
+    const checkboxes = document.querySelectorAll('.user-checkbox');
+    checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+    toggleBulkDeleteBtn();
+}
+
+function toggleBulkDeleteBtn() {
+    const checkedCount = document.querySelectorAll('.user-checkbox:checked').length;
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    if (bulkDeleteBtn) {
+        if (checkedCount > 0) bulkDeleteBtn.classList.remove('hidden');
+        else bulkDeleteBtn.classList.add('hidden');
     }
 }
 
-async function toggleHOD(id, currentStatus) {
-    const newStatus = currentStatus === 1 ? 0 : 1;
-    const action = newStatus === 1 ? 'make HOD' : 'remove HOD status';
-    
-    const user = users.find(u => u.id === id);
+async function bulkDelete() {
+    const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+    const userIds = Array.from(checkboxes).map(cb => cb.value);
 
-    if (newStatus === 1 && user) {
-        const existingHOD = users.find(u => 
-            u.is_hod === 1 && 
-            u.id !== id && 
-            u.branch === user.branch && 
-            u.program === user.program
-        );
-        
-        if (existingHOD) {
-            const programName = user.program || 'this program';
-            const branchName = user.branch || 'this branch';
-            alert(`Cannot make HOD. An HOD already exists for ${programName} - ${branchName}: ${existingHOD.fullName}`);
-            return; 
-        }
-    }
-    
-    if(!confirm(`Are you sure you want to ${action} for this faculty member?`)) return;
-    
+    if (userIds.length === 0) return;
+    if (!confirm(`Are you sure you want to delete ${userIds.length} selected users?`)) return;
+
     try {
-        const res = await fetch(`/college/api/faculty/${id}/hod`, {
-            method: 'PUT',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ is_hod: newStatus })
+        // ⭐ UPDATED URL: matches the new backend route to avoid conflicts
+        const response = await fetch('/college/api/bulk-delete-users', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userIds })
         });
+        const result = await response.json();
         
-        const data = await res.json();
-        if(data.success) {
-            fetchData(); 
+        if (result.success) {
+            alert(result.message);
+            fetchData(); // Reloads table data after deletion
+            
+            // Hide the button and uncheck 'Select All'
+            const btn = document.getElementById('bulkDeleteBtn');
+            const selectAll = document.getElementById('selectAllCheckbox');
+            if(btn) btn.classList.add('hidden');
+            if(selectAll) selectAll.checked = false;
         } else {
-            alert(data.error || "Failed to update HOD status.");
+            alert(result.message || "Failed to delete users.");
         }
-    } catch(err) {
-        console.error(err);
-        alert("An error occurred while updating HOD status.");
+    } catch (error) {
+        console.error(error);
+        alert("An error occurred during bulk deletion.");
     }
+}
+
+// ==========================================
+// ====== APPROVALS & HOD LOGIC ======
+// ==========================================
+async function handleRequest(id, action) {
+    if(!confirm(`Are you sure you want to ${action} this request?`)) return;
+    try {
+        const res = await fetch(`/college/api/pending-faculty/${id}/${action}`, { method: 'POST' });
+        const data = await res.json();
+        if(data.success) fetchData(); else alert(data.message || `Failed to ${action} request.`);
+    } catch(err) { console.error(err); }
 }
 
 async function verifyAndAssign(event, id) {
     event.preventDefault();
     const course = document.getElementById(`course-${id}`).value;
     const branch = document.getElementById(`branch-${id}`).value;
-    
-    if(!course || !branch) {
-        alert("Please provide both Course and Branch");
-        return;
-    }
+    if(!course || !branch) { alert("Please select both course and branch"); return; }
     
     try {
-        const res = await fetch(`/college/api/approve-faculty/${id}`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ course, branch })
+        const res = await fetch(`/college/api/pending-faculty/${id}/approve`, {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ program: course, branch })
         });
         const data = await res.json();
-        
-        if(data.success) {
-            window.location.reload(); 
-        } else {
-             alert(data.error || `Failed to verify user.`);
-        }
-    } catch(err) {
-        console.error(err);
-        alert("An error occurred while processing the request.");
-    }
+        if(data.success) fetchData(); else alert(data.message || "Failed to approve.");
+    } catch(err) { console.error(err); }
 }
 
-async function handleRequest(id, action) {
-    if (!confirm(`Are you sure you want to ${action} this request?`)) return;
+async function toggleHOD(id, currentStatus) {
+    const action = currentStatus ? "remove" : "make";
+    if(!confirm(`Are you sure you want to ${action} this user as HOD?`)) return;
     try {
-        const res = await fetch(`/college/api/${action}-faculty/${id}`, {
-            method: 'POST'
+        const res = await fetch(`/college/api/users/${id}/hod`, {
+            method: 'PUT', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ is_hod: currentStatus ? 0 : 1 })
         });
         const data = await res.json();
-        if(data.success) {
-            fetchData();
-        } else {
-            alert(data.error || `Failed to ${action} user.`);
-        }
-    } catch(err) {
-        console.error(err);
-        alert("An error occurred while handling the request.");
-    }
+        if(data.success) fetchData(); else alert(data.message || "Failed to update HOD status.");
+    } catch(err) { console.error(err); }
 }
 
-// ====== EXCEL UPLOAD AND DOWNLOAD LOGIC ======
+
+// ==========================================
+// ====== EXCEL UPLOAD & EXPORT LOGIC ======
+// ==========================================
 async function exportToExcel() {
-    if (typeof XLSX === 'undefined') {
-        alert("🚨 Missing Library for Exporting Excel!");
-        return;
-    }
-    if (users.length === 0) { 
-        alert("No users to export"); 
-        return; 
-    }
+    if (typeof XLSX === 'undefined') { alert("Excel library not loaded."); return; }
     
-    const filteredUsers = users.filter(u => u.type === activeTab);
-    if(filteredUsers.length === 0) {
-        alert(`No ${activeTab} data to export.`);
-        return;
-    }
-    
-    const wsData = filteredUsers.map(u => ({
-        ID: u.id,
-        Name: u.fullName,
-        Email: u.email,
-        Role: u.type,
-        Program: u.program || '-',
-        Branch: u.branch || '-',
-        Year: u.year || '-',
-        Section: u.section || '-',
-        Status: u.status
-    }));
+    let exportData = [];
+    if (activeTab === 'student') {
+        exportData = users.filter(u => u.type === 'student').map(u => ({
+            ID: u.id, Name: u.fullName, Email: u.email,
+            Program: u.program, Branch: u.branch, Year: u.year, Section: u.section,
+            Contests_Participated: u.contests_participated, Problems_Solved: u.problems_solved,
+            Contests_Won: u.contests_won, Streak: u.streak, Status: u.status
+        }));
+    } else if (activeTab === 'faculty') {
+        exportData = users.filter(u => u.type === 'faculty').map(u => ({
+            ID: u.id, Name: u.fullName, Email: u.email,
+            Program: u.program, Branch: u.branch,
+            Is_HOD: u.is_hod === 1 ? 'Yes' : 'No',
+            Contests_Created: u.contests_created, Problems_Created: u.problems_created,
+            Rating: u.rating, Status: u.status
+        }));
+    } else return;
 
+    if(exportData.length === 0) { alert("No data available to export."); return; }
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(wsData);
-    XLSX.utils.book_append_sheet(wb, ws, `${activeTab}_List`);
-    XLSX.writeFile(wb, `CampusCode_${activeTab}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, activeTab);
+    XLSX.writeFile(wb, `${activeTab}_list.xlsx`);
 }
 
-async function handleExcelUpload(event) {
+function handleExcelUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
-
-    if (typeof XLSX === 'undefined') {
-        alert("🚨 Missing Library for Uploading Excel!");
-        return;
-    }
 
     const reader = new FileReader();
     reader.onload = async (e) => {
         try {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
-            const sheetName = workbook.SheetNames[0];
-            const sheet = workbook.Sheets[sheetName];
-            const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
 
-            const defaultPassword = prompt("Please enter a default password for the new users:", "Welcome@123");
-            if (!defaultPassword) {
-                alert("Upload cancelled: Default password is required.");
-                event.target.value = ''; 
+            if (jsonData.length === 0) {
+                alert("The uploaded Excel file is empty.");
                 return;
             }
 
             const processedData = jsonData.map(row => {
                 const normalizedRow = {};
-                for (const key in row) {
-                    normalizedRow[key.trim().toLowerCase()] = row[key];
+                for (let key in row) {
+                    const cleanKey = key.trim().replace(/\s+/g, '').toLowerCase();
+                    if(cleanKey.includes('name') && !cleanKey.includes('college')) normalizedRow['fullName'] = row[key];
+                    else if(cleanKey.includes('email')) normalizedRow['email'] = row[key];
+                    else if(cleanKey.includes('role')) normalizedRow['role'] = row[key];
+                    else if(cleanKey.includes('program')) normalizedRow['program'] = row[key];
+                    else if(cleanKey.includes('branch')) normalizedRow['branch'] = row[key];
+                    else if(cleanKey.includes('year')) normalizedRow['year'] = row[key];
+                    else if(cleanKey.includes('section')) normalizedRow['section'] = row[key];
                 }
+                
+                const defaultRole = activeTab === 'student' ? 'student' : 'faculty';
+                const defaultPassword = 'User@123'; 
+
                 return {
-                    fullName: normalizedRow['student name'] || normalizedRow['faculty name'] || normalizedRow['name'],
-                    email: normalizedRow['student email'] || normalizedRow['faculty email'] || normalizedRow['email'],
-                    role: normalizedRow['role'] ? normalizedRow['role'].toLowerCase() : (normalizedRow['student name'] ? 'student' : 'faculty'),
+                    fullName: normalizedRow['fullName'] || '',
+                    email: normalizedRow['email'] || '',
+                    role: String(normalizedRow['role'] || defaultRole).toLowerCase(),
                     program: String(normalizedRow['program'] || '').toUpperCase(),
                     branch: String(normalizedRow['branch'] || '').toUpperCase(),
                     year: String(normalizedRow['year'] || '').toUpperCase(),
@@ -1163,7 +1289,6 @@ async function handleExcelUpload(event) {
                  return;
             }
 
-            // Hit the API to Bulk Import
             const res = await fetch('/college/api/users/bulk', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1173,22 +1298,42 @@ async function handleExcelUpload(event) {
             const result = await res.json();
             if (result.success) {
                 alert(result.message || `Upload successful!`);
-                fetchData(); // This instantly refreshes the table!
+                fetchData(); 
             } else {
                 alert(result.error || result.message || "Failed to import users.");
             }
-
         } catch (error) {
             console.error("Error processing file:", error);
             alert("An error occurred while reading the Excel file. Check the format.");
         } finally {
-            event.target.value = ''; // Reset input so you can re-upload if needed
+            event.target.value = ''; 
         }
     };
     reader.readAsArrayBuffer(file);
 }
 
-// Initialize application data
+function populateMainFilters() {
+    const progFilter = document.getElementById('programFilter');
+    const branchFilter = document.getElementById('branchFilter');
+    
+    if (progFilter) {
+        // Keeps 'All Programs' as default and adds Database Programs dynamically
+        progFilter.innerHTML = '<option value="">All Programs</option>' + 
+            dbPrograms.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+    }
+    
+    if (branchFilter) {
+        // Keeps 'All Branches' as default and adds Database Branches dynamically
+        branchFilter.innerHTML = '<option value="">All Branches</option>' + 
+            dbBranches.map(b => {
+                // Shows "CSE (Computer Science)" format if abbreviation exists
+                const displayText = b.abbreviation ? `${b.abbreviation} (${b.name})` : b.name;
+                return `<option value="${b.name}">${displayText}</option>`;
+            }).join('');
+    }
+}
+// INITIALIZE APP
+// Note: downloadTemplate() resides in the <head> block of your HTML, so it doesn't need to be pasted here.
 document.addEventListener('DOMContentLoaded', fetchData);
 </script>
 </body>

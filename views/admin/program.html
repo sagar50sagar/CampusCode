@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CampusCode - Academic ERP</title>
+    <title>CampusCode</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
@@ -575,38 +575,53 @@
         </div>
     </div>
 
-<div id="profileOverlay" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm">
-    <div class="bg-white dark:bg-gray-800 w-[320px] rounded-3xl overflow-hidden shadow-2xl transform transition-all">
-        <div class="bg-[#1e4a7a] p-6 text-center relative h-32">
-            <button onclick="toggleProfile()" class="absolute top-4 right-4 text-white/80 hover:text-white">
-                <i class="fas fa-times text-lg"></i>
-            </button>
-            <div class="absolute -bottom-10 left-1/2 -translate-x-1/2">
-                <div id="modalInitials" class="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 bg-[#1e4a7a] flex items-center justify-center text-white text-2xl font-bold">--</div>
-            </div>
-        </div>
-        <div class="pt-12 pb-6 px-6 text-center">
-            <h3 id="modalName" class="text-xl font-bold text-gray-800 dark:text-white">--</h3>
-            <p id="modalCollege" class="text-xs text-gray-500 flex items-center justify-center gap-1"><i class="fas fa-university"></i> --</p>
-            <p id="modalRole" class="text-xs text-gray-500 mb-6 uppercase flex items-center justify-center gap-1">Admin</p>
-
-            <div class="space-y-1">
-                <a href="/college/profile" class="block">
-                    <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
-                        <div class="flex items-center gap-3"><i class="fas fa-user-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200"> Profile</span></div>
-                        <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
-                    </button>
-                </a>
-                <button onclick="logoutAdmin()" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
-                    <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </div>
-                    <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
+<div id="profileOverlay" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white dark:bg-gray-800 w-[320px] rounded-3xl overflow-hidden shadow-2xl transform transition-all duration-300 scale-95 opacity-0">
+            <div class="bg-[#1e4a7a] p-6 text-center relative h-32">
+                <button onclick="toggleProfile()" class="absolute top-4 right-4 text-white/80 hover:text-white">
+                    <i class="fas fa-times text-lg"></i>
                 </button>
+                <div class="absolute -bottom-10 left-1/2 -translate-x-1/2">
+                    <div id="profileOverlayInitials" class="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 bg-[#1e4a7a] flex items-center justify-center text-white text-2xl font-bold">--</div>
+                </div>
+            </div>
+            <div class="pt-12 pb-6 px-6 text-center">
+                <h3 id="profileOverlayName" class="text-xl font-bold text-gray-800 dark:text-white">Loading...</h3>
+                <p id="profileOverlayCollege" class="text-xs text-gray-500 flex items-center justify-center gap-1 mt-1"><i class="fas fa-university"></i> Loading...</p>
+                <p id="profileOverlayRole" class="text-xs text-gray-500 mb-3 flex items-center justify-center gap-1">Role: Loading...</p>
+
+                <div class="flex justify-between border-y border-gray-100 dark:border-gray-700 py-4 mb-6">
+                    <div><p class="text-[10px] font-bold text-primary-400 uppercase">Contest</p><p id="statContests" class="text-lg font-bold dark:text-white">0</p></div>
+                    <div class="border-x border-gray-100 dark:border-gray-700 px-6"><p class="text-[10px] font-bold text-primary-400 uppercase">Users</p><p id="statUsers" class="text-lg font-bold dark:text-white">0</p></div>
+                    <div><p class="text-[10px] font-bold text-primary-400 uppercase">Programs</p><p id="statPrograms" class="text-lg font-bold dark:text-white">0</p></div>
+                </div>
+                
+                <div class="space-y-1">
+                    <a href="profile.html" class="block">
+                        <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                            <div class="flex items-center gap-3"><i class="fas fa-user-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">My Profile</span></div>
+                            <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </a>
+                    
+                    <a href="help_support.html" class="block">
+                        <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                            <div class="flex items-center gap-3"><i class="fas fa-question-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">Help & Support</span></div>
+                            <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </a>
+
+                    <button id="logoutBtn" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
+                        <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </div>
+                        <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
+                    </button>
+                </div>
+                <button onclick="toggleProfile()" class="mt-4 text-[10px] font-bold text-gray-400 uppercase hover:text-gray-600 transition-colors">Close</button>
             </div>
         </div>
     </div>
-</div>
 
 
     <div id="editModalOverlay"
@@ -679,35 +694,73 @@
     }
 
     // --- DATA FETCHING LOGIC ---
-    async function fetchProfile() {
-        try {
-            const res = await fetch('/college/api/profile');
-            if (res.ok) {
-                const data = await res.json();
-                const u = data.user || data;
+async function fetchProfile() {
+    try {
+        // 1. Fetch User Profile
+        const res = await fetch('/college/api/profile');
+        if (res.ok) {
+            const data = await res.json();
+            const u = data.user || data;
 
-                const name = u.fullName || 'Admin User';
-                const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+            const name = u.fullName || 'Admin User';
+            const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
 
-                // Update Header
-                const headerName = document.getElementById('headerName');
-                const headerInitials = document.getElementById('headerInitials');
-                if (headerName) headerName.textContent = name;
-                if (headerInitials) headerInitials.textContent = initials;
+            // Update Header
+            const headerName = document.getElementById('headerName');
+            const headerInitials = document.getElementById('headerInitials');
+            if (headerName) headerName.textContent = name;
+            if (headerInitials) headerInitials.textContent = initials;
 
-                // Update Modal Overlay
-                const modalName = document.getElementById('modalName');
-                const modalCollege = document.getElementById('modalCollege');
-                const modalRole = document.getElementById('modalRole');
-                const modalInitials = document.getElementById('modalInitials');
+            // Update Modal Overlay
+            const modalName = document.getElementById('profileOverlayName');
+            const modalCollege = document.getElementById('profileOverlayCollege');
+            const modalRole = document.getElementById('profileOverlayRole');
+            const modalInitials = document.getElementById('profileOverlayInitials');
 
-                if (modalName) modalName.textContent = name;
-                if (modalCollege) modalCollege.innerHTML = `<i class="fas fa-university"></i> ${u.collegeName || 'Not Assigned'}`;
-                if (modalRole) modalRole.textContent = u.role || 'Admin';
-                if (modalInitials) modalInitials.textContent = initials;
+            if (modalName) modalName.textContent = name;
+            if (modalInitials) modalInitials.textContent = initials;
+            
+            if (modalCollege) {
+                modalCollege.innerHTML = `<i class="fas fa-university"></i> ${u.collegeName || 'Unknown Institute'}`;
             }
-        } catch (err) { console.error('Error fetching profile:', err); }
+            
+            if (modalRole) {
+                const roleText = u.role ? (u.role.charAt(0).toUpperCase() + u.role.slice(1)) : 'Admin';
+                modalRole.textContent = `Role: ${roleText}`;
+            }
+        }
+
+        // 2. Fetch Stats for the Modal Overlay
+        const [contestsRes, usersRes, programsRes] = await Promise.all([
+            fetch('/college/api/contests'),
+            fetch('/college/api/users'),
+            fetch('/college/api/programs')
+        ]);
+
+        const contestsData = await contestsRes.json();
+        const usersData = await usersRes.json();
+        const programsData = await programsRes.json();
+
+        // Bind data to the new overlay stat elements
+        if (contestsData.success) {
+            const statContests = document.getElementById('statContests');
+            if (statContests) statContests.textContent = contestsData.data.length || 0;
+        }
+        
+        if (usersData.success) {
+            const statUsers = document.getElementById('statUsers');
+            if (statUsers) statUsers.textContent = usersData.users.length || 0;
+        }
+        
+        if (programsData.success) {
+            const statPrograms = document.getElementById('statPrograms');
+            if (statPrograms) statPrograms.textContent = programsData.data.length || 0;
+        }
+
+    } catch (err) { 
+        console.error('Error fetching profile and stats:', err); 
     }
+}
 
     async function fetchAllData() {
         try {
@@ -745,10 +798,25 @@
         activeBtn.classList.add('bg-white', 'text-primary-600', 'dark:bg-primary-600', 'dark:text-white', 'shadow-sm');
     }
 
-    function toggleProfile(e) {
-        if (e) e.stopPropagation();
-        document.getElementById('profileOverlay').classList.toggle('hidden');
+   function toggleProfile(e) {
+    if (e) e.stopPropagation();
+    const overlay = document.getElementById('profileOverlay');
+    const card = overlay.querySelector('div');
+    
+    if (overlay.classList.contains('hidden')) {
+        overlay.classList.remove('hidden');
+        setTimeout(() => {
+            card.classList.remove('scale-95', 'opacity-0');
+            card.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    } else {
+        card.classList.remove('scale-100', 'opacity-100');
+        card.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            overlay.classList.add('hidden');
+        }, 300); 
     }
+}
 
     // --- DROPDOWNS ---
     function populateDropdowns() {

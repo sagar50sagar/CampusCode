@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CampusCode</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ["Poppins", "sans-serif"] },
+                    colors: {
+                        primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" },
+                        dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" }
+                    },
+                },
+            },
+        };
+    </script>
+<script>
+    if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+    }
+</script>
+    <style>
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        .dark ::-webkit-scrollbar-track { background: #111827; }
+        ::-webkit-scrollbar-thumb { background: #7ba4d0; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #2e5e99; }
+
+        /* Sidebar Logic */
+        .sidebar { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
+        .sidebar.collapsed { width: 5rem; }
+        .sidebar.collapsed .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
+        .sidebar.collapsed .nav-item i { margin-right: 0; font-size: 1.25rem; }
+        .sidebar.collapsed .nav-item span,
+        .sidebar.collapsed .logo-text,
+        .sidebar.collapsed .bottom-menu span { display: none; }
+        .sidebar.collapsed .bottom-menu .nav-item { justify-content: center; }
+
+        /* Nav Item Styling */
+        .nav-item {
+            transition: all 0.2s ease; position: relative; display: flex; align-items: center;
+            padding: 0.75rem 1rem; margin-bottom: 0.25rem; color: #374151; border-radius: 0.75rem;
+            cursor: pointer; white-space: nowrap;
+        }
+        .nav-item:hover { background-color: #f3f4f6; }
+        .dark .nav-item { color: #d1d5db; }
+        .dark .nav-item:hover { background-color: #374151; }
+        .nav-item.active { background-color: #d0e1f5; color: #1e4a7a; }
+        .dark .nav-item.active { background-color: #1e4a7a; color: #ffffff; }
+        .nav-item.active::before {
+            content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+            height: 60%; width: 4px; background-color: #2e5e99; border-radius: 0 4px 4px 0;
+        }
+        .dark .nav-item.active::before { background-color: #60a5fa; }
+        .nav-item i { width: 1.5rem; text-align: center; margin-right: 0.75rem; font-size: 1.1rem; flex-shrink: 0; }
+        .nav-item span { font-size: 0.875rem; font-weight: 500; }
+
+        /* Advanced Filter and Card Styling from forum.html reference */
+        .filter-btn { transition: all 0.2s ease; }
+        .filter-btn.active { background-color: #e7f0fa; color: #1e4a7a; border-color: #7ba4d0; }
+        .dark .filter-btn.active { background-color: #1e4a7a; color: #fff; border-color: #60a5fa; }
+        .topic-card { cursor: pointer; transition: all 0.2s ease; }
+        .topic-card.selected { border-color: #3b82f6; background-color: #eff6ff; box-shadow: 0 4px 10px rgba(59,130,246,.08); }
+        .dark .topic-card.selected { background-color: rgba(30,58,138,.2); }
+    </style>
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200">
+    <div class="flex h-screen overflow-hidden">
+
+        <aside id="mainSidebar" class="sidebar w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen flex-shrink-0 transition-colors duration-200 z-40">
+            <div class="p-6 flex-shrink-0 flex items-center justify-between h-[88px]">
+                <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2 overflow-hidden whitespace-nowrap">
+                    <i class="fas fa-code text-primary-500 text-2xl flex-shrink-0"></i>
+                    <span class="logo-text transition-all duration-300 opacity-100 w-auto">CampusCode</span>
+                </h1>
+                <button id="sidebarToggleBtn" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary-500 transition-colors focus:outline-none">
+                    <i class="fas fa-chevron-left transition-transform duration-300"></i>
+                </button>
+            </div>
+            <nav class="flex-1 px-4 space-y-1 overflow-y-auto mt-2">
+                <a href="/college/dashboard" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+                <a href="/college/program" class="nav-item"><i class="fa-solid fa-layer-group"></i><span>Programs</span></a>
+                <a href="/college/contest" class="nav-item"><i class="fas fa-trophy"></i><span>Contests</span></a>
+                <a href="/college/manage_user" class="nav-item"><i class="fa-solid fa-users"></i><span>User</span></a>
+                <a href="/college/community" class="nav-item active"><i class="fas fa-comments"></i><span>Community</span></a>
+                <a href="/college/report" class="nav-item"><i class="fas fa-file-invoice"></i><span>Reports</span></a>
+                <a href="/college/profile" class="nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+            </nav>
+            <div class="p-4 space-y-1 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0 bottom-menu">
+                <a href="/college/help_support" class="nav-item"><i class="far fa-question-circle"></i><span>Help & Support</span></a>
+                <a href="/college/setting" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+            </div>
+        </aside>
+
+        <div class="flex-1 overflow-y-auto relative">
+            <header class="bg-white dark:bg-gray-800 shadow-sm transition-colors duration-200 sticky top-0 z-30 border-b border-gray-200 dark:border-gray-700">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+                    
+                    <div class="flex-1 flex items-center">
+                        <div class="relative w-full max-w-md">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                            <input type="text" id="header-search-input" class="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="Search forum threads...">
+                        </div>
+                    </div>
+
+                    <div class="ml-4 flex items-center gap-3 relative">
+                        <button id="themeToggleBtn" class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none transition-transform active:scale-95">
+                            <i id="themeIcon" class="fas fa-moon text-xl transition-all duration-300"></i>
+                        </button>
+
+                        <button class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none transition-transform active:scale-95 relative">
+                            <i class="fas fa-bell text-xl transition-all duration-300"></i>
+                            <span class="absolute top-1 right-1.5 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800"></span>
+                        </button>
+
+                        <div class="relative">
+                            <button onclick="toggleProfile()" class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                <div id="headerInitials" class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm">--</div>
+                                <span id="headerName" class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block">Loading...</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <section class="bg-gradient-to-r from-primary-600 to-[#2E5E99] text-white rounded-2xl p-6 sm:p-8 mb-6 shadow-lg">
+                    <div class="flex flex-col lg:flex-row gap-5 lg:items-end lg:justify-between">
+                        <div class="max-w-2xl">
+                            <h2 class="text-2xl sm:text-3xl font-bold mb-2">Community Forum</h2>
+                            <p class="text-base text-blue-100">Ask questions, share solutions, and discuss with your coding community.</p>
+                        </div>
+                        <div class="flex flex-wrap gap-3">
+                            <button onclick="window.location.href='/college/dashboard'" class="px-5 py-2.5 rounded-xl bg-white/15 hover:bg-white/20 border border-white/20 text-sm font-semibold transition">Back to Dashboard</button>
+                            <button onclick="toggleCreateModal()" class="px-5 py-2.5 rounded-xl bg-white text-primary-600 text-sm font-semibold shadow-sm hover:bg-blue-50 transition flex items-center"><i class="fas fa-plus mr-2"></i> Start Discussion</button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="mb-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+                    <div class="flex flex-wrap gap-3 items-center">
+                        <div id="scope-filters-container" class="flex gap-2"></div>
+                        
+                        <select id="sort-select" onchange="fetchThreads()" class="px-5 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-semibold text-gray-800 dark:text-gray-100 ml-auto lg:ml-0">
+                            <option value="latest">Latest Updates</option>
+                            <option value="popular">Most Popular</option>
+                        </select>
+                        
+                        <button onclick="toggleTopicModal()" id="addTopicBtn" class="ml-auto px-4 py-2 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold transition flex items-center">
+                            <i class="fas fa-plus mr-2"></i> Add Topic
+                        </button>
+                    </div>
+                </section>
+
+                <section id="categories-container" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"></section>
+
+                <div id="discussions-container" class="space-y-4"></div>
+            </main>
+        </div>
+    </div>
+
+    <div id="topicModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40 p-4">
+        <div class="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-xl">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Add Forum Topic</h3>
+                <button onclick="toggleTopicModal()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="topicForm" class="space-y-3" onsubmit="event.preventDefault(); toggleTopicModal();">
+                <input id="topicNameInput" type="text" placeholder="Topic name (e.g. DevOps)" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100" required />
+                <input id="topicSlugInput" type="text" placeholder="Optional slug (e.g. devops)" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100" />
+                <input id="topicIconInput" type="text" placeholder="Optional icon class (fas fa-cloud)" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100" />
+                <p id="topicFormMsg" class="text-sm hidden"></p>
+                <button type="submit" class="w-full px-4 py-2 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold transition">Create Topic</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="createModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden transform transition-all">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Start New Discussion</h3>
+                <button onclick="toggleCreateModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"><i class="fas fa-times text-lg"></i></button>
+            </div>
+            <div class="p-6">
+                <form id="createThreadForm" onsubmit="submitNewThread(event)">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
+                        <input type="text" id="threadTitle" required class="w-full px-4 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="What do you want to discuss?">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Topic / Category</label>
+                        <select id="threadTopic" class="w-full px-4 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 outline-none">
+                            <option value="general">General Topic</option>
+                            <option value="algo">Algorithms</option>
+                            <option value="web">Web Development</option>
+                            <option value="back">Backend</option>
+                        </select>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Content</label>
+                        <textarea id="threadContent" required rows="5" class="w-full px-4 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="Write your details here..."></textarea>
+                    </div>
+                    <div class="flex justify-end gap-3">
+                        <button type="button" onclick="toggleCreateModal()" class="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg font-medium transition-colors">Cancel</button>
+                        <button type="submit" id="submitThreadBtn" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors">Post Discussion</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="profileOverlay" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white dark:bg-gray-800 w-[320px] rounded-3xl overflow-hidden shadow-2xl transform transition-all duration-300 scale-95 opacity-0">
+            <div class="bg-[#1e4a7a] p-6 text-center relative h-32">
+                <button onclick="toggleProfile()" class="absolute top-4 right-4 text-white/80 hover:text-white">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+                <div class="absolute -bottom-10 left-1/2 -translate-x-1/2">
+                    <div id="profileOverlayInitials" class="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 bg-[#1e4a7a] flex items-center justify-center text-white text-2xl font-bold">--</div>
+                </div>
+            </div>
+            <div class="pt-12 pb-6 px-6 text-center">
+                <h3 id="profileOverlayName" class="text-xl font-bold text-gray-800 dark:text-white">Loading...</h3>
+                <p id="profileOverlayCollege" class="text-xs text-gray-500 flex items-center justify-center gap-1 mt-1"><i class="fas fa-university"></i> Loading...</p>
+                <p id="profileOverlayRole" class="text-xs text-gray-500 mb-3 flex items-center justify-center gap-1">Role: Loading...</p>
+
+                <div class="flex justify-between border-y border-gray-100 dark:border-gray-700 py-4 mb-6">
+                    <div><p class="text-[10px] font-bold text-primary-400 uppercase">Contest</p><p id="statContests" class="text-lg font-bold dark:text-white">0</p></div>
+                    <div class="border-x border-gray-100 dark:border-gray-700 px-6"><p class="text-[10px] font-bold text-primary-400 uppercase">Users</p><p id="statUsers" class="text-lg font-bold dark:text-white">0</p></div>
+                    <div><p class="text-[10px] font-bold text-primary-400 uppercase">Programs</p><p id="statPrograms" class="text-lg font-bold dark:text-white">0</p></div>
+                </div>
+                
+                <div class="space-y-1">
+                    <a href="/college/profile" class="block">
+                        <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                            <div class="flex items-center gap-3"><i class="fas fa-user-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">My Profile</span></div>
+                            <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </a>
+                    
+                    <a href="/college/help_support" class="block">
+                        <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                            <div class="flex items-center gap-3"><i class="fas fa-question-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">Help & Support</span></div>
+                            <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </a>
+
+                    <button id="logoutBtn" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
+                        <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </div>
+                        <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
+                    </button>
+                </div>
+                <button onclick="toggleProfile()" class="mt-4 text-[10px] font-bold text-gray-400 uppercase hover:text-gray-600 transition-colors">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/forum'; 
+        
+        let currentUser = null;
+        let threads = [];
+
+        // --- Theme & UI Core ---
+        const html = document.documentElement;
+
+        function applyTheme(theme) {
+            if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                html.classList.add('dark');
+            } else {
+                html.classList.remove('dark');
+            }
+        }
+
+        applyTheme(localStorage.getItem('theme') || 'dark');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeToggleBtn = document.getElementById('themeToggleBtn');
+            const themeIcon = document.getElementById('themeIcon') || (themeToggleBtn ? themeToggleBtn.querySelector('i') : null);
+
+            function updateIcon() {
+                if (!themeIcon) return; 
+                if (html.classList.contains('dark')) {
+                    themeIcon.classList.replace('fa-moon', 'fa-sun');
+                } else {
+                    themeIcon.classList.replace('fa-sun', 'fa-moon');
+                }
+            }
+
+            updateIcon();
+
+            if (themeToggleBtn) {
+                themeToggleBtn.addEventListener('click', () => {
+                    const newTheme = html.classList.contains('dark') ? 'light' : 'dark';
+                    localStorage.setItem('theme', newTheme);
+                    applyTheme(newTheme);
+                    updateIcon();
+                });
+            }
+        });
+
+        // Sidebar Toggle
+        document.getElementById('sidebarToggleBtn').addEventListener('click', function() {
+            document.getElementById('mainSidebar').classList.toggle('collapsed');
+            this.querySelector('i').classList.toggle('fa-chevron-right');
+            this.querySelector('i').classList.toggle('fa-chevron-left');
+        });
+
+        function toggleProfile(e) {
+    if (e) e.stopPropagation();
+    const overlay = document.getElementById('profileOverlay');
+    const card = overlay.querySelector('div');
+    
+    if (overlay.classList.contains('hidden')) {
+        overlay.classList.remove('hidden');
+        setTimeout(() => {
+            card.classList.remove('scale-95', 'opacity-0');
+            card.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    } else {
+        card.classList.remove('scale-100', 'opacity-100');
+        card.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            overlay.classList.add('hidden');
+        }, 300); 
+    }
+}
+        function toggleCreateModal() { document.getElementById('createModal').classList.toggle('hidden'); }
+        function toggleTopicModal() { document.getElementById('topicModal').classList.toggle('hidden'); }
+
+        async function handleLogout() {
+            await fetch('/auth/logout', { method: 'POST' });
+            window.location.href = '/'; 
+        }
+
+        const forumState = {
+            scopes: [
+                { id: "global", label: "Global Platform" },
+                { id: "college", label: "My College" } 
+            ],
+            categories: [
+                { id: "all", label: "All Topics", icon: "fa-layer-group" },
+                { id: "algo", label: "Algorithms", icon: "fa-brain" },
+                { id: "web", label: "Web Dev", icon: "fa-code" },
+                { id: "back", label: "Backend", icon: "fa-server" },
+                { id: "general", label: "General", icon: "fa-comments" }
+            ]
+        };
+
+        let currentCategory = "all";
+        let currentScope = "global";
+        let searchQuery = "";
+
+       async function fetchUserContext() {
+            try {
+                const res = await fetch(`${API_BASE}/me`);
+                const data = await res.json();
+                if(data.success && data.user) {
+                    currentUser = data.user;
+                    const initials = currentUser.fullName ? currentUser.fullName.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() : 'U';
+                    
+                    document.getElementById('headerName').innerText = currentUser.fullName;
+                    document.getElementById('headerInitials').innerText = initials;
+                    
+                    // Note: Removed the old modal updates from here since fetchProfile() handles the new overlay!
+                }
+            } catch (err) {
+                console.error("Failed to fetch user context", err);
+            }
+        }
+
+        async function fetchThreads() {
+            const container = document.getElementById('discussions-container');
+            container.innerHTML = `
+                <div class="text-center py-12 animate-pulse">
+                    <i class="fas fa-circle-notch fa-spin text-3xl text-primary-400 mb-3"></i>
+                    <p class="font-medium text-gray-500 dark:text-gray-400 text-sm">Loading discussions...</p>
+                </div>`;
+            
+            const sortVal = document.getElementById('sort-select').value;
+            
+            try {
+                const res = await fetch(`${API_BASE}/threads?filter=${currentScope}&sort=${sortVal}&search=${encodeURIComponent(searchQuery)}`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    threads = data.threads;
+                    renderDiscussions();
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (err) {
+                console.error("Fetch threads error:", err);
+                container.innerHTML = `<div class="text-red-500 text-center p-6 bg-white dark:bg-gray-800 rounded-xl">Error loading discussions.</div>`;
+            }
+        }
+
+        function renderScopes() {
+            const scopeContainer = document.getElementById('scope-filters-container');
+            scopeContainer.innerHTML = forumState.scopes.map(scope => {
+                const isActive = scope.id === currentScope;
+                return `<button 
+                    class="filter-btn ${isActive ? 'active' : ''} px-5 py-2 rounded-xl bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-sm font-semibold"
+                    onclick="setScope('${scope.id}')"
+                >
+                    ${scope.label}
+                </button>`;
+            }).join('');
+        }
+
+        function renderCategories() {
+            const catContainer = document.getElementById('categories-container');
+            catContainer.innerHTML = forumState.categories.map(cat => {
+                const isActive = cat.id === currentCategory;
+                const activeClasses = isActive ? 'selected' : '';
+                return `
+                <div class="topic-card ${activeClasses} bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 text-center transition-all duration-200"
+                     onclick="setCategory('${cat.id}')">
+                    <i class="fa-solid ${cat.icon} text-2xl ${isActive ? 'text-blue-600' : 'text-primary-500'}"></i>
+                    <p class="mt-3 text-sm lg:text-base font-bold text-gray-800 dark:text-gray-100">${cat.label}</p>
+                </div>`
+            }).join('');
+        }
+
+        function renderDiscussions() {
+            const container = document.getElementById('discussions-container');
+            
+            let filteredThreads = threads;
+            if (currentCategory !== 'all') {
+                filteredThreads = threads.filter(t => t.topic === currentCategory);
+            }
+
+            if (filteredThreads.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-16 text-center shadow-sm">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 dark:bg-gray-900 mb-4">
+                            <i class="fa-regular fa-comments text-2xl text-gray-400"></i>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">No discussions found</h3>
+                        <p class="text-sm text-gray-500">Try adjusting your search or category filters.</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = filteredThreads.map(thread => {
+                const date = new Date(thread.createdAt).toLocaleDateString();
+                
+                return `
+                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-md transition-shadow cursor-pointer flex gap-4 items-start"
+                     onclick="window.location.href='/college/forum/thread/${thread.id}'"> 
+                    
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="px-2 py-0.5 text-[10px] uppercase font-bold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded">${thread.topic || 'General'}</span>
+                            <span class="text-xs text-gray-500 flex items-center gap-1"><i class="far fa-clock"></i> ${date}</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2 leading-tight">${thread.title}</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-3">${thread.content}</p>
+                        
+                        <div class="flex items-center justify-between mt-auto">
+                            <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                <div class="w-6 h-6 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold">
+                                    ${thread.author_name ? thread.author_name.charAt(0).toUpperCase() : 'U'}
+                                </div>
+                                <span>${thread.author_name}</span>
+                                ${thread.author_college ? `<span class="px-1 border-l border-gray-300 dark:border-gray-600 ml-1 pl-2">${thread.author_college}</span>` : ''}
+                            </div>
+                            
+                            <div class="flex gap-4 text-xs text-gray-500 dark:text-gray-400 font-medium">
+                                <span class="flex items-center gap-1"><i class="far fa-eye"></i> ${thread.views || 0}</span>
+                                <span class="flex items-center gap-1"><i class="far fa-comment-alt"></i> ${thread.reply_count || 0}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        async function submitNewThread(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitThreadBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
+
+            const payload = {
+                title: document.getElementById('threadTitle').value,
+                topic: document.getElementById('threadTopic').value,
+                content: document.getElementById('threadContent').value
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/threads`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await res.json();
+                if(data.success) {
+                    toggleCreateModal();
+                    document.getElementById('createThreadForm').reset();
+                    fetchThreads();
+                } else {
+                    alert(data.message || 'Failed to create thread.');
+                }
+            } catch(err) {
+                console.error("Thread creation failed", err);
+                alert("An error occurred while posting.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Post Discussion';
+            }
+        }
+
+        window.setCategory = function(catId) {
+            currentCategory = catId;
+            renderCategories(); 
+            renderDiscussions(); 
+        };
+
+        window.setScope = function(scopeId) {
+            currentScope = scopeId;
+            renderScopes();
+            fetchThreads(); 
+        };
+
+        let searchTimeout;
+        document.getElementById('header-search-input').addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => fetchThreads(), 400); 
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchUserContext(); 
+            fetchProfile(); // Add this line so the overlay gets populated!
+            renderScopes();
+            renderCategories();
+            fetchThreads();     
+        });
+        //fetch profile
+        async function fetchProfile() {
+    try {
+        // 1. Fetch User Profile
+        const res = await fetch('/college/api/profile');
+        if (res.ok) {
+            const data = await res.json();
+            const u = data.user || data;
+
+            const name = u.fullName || 'Admin User';
+            const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+
+            // Update Header
+            const headerName = document.getElementById('headerName');
+            const headerInitials = document.getElementById('headerInitials');
+            if (headerName) headerName.textContent = name;
+            if (headerInitials) headerInitials.textContent = initials;
+
+            // Update Modal Overlay with exact new IDs
+            const modalName = document.getElementById('profileOverlayName');
+            const modalCollege = document.getElementById('profileOverlayCollege');
+            const modalRole = document.getElementById('profileOverlayRole');
+            const modalInitials = document.getElementById('profileOverlayInitials');
+
+            if (modalName) modalName.textContent = name;
+            if (modalInitials) modalInitials.textContent = initials;
+            
+            if (modalCollege) {
+                modalCollege.innerHTML = `<i class="fas fa-university"></i> ${u.collegeName || 'Unknown Institute'}`;
+            }
+            
+            if (modalRole) {
+                const roleText = u.role ? (u.role.charAt(0).toUpperCase() + u.role.slice(1)) : 'Admin';
+                modalRole.textContent = `Role: ${roleText}`;
+            }
+        }
+
+        // 2. Fetch Stats for the Modal Overlay
+        const [contestsRes, usersRes, programsRes] = await Promise.all([
+            fetch('/college/api/contests'),
+            fetch('/college/api/users'),
+            fetch('/college/api/programs')
+        ]);
+
+        const contestsData = await contestsRes.json();
+        const usersData = await usersRes.json();
+        const programsData = await programsRes.json();
+
+        // Bind data to the new overlay stat elements
+        if (contestsData.success) {
+            const statContests = document.getElementById('statContests');
+            if (statContests) statContests.textContent = contestsData.data.length || 0;
+        }
+        
+        if (usersData.success || usersData.users) {
+            const statUsers = document.getElementById('statUsers');
+            const usersArray = usersData.users || usersData;
+            if (statUsers) statUsers.textContent = Array.isArray(usersArray) ? usersArray.length : 0;
+        }
+        
+        if (programsData.success || Array.isArray(programsData) || programsData.data) {
+            const statPrograms = document.getElementById('statPrograms');
+            const programsArray = Array.isArray(programsData) ? programsData : (programsData.data || []);
+            if (statPrograms) statPrograms.textContent = programsArray.length || 0;
+        }
+
+    } catch (err) { 
+        console.error('Error fetching profile and stats:', err); 
+    }
+}
+    </script>
+</body>
+</html>

@@ -112,6 +112,17 @@ module.exports = (db, transporter) => {
     router.get('/community', requireRole('admin'), (req, res) => {
     res.sendFile(path.join(__dirname, '../public/forum.html'));
 });
+   router.get('/community', requireRole('admin'), (req, res) => {
+        // Updated to point to the new admin views folder
+        res.sendFile(path.join(__dirname, '../views/admin/community-forum.html'));
+    });
+    // ==========================================
+    // SERVE THREAD DETAILS PAGE
+    // ==========================================
+    router.get('/forum/thread/:id', requireRole('admin'), (req, res) => {
+        // This will serve the thread.html file from your views folder
+        res.sendFile(path.join(__dirname, '../views/admin/thread.html'));
+    });
 
     // ==========================================
     // SMART ALIAS ROUTES (.html extensions)
@@ -411,17 +422,79 @@ module.exports = (db, transporter) => {
         const collegeName = req.session.user.collegeName;
         
         const query = `
+            WITH GlobalRanks AS (
+                -- Fetch all students for global ranking
+                SELECT id, points 
+                FROM account_users 
+                WHERE role = 'student'
+            ),
+            CollegeRanks AS (
+                -- Calculate weighted scores specifically for students in the admin's college
+                SELECT 
+                    u.id,
+                    (
+                        -- College specific problem solves (weighted 1.0)
+                        (SELECT COUNT(DISTINCT s.problem_id)
+                         FROM submissions s
+                         JOIN problems p ON s.problem_id = p.id
+                         WHERE s.user_id = u.id AND s.status = 'accepted' 
+                           AND p.scope IN ('college', 'internal', 'department')
+                        ) + 
+                        -- Global problem solves (weighted 0.3)
+                        (0.3 * (SELECT COUNT(DISTINCT s.problem_id)
+                         FROM submissions s
+                         JOIN problems p ON s.problem_id = p.id
+                         WHERE s.user_id = u.id AND s.status = 'accepted' 
+                           AND p.scope = 'global'
+                        ))
+                    ) AS college_score
+                FROM account_users u
+                WHERE u.collegeName = ? AND u.role = 'student'
+            )
             SELECT 
                 u.*,
                 (SELECT COUNT(*) FROM contests WHERE createdBy = u.id AND status = 'accepted') AS contests_created,
+<<<<<<< HEAD
                 (SELECT COUNT(*) FROM problems WHERE faculty_id = u.id AND status = 'accepted') AS problems_created
             FROM users u
+=======
+                (SELECT COUNT(*) FROM problems WHERE faculty_id = u.id AND status = 'accepted') AS problems_created,
+                
+                -- ==========================================
+                -- STUDENT STATS (Dynamic Subqueries)
+                -- * Adjust table names (submissions, contest_participants) to match your DB *
+                -- ==========================================
+                (SELECT COUNT(DISTINCT problem_id) FROM submissions WHERE user_id = u.id AND status = 'accepted') AS problems_solved,
+                (SELECT COUNT(DISTINCT contest_id) FROM contest_participants WHERE user_id = u.id) AS contests_participated,
+            
+                -- ==========================================
+                -- COMPUTED STUDENT RANKS
+                -- ==========================================
+                CASE WHEN u.role = 'student' THEN
+                    (SELECT COUNT(*) + 1 FROM GlobalRanks WHERE points > u.points)
+                ELSE NULL END AS global_rank,
+                
+                CASE WHEN u.role = 'student' THEN
+                    (SELECT COUNT(*) + 1 FROM CollegeRanks c WHERE c.college_score > (SELECT college_score FROM CollegeRanks WHERE id = u.id))
+                ELSE NULL END AS college_rank
+                
+            FROM account_users u
+>>>>>>> c2c38a5 (match profile overlay)
             WHERE u.collegeName = ? AND u.role IN ('student', 'faculty', 'hod', 'hos') AND u.status = 'active'
             ORDER BY u.id DESC
         `;
 
+<<<<<<< HEAD
         db.all(query, [collegeName], (err, rows) => {
             if (err) return res.status(500).json({ success: false, error: err.message });
+=======
+        // Note: We now pass collegeName TWICE because there are two '?' placeholders in the query
+        db.all(query, [collegeName, collegeName], (err, rows) => {
+            if (err) {
+                console.error("Error fetching users:", err.message);
+                return res.status(500).json({ success: false, error: err.message });
+            }
+>>>>>>> c2c38a5 (match profile overlay)
             res.json({ success: true, users: rows });
         });
     });
@@ -1220,7 +1293,7 @@ router.get('/api/contests', requireRole('admin'), (req, res) => {
             );
         }
     });
-    // ⭐ BULK ACCEPT/REJECT USERS
+   // ⭐ BULK ACCEPT/REJECT USERS
     router.put('/api/users/bulk-status', requireRole('admin'), (req, res) => {
         const { userIds, status } = req.body;
         if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
@@ -1237,5 +1310,36 @@ router.get('/api/contests', requireRole('admin'), (req, res) => {
         });
     });
 
+    // ⭐ BULK DELETE USERS (URL changed to prevent conflicts)
+    router.delete('/api/bulk-delete-users', requireRole('admin'), (req, res) => {
+        const { userIds } = req.body;
+        
+        // 1. Check if we received an array of IDs
+        if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+            return res.status(400).json({ success: false, message: "No users selected" });
+        }
+
+        // 2. Create the exact number of placeholders (?, ?, ?) needed for the SQL query
+        const placeholders = userIds.map(() => '?').join(',');
+        
+        // 3. Write the DELETE query. (We check collegeName to prevent deleting users from other colleges)
+        const query = `DELETE FROM users WHERE id IN (${placeholders}) AND collegeName = ?`;
+
+        // 4. Execute the query
+        db.run(query, [...userIds, req.session.user.collegeName], function(err) {
+            if (err) {
+                console.error("Bulk delete error:", err);
+                return res.status(500).json({ success: false, message: "Database error while deleting users." });
+            }
+            
+            // this.changes tells us exactly how many rows were deleted
+            if (this.changes === 0) {
+                return res.json({ success: false, message: "No users were deleted. They may not exist or belong to your college." });
+            }
+
+            res.json({ success: true, message: `Successfully deleted ${this.changes} users.` });
+        });
+    });
+    // ==========================================
     return router;
 };

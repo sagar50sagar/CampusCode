@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CampusCode - Admin Master Report</title>
+    <title>CampusCode</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -84,8 +84,8 @@
 
                 <div class="relative ml-2 border-l border-gray-200 dark:border-gray-700 pl-4">
                     <button id="headerProfileBtn" onclick="toggleProfile()" class="flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                        <div id="headerInitials" class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm">--</div>
-                        <span id="headerName" class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block">...</span>
+                        <div id="headerProfileInitials" class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm">--</div>
+                        <span id="headerProfileName" class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block">Loading...</span>
                     </button>
                 </div>
             </div>
@@ -107,28 +107,46 @@
                         </div>
                     </div>
 
-                    <div id="profileOverlay" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                        <div class="bg-white dark:bg-gray-800 w-[320px] rounded-3xl overflow-hidden shadow-2xl transform transition-all">
+                    <div id="profileOverlay" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+                        <div class="bg-white dark:bg-gray-800 w-[320px] rounded-3xl overflow-hidden shadow-2xl transform transition-all duration-300 scale-95 opacity-0">
                             <div class="bg-[#1e4a7a] p-6 text-center relative h-32">
-                                <button onclick="toggleProfile()" class="absolute top-4 right-4 text-white/80 hover:text-white"><i class="fas fa-times text-lg"></i></button>
+                                <button onclick="toggleProfile()" class="absolute top-4 right-4 text-white/80 hover:text-white">
+                                    <i class="fas fa-times text-lg"></i>
+                                </button>
                                 <div class="absolute -bottom-10 left-1/2 -translate-x-1/2">
-                                    <div id="modalInitials" class="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 bg-[#1e4a7a] flex items-center justify-center text-white text-2xl font-bold">--</div>
+                                    <div id="profileOverlayInitials" class="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 bg-[#1e4a7a] flex items-center justify-center text-white text-2xl font-bold">--</div>
                                 </div>
                             </div>
                             <div class="pt-12 pb-6 px-6 text-center">
-                                <h3 id="modalName" class="text-xl font-bold text-gray-800 dark:text-white">...</h3>
-                                <p id="modalCollege" class="text-xs text-gray-500 flex items-center justify-center gap-1"><i class="fas fa-university"></i> ...</p>
-                                <div class="space-y-1 mt-6">
-                                    <a href="/college/profile"><button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
-                                        <div class="flex items-center gap-3"><i class="fas fa-user-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200"> Profile</span></div>
-                                        <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
-                                    </button></a>
-                                    <a href="/college/help_support"><button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
-                                        <div class="flex items-center gap-3"><i class="fas fa-question-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">Help & Support</span></div>
-                                        <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
-                                    </button></a>
+                                <h3 id="profileOverlayName" class="text-xl font-bold text-gray-800 dark:text-white">Loading...</h3>
+                                <p id="profileOverlayCollege" class="text-xs text-gray-500 flex items-center justify-center gap-1 mt-1"><i class="fas fa-university"></i> Loading...</p>
+                                <p id="profileOverlayRole" class="text-xs text-gray-500 mb-3 flex items-center justify-center gap-1">Role: Loading...</p>
+
+                                <div class="flex justify-between border-y border-gray-100 dark:border-gray-700 py-4 mb-6">
+                                    <div><p class="text-[10px] font-bold text-primary-400 uppercase">Contest</p><p id="statContests" class="text-lg font-bold dark:text-white">0</p></div>
+                                    <div class="border-x border-gray-100 dark:border-gray-700 px-6"><p class="text-[10px] font-bold text-primary-400 uppercase">Users</p><p id="statUsers" class="text-lg font-bold dark:text-white">0</p></div>
+                                    <div><p class="text-[10px] font-bold text-primary-400 uppercase">Programs</p><p id="statPrograms" class="text-lg font-bold dark:text-white">0</p></div>
+                                </div>
+                                
+                                <div class="space-y-1">
+                                    <a href="/college/profile" class="block">
+                                        <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                                            <div class="flex items-center gap-3"><i class="fas fa-user-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200"> Profile</span></div>
+                                            <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                                        </button>
+                                    </a>
+                                    
+                                    <a href="/college/help_support" class="block">
+                                        <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                                            <div class="flex items-center gap-3"><i class="fas fa-question-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">Help & Support</span></div>
+                                            <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                                        </button>
+                                    </a>
+
                                     <button id="logoutBtn" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
-                                        <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center"><i class="fas fa-sign-out-alt"></i></div>
+                                        <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center">
+                                            <i class="fas fa-sign-out-alt"></i>
+                                        </div>
                                         <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
                                     </button>
                                 </div>
@@ -258,7 +276,7 @@
                                 <div class="w-16 h-16 bg-primary-600 text-white flex items-center justify-center rounded-lg text-2xl font-black">CC</div>
                                 <div>
                                     <h1 id="displayCollegeName" class="text-2xl font-black text-gray-800 dark:text-white uppercase tracking-tight">...</h1>
-                                    <p class="text-sm font-bold text-primary-600 tracking-widest uppercase">Master Performance Report</p>
+                                   <p class="text-sm font-bold text-primary-600 dark:text-primary-400 tracking-widest uppercase">Master Performance Report</p>
                                 </div>
                             </div>
                             <div class="text-right text-xs"><p class="font-bold uppercase text-gray-400">Date: <span id="curDate"></span></p></div>
@@ -344,26 +362,61 @@
         }
 
         function toggleProfile() { document.getElementById('profileOverlay').classList.toggle('hidden'); }
+    // 5. Safely rebuild charts ONLY if the page has charts (e.g., dashboard.html)
+    if (typeof buildCharts === 'function') {
+        buildCharts();
+    }
+}
+        
+        function toggleProfile() {
+            const overlay = document.getElementById('profileOverlay');
+            const card = overlay.querySelector('div');
+            
+            if (overlay.classList.contains('hidden')) {
+                overlay.classList.remove('hidden');
+                setTimeout(() => {
+                    card.classList.remove('scale-95', 'opacity-0');
+                    card.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            } else {
+                card.classList.remove('scale-100', 'opacity-100');
+                card.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 300); 
+            }
+        }
+
         function toggleNotifications() { document.getElementById('notificationDropdown').classList.toggle('hidden'); }
 
         async function fetchReportData() {
             try {
-                // Profile Data
+                // 1. Profile Data
                 try {
                     const profileRes = await fetch('/college/api/profile');
                     if(profileRes.ok) {
                         const { user } = await profileRes.json();
                         document.getElementById('displayCollegeName').textContent = user.collegeName || "Admin Dashboard";
-                        document.getElementById('headerName').textContent = user.fullName || "";
-                        document.getElementById('modalName').textContent = user.fullName || "";
-                        document.getElementById('modalCollege').innerHTML = `<i class="fas fa-university"></i> ${user.collegeName || ""}`;
-                        const initials = (user.fullName || "AU").substring(0, 2).toUpperCase();
-                        document.getElementById('headerInitials').textContent = initials;
-                        document.getElementById('modalInitials').textContent = initials;
+                        
+                        // Matches logic from help_support
+                        const name = user.fullName || 'Admin User';
+                        const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'AD';
+                        
+                        // Header Mapping
+                        document.getElementById('headerProfileName').textContent = name;
+                        document.getElementById('headerProfileInitials').textContent = initials;
+                        
+                        // Overlay Mapping
+                        document.getElementById('profileOverlayName').textContent = name;
+                        document.getElementById('profileOverlayInitials').textContent = initials;
+                        document.getElementById('profileOverlayCollege').innerHTML = `<i class="fas fa-university"></i> ${user.collegeName || ""}`;
+                        const role = user.role ? (user.role.charAt(0).toUpperCase() + user.role.slice(1)) : 'Admin';
+                        const roleElem = document.getElementById('profileOverlayRole');
+                        if (roleElem) roleElem.textContent = `Role: ${role}`;
                     }
                 } catch (e) { console.warn(e); }
 
-                // Users Data (Strictly Database Driven)
+                // 2. Users Data
                 let students = [], faculty = [];
                 try {
                     const usersRes = await fetch('/college/api/users');
@@ -371,24 +424,23 @@
                         const userData = await usersRes.json();
                         const allUsers = userData.users || userData || [];
                         students = allUsers.filter(u => u.role === 'student');
-                        // Treat admin, faculty, HOD as faculty for report context
-                        faculty = allUsers.filter(u => ['faculty', 'hod', 'admin'].includes(u.role)); 
+                        faculty = allUsers.filter(u => ['faculty', 'hod', 'admin', 'hos'].includes(u.role)); 
                     } else if (usersRes.status === 401) {
                         window.location.href = '/'; return;
                     }
                 } catch(e) { console.warn(e); }
 
-                // Contests Data
+                // 3. Contests Data
                 let contests = [];
                 try {
                     const contestsRes = await fetch('/college/api/contests');
                     if(contestsRes.ok) {
                         const contestData = await contestsRes.json();
-                        contests = contestData.data || contestData || [];
+                        contests = contestData.contests || contestData.data || contestData || [];
                     }
                 } catch(e) { console.warn(e); }
 
-                // Programs Data
+                // 4. Programs Data
                 let programs = [];
                 try {
                     const progRes = await fetch('/college/api/programs');
@@ -398,10 +450,19 @@
                     }
                 } catch(e) { console.warn(e); }
 
+                // Update Overview Widgets
                 document.getElementById('ovFaculty').textContent = `${faculty.length}`;
                 document.getElementById('ovStudents').textContent = `${students.length}`;
                 document.getElementById('ovContests').textContent = `${contests.length}`;
                 document.getElementById('ovPrograms').textContent = `${programs.length}`;
+
+                // Update Overlay Stats
+                const statContests = document.getElementById('statContests');
+                const statUsers = document.getElementById('statUsers');
+                const statPrograms = document.getElementById('statPrograms');
+                if(statContests) statContests.textContent = contests.length;
+                if(statUsers) statUsers.textContent = students.length + faculty.length; 
+                if(statPrograms) statPrograms.textContent = programs.length;
 
                 // --- 1. Map Students ---
                 const studentBody = document.getElementById('studentTableBody');
@@ -417,15 +478,15 @@
                             <td>${s.year || ''}</td>
                             <td>${s.department || s.branch || ''}</td>
                             <td>${s.section || s.sec || ''}</td>
-                            <td>${s.streak || ''}</td>
-                            <td>${s.contestsCount || s.contests || ''}</td>
-                            <td>${s.solvedCount || s.solved || ''}</td>
-                            <td>${s.rank || s.colRank || ''}</td>
-                            <td>${s.globalRank || ''}</td>
-                            <td>${s.level || ''}</td>
-                            <td>${s.accuracy || ''}</td>
-                            <td>${s.lastActive || ''}</td>
-                            <td>${s.won || ''}</td>
+                            <td>${s.streak || 0}</td>
+                            <td>${s.contests_participated || 0}</td>
+                            <td>${s.problems_solved || 0}</td>
+                            <td>${s.college_rank || '-'}</td>
+                            <td>${s.global_rank || '-'}</td>
+                            <td>${s.level || 1}</td>
+                            <td>${s.accuracy || '0%'}</td>
+                            <td>${s.lastActive || '-'}</td>
+                            <td>${s.won || 0}</td>
                         </tr>
                     `).join('');
                 }
@@ -440,11 +501,11 @@
                             <td>${f.id || f._id || ''}</td>
                             <td class="font-semibold">${f.fullName || ''}</td>
                             <td>${f.email || ''}</td>
-                            <td>${f.designation || ''}</td>
+                            <td>${f.designation || '-'}</td>
                             <td>${f.department || f.branch || ''}</td>
-                            <td>${f.contestsCount || f.contests || ''}</td>
-                            <td>${f.problemsCount || f.problems || ''}</td>
-                            <td>${f.rating || ''}</td>
+                            <td>${f.contests_created || 0}</td>
+                            <td>${f.problems_created || 0}</td>
+                            <td>${f.rating || '-'}</td>
                             <td>${f.status || ''}</td>
                             <td class="uppercase text-[10px] font-bold text-primary-600">${f.role || ''}</td>
                         </tr>
@@ -457,7 +518,6 @@
                     contestBody.innerHTML = `<tr><td colspan="15" class="text-center py-4">No contests found.</td></tr>`;
                 } else {
                     contestBody.innerHTML = contests.map((c) => {
-                        // Dynamically Format Created By explicitly showing the user and their ROLE (Admin/Faculty/HOD)
                         let creatorOutput = "";
                         if (c.createdBy && typeof c.createdBy === 'object') {
                             const name = c.createdBy.fullName || c.createdBy.name || 'Unknown';
@@ -472,18 +532,18 @@
                             <td>${c.id || c._id || ''}</td>
                             <td class="font-semibold">${c.title || ''}</td>
                             <td>${c.deadline || c.date ? new Date(c.deadline || c.date).toLocaleDateString() : ''}</td>
-                            <td>${c.time || ''}</td>
-                            <td>${c.duration || ''}</td>
+                            <td>${c.time || '-'}</td>
+                            <td>${c.duration || '-'}</td>
                             <td class="font-medium text-gray-700 dark:text-gray-200">${creatorOutput}</td>
-                            <td>${c.participants || c.participant || ''}</td>
-                            <td>${c.qsNo || c.questionsCount || ''}</td>
-                            <td>${c.problemType || ''}</td>
-                            <td>${c.winner || ''}</td>
-                            <td>${c.scope || ''}</td>
-                            <td>${c.program || ''}</td>
-                            <td>${c.dept || c.department || ''}</td>
-                            <td>${c.sec || c.section || ''}</td>
-                            <td>${c.subject || ''}</td>
+                            <td>${c.participants || c.participant || 0}</td>
+                            <td>${c.qsNo || c.questionsCount || 0}</td>
+                            <td>${c.problemType || '-'}</td>
+                            <td>${c.winner || '-'}</td>
+                            <td>${c.scope || '-'}</td>
+                            <td>${c.program || '-'}</td>
+                            <td>${c.dept || c.department || '-'}</td>
+                            <td>${c.sec || c.section || '-'}</td>
+                            <td>${c.subject || '-'}</td>
                         </tr>
                     `}).join('');
                 }

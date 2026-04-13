@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CampusCode - Unified Contests</title>
+    <title>CampusCode</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
@@ -184,28 +184,53 @@
         </div>
     </div>
 
-    <div id="profileOverlay" class="fixed inset-0 z-[400] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div class="bg-white dark:bg-gray-800 w-[320px] rounded-3xl overflow-hidden shadow-2xl transform transition-all">
+     <div id="profileOverlay" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white dark:bg-gray-800 w-[320px] rounded-3xl overflow-hidden shadow-2xl transform transition-all duration-300 scale-95 opacity-0">
             <div class="bg-[#1e4a7a] p-6 text-center relative h-32">
                 <button onclick="toggleProfile()" class="absolute top-4 right-4 text-white/80 hover:text-white">
                     <i class="fas fa-times text-lg"></i>
                 </button>
                 <div class="absolute -bottom-10 left-1/2 -translate-x-1/2">
-                    <div class="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 bg-[#1e4a7a] flex items-center justify-center text-white text-2xl font-bold" id="modalInitials"></div>
+                    <div id="profileOverlayInitials" class="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 bg-[#1e4a7a] flex items-center justify-center text-white text-2xl font-bold">--</div>
                 </div>
             </div>
             <div class="pt-12 pb-6 px-6 text-center">
-                <h3 class="text-xl font-bold text-gray-800 dark:text-white" id="modalName"></h3>
-                <p class="text-xs text-gray-500 flex items-center justify-center gap-1" id="modalCollege"></p>
-                <p class="text-xs text-gray-500 mb-3 flex items-center justify-center gap-1" id="modalRoleDisplay"></p>
-                <div class="space-y-1 mt-4">
-                    <a href="/college/profile"><button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"><div class="flex items-center gap-3"><i class="fas fa-user-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">My Profile</span></div><i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i></button></a>
-                    <button id="logoutBtn" onclick="logoutAdmin()" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all"><div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center"><i class="fas fa-sign-out-alt"></i></div><span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span></button>
+                <h3 id="profileOverlayName" class="text-xl font-bold text-gray-800 dark:text-white">Loading...</h3>
+                <p id="profileOverlayCollege" class="text-xs text-gray-500 flex items-center justify-center gap-1 mt-1"><i class="fas fa-university"></i> Loading...</p>
+                <p id="profileOverlayRole" class="text-xs text-gray-500 mb-3 flex items-center justify-center gap-1">Role: Loading...</p>
+
+                <div class="flex justify-between border-y border-gray-100 dark:border-gray-700 py-4 mb-6">
+                    <div><p class="text-[10px] font-bold text-primary-400 uppercase">Contest</p><p id="statContests" class="text-lg font-bold dark:text-white">0</p></div>
+                    <div class="border-x border-gray-100 dark:border-gray-700 px-6"><p class="text-[10px] font-bold text-primary-400 uppercase">Users</p><p id="statUsers" class="text-lg font-bold dark:text-white">0</p></div>
+                    <div><p class="text-[10px] font-bold text-primary-400 uppercase">Programs</p><p id="statPrograms" class="text-lg font-bold dark:text-white">0</p></div>
                 </div>
+                
+                <div class="space-y-1">
+                    <a href="/college/profile" class="block">
+                        <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                            <div class="flex items-center gap-3"><i class="fas fa-user-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">My Profile</span></div>
+                            <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </a>
+                    
+                    <a href="/college/help_support" class="block">
+                        <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                            <div class="flex items-center gap-3"><i class="fas fa-question-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">Help & Support</span></div>
+                            <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </a>
+
+                    <button id="logoutBtn" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
+                        <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </div>
+                        <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
+                    </button>
+                </div>
+                <button onclick="toggleProfile()" class="mt-4 text-[10px] font-bold text-gray-400 uppercase hover:text-gray-600 transition-colors">Close</button>
             </div>
         </div>
     </div>
-
     <div id="createModal" class="fixed inset-0 z-[110] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
         <div class="bg-white dark:bg-gray-800 w-full max-w-2xl rounded-3xl p-8 shadow-2xl max-h-[90vh] overflow-y-auto no-scrollbar">
             <div class="flex justify-between items-center mb-6">
@@ -418,22 +443,84 @@
         });
 
         async function fetchAdminProfile() {
+    switchLevel('college');
+    fetchProblemsFromDB();
+});
+       async function fetchAdminProfile() {
             try {
+                // 1. Fetch User Profile
                 const response = await fetch('/college/api/profile');
                 const result = await response.json();
-                if (result.success) {
-                    const user = result.user;
+                
+                if (result.success || result.user) {
+                    const user = result.user || result;
+                    
+                    // PRESERVE GLOBAL VARIABLES NEEDED FOR CONTEST LOGIC
                     currentUserId = user.id; 
                     currentUserCollege = user.collegeName; 
-                    const initial = user.fullName ? user.fullName.charAt(0).toUpperCase() : 'A';
-                    document.getElementById('headerInitials').innerText = initial;
-                    document.getElementById('headerName').innerText = user.fullName || 'Admin';
-                    document.getElementById('modalInitials').innerText = initial;
-                    document.getElementById('modalName').innerText = user.fullName || 'Admin';
-                    document.getElementById('modalCollege').innerHTML = `<i class="fas fa-university text-primary-400"></i> ${user.collegeName || 'Not Assigned'}`;
-                    document.getElementById('modalRoleDisplay').innerHTML = `<span class="bg-primary-100 text-primary-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-primary-200">${user.role || 'Admin'}</span>`;
+
+                    const name = user.fullName || 'Admin User';
+                    const nameParts = name.split(' ');
+                    const initials = nameParts.length > 1 ? (nameParts[0][0] + nameParts[1][0]).toUpperCase() : nameParts[0].substring(0, 2).toUpperCase();
+
+                    // Update Header
+                    const headerName = document.getElementById('headerName');
+                    const headerInitials = document.getElementById('headerInitials');
+                    if (headerName) headerName.textContent = name;
+                    if (headerInitials) headerInitials.textContent = initials;
+
+                    // Update Modal Overlay with exact new IDs
+                    const modalName = document.getElementById('profileOverlayName');
+                    const modalInitials = document.getElementById('profileOverlayInitials');
+                    const modalCollege = document.getElementById('profileOverlayCollege');
+                    const modalRole = document.getElementById('profileOverlayRole');
+
+                    if (modalName) modalName.textContent = name;
+                    if (modalInitials) modalInitials.textContent = initials;
+                    if (modalCollege) {
+                        modalCollege.innerHTML = `<i class="fas fa-university"></i> ${user.collegeName || 'Unknown Institute'}`;
+                    }
+                    if (modalRole) {
+                        const roleText = user.role ? (user.role.charAt(0).toUpperCase() + user.role.slice(1)) : 'Admin';
+                        modalRole.textContent = `Role: ${roleText}`;
+                    }
                 }
-            } catch (err) { console.error("Error fetching profile:", err); }
+
+                // 2. Fetch Stats for the Modal Overlay
+                try {
+                    const [contestsRes, usersRes, programsRes] = await Promise.all([
+                        fetch('/college/api/contests'),
+                        fetch('/college/api/users'),
+                        fetch('/college/api/programs')
+                    ]);
+
+                    const contestsData = await contestsRes.json();
+                    const usersData = await usersRes.json();
+                    const programsData = await programsRes.json();
+
+                    if (contestsData.success) {
+                        const el = document.getElementById('statContests');
+                        if (el) el.textContent = contestsData.data.length || 0;
+                    }
+                    
+                    if (usersData.success || usersData.users) { 
+                        const el = document.getElementById('statUsers');
+                        const usersArray = usersData.users || usersData;
+                        if (el) el.textContent = Array.isArray(usersArray) ? usersArray.length : 0;
+                    }
+                    
+                    if (programsData.success || Array.isArray(programsData) || programsData.data) {
+                        const el = document.getElementById('statPrograms');
+                        const programsArray = Array.isArray(programsData) ? programsData : (programsData.data || []);
+                        if (el) el.textContent = programsArray.length || 0;
+                    }
+                } catch (statsErr) {
+                    console.error("Error fetching overlay stats:", statsErr);
+                }
+
+            } catch (err) { 
+                console.error("Error fetching profile:", err); 
+            }
         }
 
         async function fetchProgramsFromDB() {
@@ -465,9 +552,25 @@
             document.getElementById('selectAllProgramsCb').checked = allChecked;
         }
 
-        function toggleProfile() { document.getElementById('profileOverlay').classList.toggle('hidden'); }
-        function logoutAdmin() { fetch('/auth/logout', { method: 'POST' }).finally(() => { window.location.href = "/"; }); }
-
+        function toggleProfile(e) {
+    if (e) e.stopPropagation();
+    const overlay = document.getElementById('profileOverlay');
+    const card = overlay.querySelector('div');
+    
+    if (overlay.classList.contains('hidden')) {
+        overlay.classList.remove('hidden');
+        setTimeout(() => {
+            card.classList.remove('scale-95', 'opacity-0');
+            card.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    } else {
+        card.classList.remove('scale-100', 'opacity-100');
+        card.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            overlay.classList.add('hidden');
+        }, 300); 
+    }
+}
         function toggleOpponentSelect() {
             const scope = document.querySelector('input[name="scope"]:checked').value;
             const opponentSection = document.getElementById('opponentSection');

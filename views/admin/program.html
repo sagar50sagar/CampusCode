@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CampusCode</title>
-<link rel="icon" href="/campuscode-logo.jpeg" type="image/jpeg" />
+    <link rel="icon" href="/campuscode-logo.jpeg" type="image/jpeg" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet" />
@@ -32,7 +32,7 @@
             },
         };
     </script>
-    
+
 
     <style>
         ::-webkit-scrollbar {
@@ -182,6 +182,14 @@
         .scrollbar-hide::-webkit-scrollbar {
             display: none;
         }
+
+        .data-table-scroll {
+            max-height: min(50vh, 500px);
+            overflow-x: auto;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            position: relative;
+        }
     </style>
 </head>
 
@@ -192,11 +200,12 @@
 
         <aside id="mainSidebar"
             class="sidebar w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen flex-shrink-0 transition-colors duration-200 z-50">
-           <div class="px-4 py-6 flex-shrink-0 flex items-center justify-between h-[88px]">
+            <div class="px-4 py-6 flex-shrink-0 flex items-center justify-between h-[88px]">
                 <h1
                     class="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-1 overflow-hidden whitespace-nowrap">
-                    <img src="/campuscode-logo.jpeg" alt="CampusCode Logo" class="h-12 w-12 transform scale-[1.3] flex-shrink-0 object-contain dark:invert mix-blend-multiply dark:mix-blend-normal" />
-                    
+                    <img src="/campuscode-logo.jpeg" alt="CampusCode Logo"
+                        class="h-12 w-12 transform scale-[1.3] flex-shrink-0 object-contain dark:invert mix-blend-multiply dark:mix-blend-normal" />
+
                     <span class="logo-text transition-all duration-300 opacity-100 w-auto ml-1">CampusCode</span>
                 </h1>
                 <button id="sidebarToggleBtn"
@@ -211,7 +220,7 @@
                         class="fa-solid fa-layer-group"></i><span>Programs</span></a>
                 <a href="/college/contest" class="nav-item"><i class="fas fa-trophy"></i><span>Contests</span></a>
                 <a href="/college/manage_user" class="nav-item"><i class="fa-solid fa-users"></i><span>User</span></a>
-                 <a href="/college/community" class="nav-item"><i class="fas fa-comments"></i><span>Community</span></a>
+                <a href="/college/community" class="nav-item"><i class="fas fa-comments"></i><span>Community</span></a>
                 <a href="/college/report" class="nav-item"><i class="fas fa-file-invoice"></i><span>Reports</span></a>
                 <a href="/college/profile" class="nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
             </nav>
@@ -240,11 +249,10 @@
                     </div>
 
                     <div class="ml-4 flex items-center gap-3 relative">
-                        <button id="themeToggleBtn"
-                            class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none transition-transform active:scale-95">
-                            <i class="fas fa-moon text-xl"></i>
-                        </button>
-
+                      <button id="themeToggle" class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors">
+                <i class="fas fa-moon text-xl dark:hidden"></i>
+                <i class="fas fa-sun text-xl hidden dark:block"></i>
+            </button>
                         <div class="relative">
                             <button id="notificationBtn"
                                 class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none">
@@ -266,375 +274,503 @@
                             </div>
                         </div>
 
-                        <button onclick="toggleProfile()" class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                      <div class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm" id="headerInitials"></div>
-                      <span class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block" id="headerName"></span>
-                </button>
+                        <button id="headerProfileBtn" onclick="toggleProfile(event)"
+                            class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <div class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm"
+                                id="headerInitials">A</div>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block"
+                                id="headerName">Admin</span>
+                        </button>
                     </div>
                 </div>
             </header>
 
-        
+         <main class="flex-1 overflow-y-auto px-8 py-6">
+                <div class="mb-8">
+                    <div
+                        class="flex bg-gray-100 dark:bg-gray-800 p-1.5 rounded-2xl border border-gray-200 dark:border-gray-700 w-fit">
+                        <button onclick="setTab('program')" id="tab-program"
+                            class="px-8 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm bg-white text-primary-600 dark:bg-primary-600 dark:text-white">Program</button>
+                        <button onclick="setTab('branch')" id="tab-branch"
+                            class="px-8 py-2.5 rounded-xl text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 transition-all">Branch</button>
+                        <button onclick="setTab('section')" id="tab-section"
+                            class="px-8 py-2.5 rounded-xl text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 transition-all">Section</button>
+                        <button onclick="setTab('subject')" id="tab-subject"
+                            class="px-8 py-2.5 rounded-xl text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 transition-all">Subject</button>
+                    </div>
+                </div>
 
-    <div class="mb-8">
-        <div class="flex bg-gray-100 dark:bg-gray-800 p-1.5 rounded-2xl border border-gray-200 dark:border-gray-700 w-fit">
-            <button onclick="setTab('program')" id="tab-program"
-                class="px-8 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm bg-white text-primary-600 dark:bg-primary-600 dark:text-white">Program</button>
-            <button onclick="setTab('branch')" id="tab-branch"
-                class="px-8 py-2.5 rounded-xl text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 transition-all">Branch</button>
-            <button onclick="setTab('section')" id="tab-section"
-                class="px-8 py-2.5 rounded-xl text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 transition-all">Section</button>
-            <button onclick="setTab('subject')" id="tab-subject"
-                class="px-8 py-2.5 rounded-xl text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 transition-all">Subject</button>
+                <div id="view-program" class="section-view active">
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+                        <h3
+                            class="text-lg font-bold text-gray-800 dark:text-white mb-4 border-b pb-2 dark:border-gray-700">
+                            Add New Program</h3>
+                        <form id="form-program" onsubmit="saveForm(event, '/college/add-program')">
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Name</label>
+                                    <input type="text" name="name" oninput="this.value = this.value.toUpperCase()"
+                                        class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none"
+                                        required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Code
+                                        (Alphanumeric/Numeric)</label>
+                                    <input type="text" name="code"
+                                        oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')"
+                                        pattern="[A-Z0-9]+"
+                                        title="Letters or numbers only. No special characters."
+                                        class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none"
+                                        required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Type</label>
+                                    <select name="type"
+                                        class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none">
+                                        <option value="UG">UG</option>
+                                        <option value="PG">PG</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Duration
+                                        (Years)</label>
+                                    <input type="number" name="duration"
+                                        class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none"
+                                        required>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center gap-3">
+                                <button type="submit"
+                                    class="bg-primary-500 hover:bg-primary-600 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-md shadow-primary-500/20 transition-all">Save
+                                    Program</button>
+                                <button type="reset"
+                                    class="bg-gray-100 hover:bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 px-5 py-2 rounded-lg text-sm font-bold transition-colors">Clear</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div
+                        class="mb-4 flex gap-4 bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-gray-500 uppercase"><i class="fas fa-filter"></i>
+                                Filter:</span>
+                            <select id="filter-program-type" onchange="renderAllTables()"
+                                class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg py-1 px-3 text-sm dark:text-white outline-none">
+                                <option value="">All Types</option>
+                                <option value="UG">UG</option>
+                                <option value="PG">PG</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div class="data-table-scroll">
+                            <table class="min-w-full text-sm text-left">
+                                <thead
+                                    class="bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 font-bold uppercase text-xs sticky top-0 z-20 shadow-sm">
+                                    <tr>
+                                        <th class="px-6 py-3 whitespace-nowrap">Code</th>
+                                        <th class="px-6 py-3 whitespace-nowrap">Name</th>
+                                        <th class="px-6 py-3 whitespace-nowrap">Type</th>
+                                        <th class="px-6 py-3 whitespace-nowrap">Duration</th>
+                                        <th class="px-6 py-3 whitespace-nowrap text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-programs"
+                                    class="divide-y divide-gray-100 dark:divide-gray-700 text-gray-700 dark:text-gray-300">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-branch" class="section-view">
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+                        <h3
+                            class="text-lg font-bold text-gray-800 dark:text-white mb-4 border-b pb-2 dark:border-gray-700">
+                            Add New Branch</h3>
+                        <form id="form-branch" onsubmit="saveForm(event, '/college/add-branch')">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Program</label>
+                                    <select id="select-program" name="program_id"
+                                        class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none"
+                                        required></select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Branch
+                                        Name</label>
+                                    <input type="text" name="name" oninput="this.value = this.value.toUpperCase()"
+                                        class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none"
+                                        required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Code
+                                        (Alphanumeric/Numeric)</label>
+                                    <input type="text" name="code"
+                                        oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')"
+                                        pattern="[A-Z0-9]+"
+                                        title="Letters or numbers only. No special characters."
+                                        class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none"
+                                        required>
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-gray-500 mb-1 uppercase">Abbreviation</label>
+                                    <input type="text" name="abbreviation"
+                                        oninput="this.value = this.value.toUpperCase()"
+                                        class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none">
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center gap-3">
+                                <button type="submit"
+                                    class="bg-primary-500 hover:bg-primary-600 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-md shadow-primary-500/20 transition-all">Save
+                                    Branch</button>
+                                <button type="reset"
+                                    class="bg-gray-100 hover:bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 px-5 py-2 rounded-lg text-sm font-bold transition-colors">Clear</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div
+                        class="mb-4 flex gap-4 bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-gray-500 uppercase"><i class="fas fa-filter"></i>
+                                Filter:</span>
+                            <select id="filter-branch-program" onchange="renderAllTables()"
+                                class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg py-1 px-3 text-sm dark:text-white outline-none">
+                                <option value="">All Programs</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div class="data-table-scroll">
+                            <table class="min-w-full text-sm text-left">
+                                <thead
+                                    class="bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 font-bold uppercase text-xs sticky top-0 z-20 shadow-sm">
+                                    <tr>
+                                        <th class="px-6 py-3 whitespace-nowrap">Program</th>
+                                        <th class="px-6 py-3 whitespace-nowrap">Branch Name</th>
+                                        <th class="px-6 py-3 whitespace-nowrap">Code</th>
+                                        <th class="px-6 py-3 whitespace-nowrap">Duration</th>
+                                        <th class="px-6 py-3 whitespace-nowrap text-right">Actions</th>
+                                    </tr>
+                                    </thead>
+                                <tbody id="table-branches"
+                                    class="divide-y divide-gray-100 dark:divide-gray-700 text-gray-700 dark:text-gray-300">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-section" class="section-view">
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+                        <h3
+                            class="text-lg font-bold text-gray-800 dark:text-white mb-4 border-b pb-2 dark:border-gray-700">
+                            Add New Section</h3>
+                        <form id="form-section" onsubmit="saveForm(event, '/college/add-section')">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Program</label>
+                                    <select id="select-program-section"
+                                        class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none"
+                                        onchange="filterSectionBranches()">
+                                        <option value="">Select Program First</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Branch</label>
+                                    <select id="select-branch-section" name="branch_id"
+                                        class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none"
+                                        required>
+                                        <option value="">Choose Branch</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Section Name
+                                        (Strictly Alphabetic)</label>
+                                    <input type="text" name="name"
+                                        oninput="this.value = this.value.toUpperCase().replace(/[^A-Z]/g, '')"
+                                        class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none"
+                                        placeholder="e.g., A" pattern="[A-Z]+"
+                                        title="Only uppercase letters allowed. No numbers." required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Year</label>
+                                    <select name="year" required
+                                        class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none focus:ring-2 focus:ring-primary-400 transition-all">
+                                        <option value="">Select Program First</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Semester</label>
+                                    <input type="number" name="semester"
+                                        class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none"
+                                        min="1" required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Capacity</label>
+                                    <input type="number" name="capacity"
+                                        class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none">
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center gap-3">
+                                <button type="submit"
+                                    class="bg-primary-500 hover:bg-primary-600 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-md shadow-primary-500/20 transition-all">Save
+                                    Section</button>
+                                <button type="reset"
+                                    class="bg-gray-100 hover:bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 px-5 py-2 rounded-lg text-sm font-bold transition-colors">Clear</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div
+                        class="mb-4 flex flex-wrap gap-4 bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-gray-500 uppercase"><i class="fas fa-filter"></i>
+                                Filter:</span>
+                            <select id="filter-section-prog" onchange="renderAllTables()"
+                                class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg py-1 px-3 text-sm dark:text-white outline-none">
+                                <option value="">All Programs</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <select id="filter-section-branch-list" onchange="renderAllTables()"
+                                class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg py-1 px-3 text-sm dark:text-white outline-none">
+                                <option value="">All Branches</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div class="data-table-scroll">
+                            <table class="min-w-full text-sm text-left">
+                                <thead
+                                    class="bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 font-bold uppercase text-xs sticky top-0 z-20 shadow-sm">
+                                    <tr>
+                                        <th class="px-6 py-3 whitespace-nowrap">Program & Branch</th>
+                                        <th class="px-6 py-3 whitespace-nowrap">Year & Sem</th>
+                                        <th class="px-6 py-3 whitespace-nowrap">Section Name</th>
+                                        <th class="px-6 py-3 whitespace-nowrap">Capacity</th>
+                                        <th class="px-6 py-3 whitespace-nowrap text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-sections"
+                                    class="divide-y divide-gray-100 dark:divide-gray-700 text-gray-700 dark:text-gray-300">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-subject" class="section-view">
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+                        <h3
+                            class="text-lg font-bold text-gray-800 dark:text-white mb-4 border-b pb-2 dark:border-gray-700">
+                            Add New Subject</h3>
+                        <form id="form-subject" onsubmit="saveForm(event, '/college/add-subject')">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">
+                                        Program</label>
+                                    <select id="select-program-subject"
+                                        class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none"
+                                        onchange="filterSubjectBranches()">
+                                        <option value="">Select Program First</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">
+                                        Branch</label>
+                                    <select id="select-branch-subject" name="branch_id"
+                                        class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none"
+                                        onchange="filterSubjectSections()" required>
+                                        <option value="">Choose Branch</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Target
+                                        Section</label>
+                                    <select id="select-section-subject" name="section_id"
+                                        class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none">
+                                        <option value="">Choose Section</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Subject
+                                        Name</label>
+                                    <input type="text" name="name" oninput="this.value = this.value.toUpperCase()"
+                                        class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none"
+                                        required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Subject
+                                        Code</label>
+                                    <input type="text" name="code"
+                                        oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')"
+                                        class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none"
+                                        required>
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-gray-500 mb-1 uppercase">Credits</label>
+                                    <input type="number" name="credits"
+                                        class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none"
+                                        min="1" required>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center gap-3">
+                                <button type="submit"
+                                    class="bg-primary-500 hover:bg-primary-600 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-md shadow-primary-500/20 transition-all">Save
+                                    Subject</button>
+                                <button type="reset"
+                                    class="bg-gray-100 hover:bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 px-5 py-2 rounded-lg text-sm font-bold transition-colors">Clear</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div
+                        class="mb-4 flex flex-wrap gap-4 bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-gray-500 uppercase"><i class="fas fa-filter"></i>
+                                Filter:</span>
+                            <select id="filter-subject-prog" onchange="renderAllTables()"
+                                class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg py-1 px-3 text-sm dark:text-white outline-none">
+                                <option value="">All Programs</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <select id="filter-subject-branch-list" onchange="renderAllTables()"
+                                class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg py-1 px-3 text-sm dark:text-white outline-none">
+                                <option value="">All Branches</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div class="data-table-scroll">
+                            <table class="min-w-full text-sm text-left">
+                                <thead
+                                    class="bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 font-bold uppercase text-xs sticky top-0 z-20 shadow-sm">
+                                    <tr>
+                                        <th class="px-6 py-3 whitespace-nowrap">Program & Branch</th>
+                                        <th class="px-6 py-3 whitespace-nowrap">Year & Sem</th>
+                                        <th class="px-6 py-3 whitespace-nowrap">Section</th>
+                                        <th class="px-6 py-3 whitespace-nowrap">Subject Name & Code</th>
+                                        <th class="px-6 py-3 whitespace-nowrap">Credits</th>
+                                        <th class="px-6 py-3 whitespace-nowrap text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-subjects"
+                                    class="divide-y divide-gray-100 dark:divide-gray-700 text-gray-700 dark:text-gray-300">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
         </div>
     </div>
 
-    <div id="view-program" class="section-view active">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
-            <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4 border-b pb-2 dark:border-gray-700">Add New Program</h3>
-            <form id="form-program" onsubmit="saveForm(event, '/college/add-program')">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Name</label>
-                        <input type="text" name="name" oninput="this.value = this.value.toUpperCase()" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Code (Alphabetic/AlphaNum)</label>
-                        <input type="text" name="code" oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')" pattern="(?=.*[A-Z])[A-Z0-9]+" title="Must contain at least one letter. No special characters." class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Type</label>
-                        <select name="type" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none">
-                            <option value="UG">UG</option>
-                            <option value="PG">PG</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Duration (Years)</label>
-                        <input type="number" name="duration" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required>
-                    </div>
-                </div>
-                <div class="mt-4 flex items-center gap-3">
-                    <button type="submit" class="bg-primary-500 hover:bg-primary-600 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-md shadow-primary-500/20 transition-all">Save Program</button>
-                    <button type="reset" class="bg-gray-100 hover:bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 px-5 py-2 rounded-lg text-sm font-bold transition-colors">Clear</button>
-                </div>
-            </form>
-        </div>
-
-        <div class="mb-4 flex gap-4 bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-gray-500 uppercase"><i class="fas fa-filter"></i> Filter:</span>
-                <select id="filter-program-type" onchange="renderAllTables()" class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg py-1 px-3 text-sm dark:text-white outline-none">
-                    <option value="">All Types</option>
-                    <option value="UG">UG</option>
-                    <option value="PG">PG</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <table class="w-full text-sm text-left">
-                <thead class="bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 font-bold uppercase text-xs">
-                    <tr>
-                        <th class="px-6 py-3">Code</th>
-                        <th class="px-6 py-3">Name</th>
-                        <th class="px-6 py-3">Type</th>
-                        <th class="px-6 py-3">Duration</th>
-                        <th class="px-6 py-3 text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="table-programs" class="divide-y divide-gray-100 dark:divide-gray-700 text-gray-700 dark:text-gray-300">
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div id="view-branch" class="section-view">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
-            <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4 border-b pb-2 dark:border-gray-700">Add New Branch</h3>
-            <form id="form-branch" onsubmit="saveForm(event, '/college/add-branch')">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Program</label>
-                        <select id="select-program" name="program_id" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required></select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Branch Name</label>
-                        <input type="text" name="name" oninput="this.value = this.value.toUpperCase()" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Code (Alphabetic/AlphaNum)</label>
-                        <input type="text" name="code" oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')" pattern="(?=.*[A-Z])[A-Z0-9]+" title="Must contain at least one letter. No special characters." class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Abbreviation</label>
-                        <input type="text" name="abbreviation" oninput="this.value = this.value.toUpperCase()" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none">
-                    </div>
-                </div>
-                <div class="mt-4 flex items-center gap-3">
-                    <button type="submit" class="bg-primary-500 hover:bg-primary-600 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-md shadow-primary-500/20 transition-all">Save Branch</button>
-                    <button type="reset" class="bg-gray-100 hover:bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 px-5 py-2 rounded-lg text-sm font-bold transition-colors">Clear</button>
-                </div>
-            </form>
-        </div>
-
-        <div class="mb-4 flex gap-4 bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-gray-500 uppercase"><i class="fas fa-filter"></i> Filter:</span>
-                <select id="filter-branch-program" onchange="renderAllTables()" class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg py-1 px-3 text-sm dark:text-white outline-none">
-                    <option value="">All Programs</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <table class="w-full text-sm text-left">
-                <thead class="bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 font-bold uppercase text-xs">
-                    <tr>
-                        <th class="px-6 py-3">Program</th>
-                        <th class="px-6 py-3">Branch Name</th>
-                        <th class="px-6 py-3">Code</th>
-                        <th class="px-6 py-3">Duration</th>
-                        <th class="px-6 py-3 text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="table-branches" class="divide-y divide-gray-100 dark:divide-gray-700 text-gray-700 dark:text-gray-300">
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div id="view-section" class="section-view">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
-            <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4 border-b pb-2 dark:border-gray-700">Add New Section</h3>
-            <form id="form-section" onsubmit="saveForm(event, '/college/add-section')">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Program</label>
-                        <select id="select-program-section" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" onchange="filterSectionBranches()">
-                            <option value="">Select Program First</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Branch</label>
-                        <select id="select-branch-section" name="branch_id" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required>
-                            <option value="">Choose Branch</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Section Name (Strictly Alphabetic)</label>
-                        <input type="text" name="name" oninput="this.value = this.value.toUpperCase().replace(/[^A-Z]/g, '')" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" placeholder="e.g., A" pattern="[A-Z]+" title="Only uppercase letters allowed. No numbers." required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Year</label>
-                        <select name="year" required class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none focus:ring-2 focus:ring-primary-400 transition-all">
-                            <option value="">Select Program First</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Semester</label>
-                        <input type="number" name="semester" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" min="1" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Capacity</label>
-                        <input type="number" name="capacity" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none">
-                    </div>
-                </div>
-                <div class="mt-4 flex items-center gap-3">
-                    <button type="submit" class="bg-primary-500 hover:bg-primary-600 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-md shadow-primary-500/20 transition-all">Save Section</button>
-                    <button type="reset" class="bg-gray-100 hover:bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 px-5 py-2 rounded-lg text-sm font-bold transition-colors">Clear</button>
-                </div>
-            </form>
-        </div>
-
-        <div class="mb-4 flex flex-wrap gap-4 bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-gray-500 uppercase"><i class="fas fa-filter"></i> Filter:</span>
-                <select id="filter-section-prog" onchange="renderAllTables()" class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg py-1 px-3 text-sm dark:text-white outline-none">
-                    <option value="">All Programs</option>
-                </select>
-            </div>
-            <div class="flex items-center gap-2">
-                <select id="filter-section-branch-list" onchange="renderAllTables()" class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg py-1 px-3 text-sm dark:text-white outline-none">
-                    <option value="">All Branches</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <table class="w-full text-sm text-left">
-                <thead class="bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 font-bold uppercase text-xs">
-                    <tr>
-                        <th class="px-6 py-3">Program & Branch</th>
-                        <th class="px-6 py-3">Year & Sem</th>
-                        <th class="px-6 py-3">Section Name</th>
-                        <th class="px-6 py-3">Capacity</th>
-                        <th class="px-6 py-3 text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="table-sections" class="divide-y divide-gray-100 dark:divide-gray-700 text-gray-700 dark:text-gray-300">
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                        <td class="px-6 py-4">BTECH - CSE</td>
-                        <td class="px-6 py-4 font-bold text-gray-900 dark:text-white">Year 1 - Sem 2</td>
-                        <td class="px-6 py-4">A</td>
-                        <td class="px-6 py-4">60</td>
-                        <td class="px-6 py-4 text-right">
-                            <button class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i> Edit</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div id="view-subject" class="section-view">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
-            <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4 border-b pb-2 dark:border-gray-700">Add New Subject</h3>
-            <form id="form-subject" onsubmit="saveForm(event, '/college/add-subject')">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase"> Program</label>
-                        <select id="select-program-subject" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" onchange="filterSubjectBranches()">
-                            <option value="">Select Program First</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase"> Branch</label>
-                        <select id="select-branch-subject" name="branch_id" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" onchange="filterSubjectSections()" required>
-                            <option value="">Choose Branch</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Target Section</label>
-                        <select id="select-section-subject" name="section_id" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none">
-                            <option value="">Choose Section</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Subject Name</label>
-                        <input type="text" name="name" oninput="this.value = this.value.toUpperCase()" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Subject Code</label>
-                        <input type="text" name="code" oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Credits</label>
-                        <input type="number" name="credits" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required>
-                    </div>
-                </div>
-
-                <div class="mt-4 flex items-center gap-3">
-                    <button type="submit" class="bg-primary-500 hover:bg-primary-600 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-md shadow-primary-500/20 transition-all">Save Subject</button>
-                    <button type="reset" class="bg-gray-100 hover:bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 px-5 py-2 rounded-lg text-sm font-bold transition-colors">Clear</button>
-                </div>
-            </form>
-        </div>
-
-        <div class="mb-4 flex flex-wrap gap-4 bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-gray-500 uppercase"><i class="fas fa-filter"></i> Filter:</span>
-                <select id="filter-subject-prog" onchange="renderAllTables()" class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg py-1 px-3 text-sm dark:text-white outline-none">
-                    <option value="">All Programs</option>
-                </select>
-            </div>
-            <div class="flex items-center gap-2">
-                <select id="filter-subject-branch-list" onchange="renderAllTables()" class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg py-1 px-3 text-sm dark:text-white outline-none">
-                    <option value="">All Branches</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <table class="w-full text-sm text-left">
-               <thead class="bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 font-bold uppercase text-xs">
-                    <tr>
-                        <th class="px-6 py-3">Program & Branch</th>
-                        <th class="px-6 py-3">Year & Sem</th>
-                        <th class="px-6 py-3">Section</th>
-                        <th class="px-6 py-3">Subject Name (Code)</th>
-                        <th class="px-6 py-3">Credits</th>
-                        <th class="px-6 py-3 text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="table-subjects" class="divide-y divide-gray-100 dark:divide-gray-700 text-gray-700 dark:text-gray-300">
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                        <td class="px-6 py-4">BTECH - CSE</td>
-                        <td class="px-6 py-4 font-bold text-gray-900 dark:text-white">Year 2 - Sem 3</td>
-                        <td class="px-6 py-4">Section A</td>
-                        <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">DATA STRUCTURES (CS201)</td>
-                        <td class="px-6 py-4">4</td>
-                        <td class="px-6 py-4 text-right">
-                            <button class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i> Edit</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</main>
-        </div>
-    </div>
-
-<div id="profileOverlay" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
-        <div class="bg-white dark:bg-gray-800 w-[320px] rounded-3xl overflow-hidden shadow-2xl transform transition-all duration-300 scale-95 opacity-0">
+    <div id="profileOverlay"
+        class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+        <div
+            class="bg-white dark:bg-gray-800 w-[320px] rounded-3xl overflow-hidden shadow-2xl transform transition-all duration-300 scale-95 opacity-0">
             <div class="bg-[#1e4a7a] p-6 text-center relative h-32">
-                <button onclick="toggleProfile()" class="absolute top-4 right-4 text-white/80 hover:text-white">
+                <button onclick="toggleProfile(event)" class="absolute top-4 right-4 text-white/80 hover:text-white">
                     <i class="fas fa-times text-lg"></i>
                 </button>
                 <div class="absolute -bottom-10 left-1/2 -translate-x-1/2">
-                    <div id="profileOverlayInitials" class="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 bg-[#1e4a7a] flex items-center justify-center text-white text-2xl font-bold">--</div>
+                    <div id="profileOverlayInitials"
+                        class="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 bg-[#1e4a7a] flex items-center justify-center text-white text-2xl font-bold">
+                        --</div>
                 </div>
             </div>
             <div class="pt-12 pb-6 px-6 text-center">
                 <h3 id="profileOverlayName" class="text-xl font-bold text-gray-800 dark:text-white">Loading...</h3>
-                <p id="profileOverlayCollege" class="text-xs text-gray-500 flex items-center justify-center gap-1 mt-1"><i class="fas fa-university"></i> Loading...</p>
-                <p id="profileOverlayRole" class="text-xs text-gray-500 mb-3 flex items-center justify-center gap-1">Role: Loading...</p>
+                <p id="profileOverlayCollege" class="text-xs text-gray-500 flex items-center justify-center gap-1 mt-1">
+                    <i class="fas fa-university"></i> Loading...
+                </p>
+                <p id="profileOverlayRole" class="text-xs text-gray-500 mb-3 flex items-center justify-center gap-1">
+                    Role: Loading...</p>
 
                 <div class="flex justify-between border-y border-gray-100 dark:border-gray-700 py-4 mb-6">
-                    <div><p class="text-[10px] font-bold text-primary-400 uppercase">Contest</p><p id="statContests" class="text-lg font-bold dark:text-white">0</p></div>
-                    <div class="border-x border-gray-100 dark:border-gray-700 px-6"><p class="text-[10px] font-bold text-primary-400 uppercase">Users</p><p id="statUsers" class="text-lg font-bold dark:text-white">0</p></div>
-                    <div><p class="text-[10px] font-bold text-primary-400 uppercase">Programs</p><p id="statPrograms" class="text-lg font-bold dark:text-white">0</p></div>
+                    <div>
+                        <p class="text-[10px] font-bold text-primary-400 uppercase">Contest</p>
+                        <p id="overlayStatContests" class="text-lg font-bold dark:text-white">0</p>
+                    </div>
+                    <div class="border-x border-gray-100 dark:border-gray-700 px-6">
+                        <p class="text-[10px] font-bold text-primary-400 uppercase">Users</p>
+                        <p id="overlayStatUsers" class="text-lg font-bold dark:text-white">0</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-primary-400 uppercase">Programs</p>
+                        <p id="overlayStatPrograms" class="text-lg font-bold dark:text-white">0</p>
+                    </div>
                 </div>
-                
+
                 <div class="space-y-1">
-                    <a href="profile.html" class="block">
-                        <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
-                            <div class="flex items-center gap-3"><i class="fas fa-user-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">My Profile</span></div>
-                            <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                    <a href="/college/profile" class="block">
+                        <button
+                            class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                            <div class="flex items-center gap-3"><i
+                                    class="fas fa-user-circle text-primary-400"></i><span
+                                    class="text-sm font-medium text-gray-700 dark:text-gray-200">My Profile</span></div>
+                            <i
+                                class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
                         </button>
                     </a>
-                    
-                    <a href="help_support.html" class="block">
-                        <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
-                            <div class="flex items-center gap-3"><i class="fas fa-question-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">Help & Support</span></div>
-                            <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+
+                    <a href="/college/help_support" class="block">
+                        <button
+                            class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                            <div class="flex items-center gap-3"><i
+                                    class="fas fa-question-circle text-primary-400"></i><span
+                                    class="text-sm font-medium text-gray-700 dark:text-gray-200">Help & Support</span>
+                            </div>
+                            <i
+                                class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
                         </button>
                     </a>
- <a href="setting.html">
-                            <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
-                                <div class="flex items-center gap-3"><i class="fas fa-cog text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200"> System Setting</span></div>
-                                <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
-                            </button>
-                        </a>
-                    <button id="logoutBtn" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
-                        <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center">
+                    <a href="setting.html">
+                        <button
+                            class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                            <div class="flex items-center gap-3"><i class="fas fa-cog text-primary-400"></i><span
+                                    class="text-sm font-medium text-gray-700 dark:text-gray-200"> System Setting</span>
+                            </div>
+                            <i
+                                class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </a>
+                    <button id="logoutBtn" onclick="handleLogout()"
+                        class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
+                        <div
+                            class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center">
                             <i class="fas fa-sign-out-alt"></i>
                         </div>
                         <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
                     </button>
                 </div>
-                <button onclick="toggleProfile()" class="mt-4 text-[10px] font-bold text-gray-400 uppercase hover:text-gray-600 transition-colors">Close</button>
+                <button onclick="toggleProfile(event)"
+                    class="mt-4 text-[10px] font-bold text-gray-400 uppercase hover:text-gray-600 transition-colors">Close</button>
             </div>
         </div>
     </div>
-
-
     <div id="editModalOverlay"
-        class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-        <div class="bg-white dark:bg-gray-800 w-full max-w-2xl rounded-3xl shadow-2xl relative overflow-hidden">
-            <div
-                class="p-6 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex justify-between items-center">
+        class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden">
+            <div class="p-6 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex justify-between items-center">
                 <h3 id="editModalTitle" class="text-xl font-bold text-gray-800 dark:text-white">Edit Record</h3>
                 <button onclick="closeEditModal()"
                     class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
@@ -646,685 +782,736 @@
         </div>
     </div>
 
-  <script>
-    // --- STATE MANAGEMENT ---
-    let currentEdit = { type: null, id: null };
-    window.allPrograms = [];
-    window.allBranches = [];
-    window.allSections = [];
-    window.allSubjects = [];
+    <script>
+        // --- STATE MANAGEMENT ---
+        let currentEdit = { type: null, id: null };
+        window.allPrograms = [];
+        window.allBranches = [];
+        window.allSections = [];
+        window.allSubjects = [];
 
-    // --- INITIALIZATION ---
-    document.addEventListener("DOMContentLoaded", () => {
-        initTheme();
-        initSidebar();
-        initNotifications();
-        fetchProfile();
-        fetchAllData();
-    });
-
-    // --- SIDEBAR & NOTIFICATIONS ---
-    function initSidebar() {
-        const toggleBtn = document.getElementById('sidebarToggleBtn');
-        const sidebar = document.getElementById('mainSidebar');
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('collapsed');
-        });
-    }
-
-    function initNotifications() {
-        const notifBtn = document.getElementById('notificationBtn');
-        const notifDropdown = document.getElementById('notifDropdown');
-
-        notifBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            notifDropdown.classList.toggle('hidden');
+        // --- INITIALIZATION ---
+        document.addEventListener("DOMContentLoaded", () => {
+            initTheme();
+            initSidebar();
+            initNotifications();
+            fetchProfile();
+            fetchAllData();
         });
 
-        document.addEventListener('click', (e) => {
-            if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
-                notifDropdown.classList.add('hidden');
+        // --- SIDEBAR & NOTIFICATIONS ---
+        function initSidebar() {
+            const toggleBtn = document.getElementById('sidebarToggleBtn');
+            const sidebar = document.getElementById('mainSidebar');
+
+            toggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('collapsed');
+            });
+        }
+
+        function initNotifications() {
+            const notifBtn = document.getElementById('notificationBtn');
+            const notifDropdown = document.getElementById('notifDropdown');
+
+            notifBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notifDropdown.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
+                    notifDropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        // --- THEME ---
+        function initTheme() {
+            const themeToggleBtn = document.getElementById('themeToggle');
+            const isDark = localStorage.getItem('theme') === 'dark';
+
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
             }
-        });
-    }
 
-    // --- THEME ---
-    function initTheme() {
-        const toggleBtn = document.getElementById('themeToggleBtn');
-        const root = document.documentElement;
-        if (localStorage.getItem('theme') === 'dark') root.classList.add('dark');
-        toggleBtn.addEventListener('click', () => {
-            root.classList.toggle('dark');
-            localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
-        });
-    }
+            if (themeToggleBtn) {
+                themeToggleBtn.addEventListener('click', () => {
+                    if (document.documentElement.classList.contains('dark')) {
+                        document.documentElement.classList.remove('dark');
+                        localStorage.setItem('theme', 'light');
+                    } else {
+                        document.documentElement.classList.add('dark');
+                        localStorage.setItem('theme', 'dark');
+                    }
+                });
+            }
+        }
 
-    // --- DATA FETCHING LOGIC ---
-async function fetchProfile() {
+        // --- PROFILE & LOGOUT ---
+        function toggleProfile(e) {
+            if (e) e.stopPropagation();
+            const overlay = document.getElementById('profileOverlay');
+            const modal = overlay.querySelector('div');
+
+            if (overlay.classList.contains('hidden')) {
+                overlay.classList.remove('hidden');
+                setTimeout(() => {
+                    overlay.classList.add('opacity-100');
+                    modal.classList.remove('scale-95', 'opacity-0');
+                    modal.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            } else {
+                overlay.classList.remove('opacity-100');
+                modal.classList.remove('scale-100', 'opacity-100');
+                modal.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 300);
+            }
+        }
+
+        async function handleLogout() {
+            localStorage.removeItem("adminLogin");
+            localStorage.clear();
+            try {
+                await fetch('/auth/logout', { method: 'POST' });
+            } catch (err) {
+                console.error("Backend logout request failed.", err);
+            } finally {
+                window.location.href = '/';
+            }
+        }
+
+       async function fetchProfile() {
+    // 1. Fetch Basic Profile Info
     try {
-        // 1. Fetch User Profile
         const res = await fetch('/college/api/profile');
         if (res.ok) {
             const data = await res.json();
-            const u = data.user || data;
+            const user = data.user || data;
 
-            const name = u.fullName || 'Admin User';
-            const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+            const fullName = user.fullName || "Admin User";
+            const nameParts = fullName.split(' ');
+            const initials = nameParts.length > 1
+                ? (nameParts[0][0] + nameParts[1][0]).toUpperCase()
+                : nameParts[0].substring(0, 2).toUpperCase();
+            const collegeName = user.collegeName || "Unknown Institute";
+            const roleText = user.role ? (user.role.charAt(0).toUpperCase() + user.role.slice(1)) : "Admin";
 
             // Update Header
-            const headerName = document.getElementById('headerName');
-            const headerInitials = document.getElementById('headerInitials');
-            if (headerName) headerName.textContent = name;
-            if (headerInitials) headerInitials.textContent = initials;
-
-            // Update Modal Overlay
-            const modalName = document.getElementById('profileOverlayName');
-            const modalCollege = document.getElementById('profileOverlayCollege');
-            const modalRole = document.getElementById('profileOverlayRole');
-            const modalInitials = document.getElementById('profileOverlayInitials');
-
-            if (modalName) modalName.textContent = name;
-            if (modalInitials) modalInitials.textContent = initials;
+            if (document.getElementById('headerInitials')) document.getElementById('headerInitials').textContent = initials;
+            if (document.getElementById('headerName')) document.getElementById('headerName').textContent = fullName;
             
-            if (modalCollege) {
-                modalCollege.innerHTML = `<i class="fas fa-university"></i> ${u.collegeName || 'Unknown Institute'}`;
-            }
-            
-            if (modalRole) {
-                const roleText = u.role ? (u.role.charAt(0).toUpperCase() + u.role.slice(1)) : 'Admin';
-                modalRole.textContent = `Role: ${roleText}`;
-            }
+            // Update Overlay
+            if (document.getElementById('profileOverlayInitials')) document.getElementById('profileOverlayInitials').textContent = initials;
+            if (document.getElementById('profileOverlayName')) document.getElementById('profileOverlayName').textContent = fullName;
+            if (document.getElementById('profileOverlayCollege')) document.getElementById('profileOverlayCollege').innerHTML = `<i class="fas fa-university"></i> ${collegeName}`;
+            if (document.getElementById('profileOverlayRole')) document.getElementById('profileOverlayRole').textContent = `Role: ${roleText}`;
+        } else {
+            setDefaultProfile();
         }
+    } catch (err) {
+        console.error('Error fetching profile info:', err);
+        setDefaultProfile();
+    }
 
-        // 2. Fetch Stats for the Modal Overlay
+    // 2. Fetch Stats for the Modal Overlay safely
+    try {
+        // We use .catch(() => null) so a single failed endpoint doesn't crash the others
         const [contestsRes, usersRes, programsRes] = await Promise.all([
-            fetch('/college/api/contests'),
-            fetch('/college/api/users'),
-            fetch('/college/api/programs')
+            fetch('/college/api/contests').catch(() => null),
+            fetch('/college/api/users').catch(() => null),
+            fetch('/college/api/programs').catch(() => null)
         ]);
 
-        const contestsData = await contestsRes.json();
-        const usersData = await usersRes.json();
-        const programsData = await programsRes.json();
-
-        // Bind data to the new overlay stat elements
-        if (contestsData.success) {
-            const statContests = document.getElementById('statContests');
-            if (statContests) statContests.textContent = contestsData.data.length || 0;
-        }
-        
-        if (usersData.success) {
-            const statUsers = document.getElementById('statUsers');
-            if (statUsers) statUsers.textContent = usersData.users.length || 0;
-        }
-        
-        if (programsData.success) {
-            const statPrograms = document.getElementById('statPrograms');
-            if (statPrograms) statPrograms.textContent = programsData.data.length || 0;
+        // Bind Contests
+        if (contestsRes && contestsRes.ok) {
+            const cData = await contestsRes.json();
+            const count = (cData.data || cData.contests || []).length || 0;
+            if (document.getElementById('overlayStatContests')) document.getElementById('overlayStatContests').textContent = count;
+        } else {
+            if (document.getElementById('overlayStatContests')) document.getElementById('overlayStatContests').textContent = "0";
         }
 
-    } catch (err) { 
-        console.error('Error fetching profile and stats:', err); 
+        // Bind Users
+        if (usersRes && usersRes.ok) {
+            const uData = await usersRes.json();
+            const count = (uData.users || uData.data || []).length || 0;
+            if (document.getElementById('overlayStatUsers')) document.getElementById('overlayStatUsers').textContent = count;
+        } else {
+            if (document.getElementById('overlayStatUsers')) document.getElementById('overlayStatUsers').textContent = "0";
+        }
+
+        // Bind Programs
+        if (programsRes && programsRes.ok) {
+            const pData = await programsRes.json();
+            const count = (pData.data || pData.programs || []).length || 0;
+            if (document.getElementById('overlayStatPrograms')) document.getElementById('overlayStatPrograms').textContent = count;
+        } else {
+            if (document.getElementById('overlayStatPrograms')) document.getElementById('overlayStatPrograms').textContent = "0";
+        }
+
+    } catch (err) {
+        console.error('Error fetching stats:', err);
+        if (document.getElementById('overlayStatContests')) document.getElementById('overlayStatContests').textContent = "0";
+        if (document.getElementById('overlayStatUsers')) document.getElementById('overlayStatUsers').textContent = "0";
+        if (document.getElementById('overlayStatPrograms')) document.getElementById('overlayStatPrograms').textContent = "0";
     }
 }
 
-    async function fetchAllData() {
-        try {
-            const [progRes, branchRes, secRes, subRes] = await Promise.all([
-                fetch('/college/programs'),
-                fetch('/college/branches'),
-                fetch('/college/sections'),
-                fetch('/college/subjects')
-            ]);
-
-            if (progRes.ok) window.allPrograms = (await progRes.json()).data || [];
-            if (branchRes.ok) window.allBranches = (await branchRes.json()).data || [];
-            if (secRes.ok) window.allSections = (await secRes.json()).data || [];
-            if (subRes.ok) window.allSubjects = (await subRes.json()).data || [];
-
-            populateDropdowns();
-            renderAllTables();
-        } catch (err) {
-            console.error("Error fetching data:", err);
-        }
-    }
-
-    // --- TABS & UI ---
-    function setTab(tabId) {
-        document.querySelectorAll('.section-view').forEach(el => el.classList.remove('active'));
-        document.getElementById(`view-${tabId}`).classList.add('active');
-
-        document.querySelectorAll('[id^="tab-"]').forEach(btn => {
-            btn.classList.remove('bg-white', 'text-primary-600', 'dark:bg-primary-600', 'dark:text-white', 'shadow-sm');
-            btn.classList.add('text-gray-500', 'dark:text-gray-400');
-        });
-
-        const activeBtn = document.getElementById(`tab-${tabId}`);
-        activeBtn.classList.remove('text-gray-500', 'dark:text-gray-400');
-        activeBtn.classList.add('bg-white', 'text-primary-600', 'dark:bg-primary-600', 'dark:text-white', 'shadow-sm');
-    }
-
-   function toggleProfile(e) {
-    if (e) e.stopPropagation();
-    const overlay = document.getElementById('profileOverlay');
-    const card = overlay.querySelector('div');
-    
-    if (overlay.classList.contains('hidden')) {
-        overlay.classList.remove('hidden');
-        setTimeout(() => {
-            card.classList.remove('scale-95', 'opacity-0');
-            card.classList.add('scale-100', 'opacity-100');
-        }, 10);
-    } else {
-        card.classList.remove('scale-100', 'opacity-100');
-        card.classList.add('scale-95', 'opacity-0');
-        setTimeout(() => {
-            overlay.classList.add('hidden');
-        }, 300); 
-    }
+// Fallback function to clear out "Loading..." text if the server fetch fails entirely
+function setDefaultProfile() {
+    if (document.getElementById('headerInitials')) document.getElementById('headerInitials').textContent = 'A';
+    if (document.getElementById('headerName')) document.getElementById('headerName').textContent = 'Admin User';
+    if (document.getElementById('profileOverlayInitials')) document.getElementById('profileOverlayInitials').textContent = 'A';
+    if (document.getElementById('profileOverlayName')) document.getElementById('profileOverlayName').textContent = 'Admin User';
+    if (document.getElementById('profileOverlayCollege')) document.getElementById('profileOverlayCollege').innerHTML = `<i class="fas fa-university"></i> Unknown Institute`;
+    if (document.getElementById('profileOverlayRole')) document.getElementById('profileOverlayRole').textContent = "Role: Admin";
 }
 
-    // --- DROPDOWNS ---
-    function populateDropdowns() {
-        document.querySelectorAll('select[name="program_id"]').forEach(select => {
-            select.innerHTML = '<option value="">Select Program</option>' + 
-                window.allPrograms.map(p => `<option value="${p.id}" data-duration="${p.duration}">${p.name} (${p.duration} Years)</option>`).join('');
-        });
-
-        document.querySelectorAll('select[name="branch_id"]').forEach(select => {
-            select.innerHTML = '<option value="">Select Branch</option>' + 
-                window.allBranches.map(b => `<option value="${b.id}" data-duration="${b.program_duration || b.duration || ''}">${b.program_name || b.program || ''} - ${b.name}</option>`).join('');
-        });
-
-        const progOptions = `<option value="">Select Program</option>` + window.allPrograms.map(p => `<option value="${p.id}">${p.name} (${p.code})</option>`).join('');
-        if (document.getElementById('select-program')) document.getElementById('select-program').innerHTML = progOptions;
-        if (document.getElementById('select-program-section')) document.getElementById('select-program-section').innerHTML = progOptions;
-        if (document.getElementById('select-program-subject')) document.getElementById('select-program-subject').innerHTML = progOptions;
-
-        const progFilterOpts = `<option value="">All Programs</option>` + window.allPrograms.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
-        if (document.getElementById('filter-branch-program')) document.getElementById('filter-branch-program').innerHTML = progFilterOpts;
-        if (document.getElementById('filter-section-prog')) document.getElementById('filter-section-prog').innerHTML = progFilterOpts;
-        if (document.getElementById('filter-subject-prog')) document.getElementById('filter-subject-prog').innerHTML = progFilterOpts;
-
-        const branchFilterOpts = `<option value="">All Branches</option>` + window.allBranches.map(b => `<option value="${b.name}">${b.name}</option>`).join('');
-        if (document.getElementById('filter-section-branch-list')) document.getElementById('filter-section-branch-list').innerHTML = branchFilterOpts;
-        if (document.getElementById('filter-subject-branch-list')) document.getElementById('filter-subject-branch-list').innerHTML = branchFilterOpts;
-    }
-
-    document.addEventListener('change', function(e) {
-        if (e.target && e.target.name === 'branch_id') {
-            const selectedOption = e.target.options[e.target.selectedIndex];
-            const maxDuration = selectedOption ? selectedOption.getAttribute('data-duration') : null;
-
-            const form = e.target.closest('form');
-            const yearInput = form ? form.querySelector('input[name="year"]') : null;
-
-            if (yearInput && maxDuration) {
-                yearInput.max = maxDuration;
-                yearInput.placeholder = `1 to ${maxDuration}`;
-            }
-        }
-    });
-
-    function filterSectionBranches() {
-        const progId = document.getElementById('select-program-section').value;
-        const validBranches = window.allBranches.filter(b => b.program_id == progId);
-        document.getElementById('select-branch-section').innerHTML = `<option value="">Choose Branch</option>` + validBranches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
-
-        const program = window.allPrograms.find(p => p.id == progId);
-        
-        const yearSelect = document.querySelector('#form-section select[name="year"]');
-        const semInput = document.querySelector('#form-section input[name="semester"]'); 
-
-        if (program && program.duration) {
-            let parsedDur = parseInt(program.duration);
-            
-            if (yearSelect) {
-                let options = '<option value="">Choose Year</option>';
-                for (let i = 1; i <= parsedDur; i++) {
-                    options += `<option value="${i}">Year ${i}</option>`;
-                }
-                yearSelect.innerHTML = options;
-            }
-            
-            if (semInput) {
-                semInput.max = parsedDur * 2;
-                semInput.placeholder = `Max: ${parsedDur * 2}`;
-            }
-        } else {
-            if (yearSelect) yearSelect.innerHTML = '<option value="">Select Program First</option>';
-            if (semInput) semInput.removeAttribute('max');
-        }
-    }
-
-    function filterSubjectBranches() {
-        const progId = document.getElementById('select-program-subject').value;
-        const validBranches = window.allBranches.filter(b => b.program_id == progId);
-        document.getElementById('select-branch-subject').innerHTML = `<option value="">Choose Branch</option>` + validBranches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
-        document.getElementById('select-section-subject').innerHTML = `<option value="">Choose Section</option>`;
-
-        const program = window.allPrograms.find(p => p.id == progId);
-        
-        const yearSelect = document.querySelector('#form-subject select[name="year"]');
-        const semInput = document.querySelector('#form-subject input[name="semester"]');
-
-        if (program && program.duration) {
-            let parsedDur = parseInt(program.duration);
-            
-            if (yearSelect) {
-                let options = '<option value="">Choose Year</option>';
-                for (let i = 1; i <= parsedDur; i++) {
-                    options += `<option value="${i}">Year ${i}</option>`;
-                }
-                yearSelect.innerHTML = options;
-            }
-
-            if (semInput) {
-                semInput.max = parsedDur * 2;
-                semInput.placeholder = `Max: ${parsedDur * 2}`;
-            }
-        } else {
-            if (yearSelect) yearSelect.innerHTML = '<option value="">Select Program First</option>';
-            if (semInput) semInput.removeAttribute('max');
-        }
-    }
-
-    function filterSubjectSections() {
-        const branchId = document.getElementById('select-branch-subject').value;
-        const validSections = window.allSections.filter(s => s.branch_id == branchId);
-        document.getElementById('select-section-subject').innerHTML = `<option value="">Choose Section</option>` + validSections.map(s => `<option value="${s.id}">${s.name} (Sem ${s.semester})</option>`).join('');
-    }
-
-    // --- ADD / EDIT FORM SUBMISSION ---
-    async function saveForm(event, url) {
-        event.preventDefault();
-        const formData = new FormData(event.target);
-        const data = Object.fromEntries(formData.entries());
-
-        try {
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            const result = await res.json();
-            if (result.success || res.ok) {
-                event.target.reset();
-                await fetchAllData();
-            } else {
-                alert(result.message || 'Error saving data');
-            }
-        } catch (err) {
-            console.error(err);
-            alert('Request failed');
-        }
-    }
-
-    async function deleteItem(type, id) {
-        if (!confirm(`Are you sure you want to delete this ${type} permanently?`)) return;
-
-        try {
-            const res = await fetch(`/college/delete-${type}/${id}`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' }
-            });
-
-            const result = await res.json();
-
-            if (result.success || res.ok) {
-                if (type === 'program') window.allPrograms = window.allPrograms.filter(i => i.id != id);
-                if (type === 'branch') window.allBranches = window.allBranches.filter(i => i.id != id);
-                if (type === 'section') window.allSections = window.allSections.filter(i => i.id != id);
-                if (type === 'subject') window.allSubjects = window.allSubjects.filter(i => i.id != id);
+        async function fetchAllData() {
+            try {
+                const [progRes, branchRes, secRes, subRes] = await Promise.all([
+                    fetch('/college/programs'),
+                    fetch('/college/branches'),
+                    fetch('/college/sections'),
+                    fetch('/college/subjects')
+                ]);
+                if (progRes.ok) window.allPrograms = (await progRes.json()).data || [];
+                if (branchRes.ok) window.allBranches = (await branchRes.json()).data || [];
+                if (secRes.ok) window.allSections = (await secRes.json()).data || [];
+                if (subRes.ok) window.allSubjects = (await subRes.json()).data || [];
 
                 populateDropdowns();
                 renderAllTables();
-            } else {
-                alert(result.message || `Error deleting ${type}`);
+            } catch (err) {
+                console.error("Error fetching data:", err);
             }
-        } catch (err) {
-            console.error("Backend delete failed:", err);
-            alert(`Cannot delete: Server responded with an error. Ensure backend /college/delete-${type}/:id route is running.`);
-        }
-    }
-
-    // --- EDIT MODAL LOGIC ---
-    function openEditModal(type, id) {
-        currentEdit = { type, id };
-        document.getElementById('editModalTitle').textContent = `Edit ${type.charAt(0).toUpperCase() + type.slice(1)}`;
-
-        const body = document.getElementById('editModalBody');
-        let formHTML = '';
-        let item = null;
-
-        if (type === 'program') {
-            item = window.allPrograms.find(p => p.id === id);
-            formHTML = `
-            <form onsubmit="submitEditForm(event)">
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-xs font-bold text-gray-500 mb-1">PROGRAM NAME</label>
-                        <input type="text" id="edit-name" value="${item.name}" oninput="this.value = this.value.toUpperCase()" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required></div>
-                    <div><label class="block text-xs font-bold text-gray-500 mb-1">CODE (Alphabetic/AlphaNum)</label>
-                        <input type="text" id="edit-code" value="${item.code}" oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')" pattern="(?=.*[A-Z])[A-Z0-9]+" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required></div>
-                    <div><label class="block text-xs font-bold text-gray-500 mb-1">TYPE</label>
-                        <select id="edit-type" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none">
-                            <option value="UG" ${item.type === 'UG' ? 'selected' : ''}>UG</option>
-                            <option value="PG" ${item.type === 'PG' ? 'selected' : ''}>PG</option>
-                        </select></div>
-                    <div><label class="block text-xs font-bold text-gray-500 mb-1">DURATION (YEARS)</label>
-                        <input type="number" id="edit-duration" value="${item.duration || 4}" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required min="1"></div>
-                </div>
-                <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" onclick="closeEditModal()" class="px-5 py-2 rounded-lg text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300">Cancel</button>
-                    <button type="submit" class="px-5 py-2 rounded-lg text-sm font-bold text-white bg-primary-500 hover:bg-primary-600">Update</button>
-                </div>
-            </form>
-        `;
-        } else if (type === 'branch') {
-            item = window.allBranches.find(b => b.id === id);
-            formHTML = `
-            <form onsubmit="submitEditForm(event)">
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-xs font-bold text-gray-500 mb-1">BRANCH NAME</label>
-                        <input type="text" id="edit-name" value="${item.name}" oninput="this.value = this.value.toUpperCase()" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required></div>
-                    <div><label class="block text-xs font-bold text-gray-500 mb-1">CODE (Alphabetic/AlphaNum)</label>
-                        <input type="text" id="edit-code" value="${item.code}" oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')" pattern="(?=.*[A-Z])[A-Z0-9]+" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required></div>
-                    <div><label class="block text-xs font-bold text-gray-500 mb-1">ABBREVIATION</label>
-                        <input type="text" id="edit-abbreviation" value="${item.abbreviation || ''}" oninput="this.value = this.value.toUpperCase()" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none"></div>
-                </div>
-                <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" onclick="closeEditModal()" class="px-5 py-2 rounded-lg text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300">Cancel</button>
-                    <button type="submit" class="px-5 py-2 rounded-lg text-sm font-bold text-white bg-primary-500 hover:bg-primary-600">Update</button>
-                </div>
-            </form>
-        `;
-        } else if (type === 'section') {
-            item = window.allSections.find(s => s.id === id);
-            
-            let duration = item.program_duration;
-            if (!duration) { 
-                const branch = window.allBranches && window.allBranches.find(b => b.id === item.branch_id);
-                const prog = branch && window.allPrograms && window.allPrograms.find(p => p.id === branch.program_id);
-                if (prog) duration = prog.duration;
-            }
-            let parsedDuration = parseInt(duration) || 4; 
-            let maxSemesters = parsedDuration * 2; 
-
-            let yearOptions = '<option value="">Choose Year</option>';
-            for (let i = 1; i <= parsedDuration; i++) {
-                yearOptions += `<option value="${i}" ${item.year == i ? 'selected' : ''}>Year ${i}</option>`;
-            }
-
-            formHTML = `
-            <form onsubmit="submitEditForm(event)">
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-xs font-bold text-gray-500 mb-1">SECTION NAME</label>
-                        <input type="text" id="edit-name" value="${item.name}" oninput="this.value = this.value.toUpperCase().replace(/[^A-Z]/g, '')" pattern="[A-Z]+" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required></div>
-                    
-                    <div><label class="block text-xs font-bold text-gray-500 mb-1">YEAR</label>
-                        <select id="edit-year" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required>
-                            ${yearOptions}
-                        </select>
-                    </div>
-
-                    <div><label class="block text-xs font-bold text-gray-500 mb-1">SEMESTER</label>
-                        <input type="number" id="edit-sem" value="${item.semester}" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required min="1" max="${maxSemesters}"></div>
-                    
-                    <div><label class="block text-xs font-bold text-gray-500 mb-1">CAPACITY</label>
-                        <input type="number" id="edit-capacity" value="${item.capacity || 60}" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none"></div>
-                </div>
-                <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" onclick="closeEditModal()" class="px-5 py-2 rounded-lg text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300">Cancel</button>
-                    <button type="submit" class="px-5 py-2 rounded-lg text-sm font-bold text-white bg-primary-500 hover:bg-primary-600">Update</button>
-                </div>
-            </form>
-        `;
-        } else if (type === 'subject') {
-            item = window.allSubjects.find(s => s.id === id);
-
-            let duration = item.program_duration;
-            if (!duration) { 
-                const branch = window.allBranches && window.allBranches.find(b => b.id === item.branch_id);
-                const prog = branch && window.allPrograms && window.allPrograms.find(p => p.id === branch.program_id);
-                if (prog) duration = prog.duration;
-            }
-            duration = duration || 4; 
-
-            let yearOptions = '<option value="">Choose Year</option>';
-            for (let i = 1; i <= duration; i++) {
-                yearOptions += `<option value="${i}" ${item.year == i ? 'selected' : ''}>Year ${i}</option>`;
-            }
-
-            formHTML = `
-            <form onsubmit="submitEditForm(event)">
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-xs font-bold text-gray-500 mb-1">SUBJECT NAME</label>
-                        <input type="text" id="edit-name" value="${item.name}" oninput="this.value = this.value.toUpperCase()" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required></div>
-                    
-                    <div><label class="block text-xs font-bold text-gray-500 mb-1">CODE (Alphabetic/AlphaNum)</label>
-                        <input type="text" id="edit-code" value="${item.code}" oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')" pattern="(?=.*[A-Z])[A-Z0-9]+" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required></div>
-                    
-                    <div><label class="block text-xs font-bold text-gray-500 mb-1">YEAR</label>
-                        <select id="edit-year" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required>
-                            ${yearOptions}
-                        </select>
-                    </div>
-
-                    <div><label class="block text-xs font-bold text-gray-500 mb-1">CREDITS</label>
-                        <input type="number" id="edit-credits" value="${item.credits || 3}" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required></div>
-                </div>
-                <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" onclick="closeEditModal()" class="px-5 py-2 rounded-lg text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300">Cancel</button>
-                    <button type="submit" class="px-5 py-2 rounded-lg text-sm font-bold text-white bg-primary-500 hover:bg-primary-600">Update</button>
-                </div>
-            </form>
-        `;
         }
 
-        body.innerHTML = formHTML;
-        document.getElementById('editModalOverlay').classList.remove('hidden');
-    }
+        // --- TABS & UI ---
+        function setTab(tabId) {
+            document.querySelectorAll('.section-view').forEach(el => el.classList.remove('active'));
+            document.getElementById(`view-${tabId}`).classList.add('active');
 
-    function closeEditModal() {
-        document.getElementById('editModalOverlay').classList.add('hidden');
-        currentEdit = { type: null, id: null };
-    }
-
-    async function submitEditForm(event) {
-        event.preventDefault();
-
-        let payload = {};
-        if (currentEdit.type === 'program') {
-            payload = {
-                name: document.getElementById('edit-name').value,
-                code: document.getElementById('edit-code').value,
-                type: document.getElementById('edit-type').value,
-                duration: document.getElementById('edit-duration').value
-            };
-        } else if (currentEdit.type === 'branch') {
-            payload = {
-                name: document.getElementById('edit-name').value,
-                code: document.getElementById('edit-code').value,
-                abbreviation: document.getElementById('edit-abbreviation').value
-            };
-        } else if (currentEdit.type === 'section') {
-            payload = {
-                name: document.getElementById('edit-name').value,
-                year: document.getElementById('edit-year').value,      // ⭐ Added Year
-                semester: document.getElementById('edit-sem').value,
-                capacity: document.getElementById('edit-capacity').value
-            };
-        } else if (currentEdit.type === 'subject') {
-            payload = {
-                name: document.getElementById('edit-name').value,
-                code: document.getElementById('edit-code').value,
-                year: document.getElementById('edit-year').value,      // ⭐ Added Year
-                credits: document.getElementById('edit-credits').value
-            };
-        }
-
-        try {
-            const res = await fetch(`/college/update-${currentEdit.type}/${currentEdit.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+            document.querySelectorAll('[id^="tab-"]').forEach(btn => {
+                btn.classList.remove('bg-white', 'text-primary-600', 'dark:bg-primary-600', 'dark:text-white', 'shadow-sm');
+                btn.classList.add('text-gray-500', 'dark:text-gray-400', 'bg-transparent');
             });
-            const result = await res.json();
-            if (result.success) {
-                closeEditModal();
-                fetchAllData();
-            } else {
-                alert(result.message || 'Update failed');
-            }
-        } catch (err) {
-            console.error(err);
-            alert('Update failed due to network error');
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            activeBtn.classList.remove('text-gray-500', 'dark:text-gray-400', 'bg-transparent');
+            activeBtn.classList.add('bg-white', 'text-primary-600', 'dark:bg-primary-600', 'dark:text-white', 'shadow-sm');
+            renderAllTables();
         }
-    }
 
-  // --- RENDER TABLES ---
-    // --- RENDER TABLES ---
-function renderAllTables() {
-    const search = (document.getElementById('globalSearchInput')?.value || '').toLowerCase();
+        function validateUniqueCode(type, code) {
+            let exists = false;
+            if (type === 'program') {
+                exists = window.allPrograms.some(p => p.code === code && p.id !== currentEdit.id);
+            } else if (type === 'branch') {
+                exists = window.allBranches.some(b => b.code === code && b.id !== currentEdit.id);
+            } else if (type === 'subject') {
+                exists = window.allSubjects.some(s => s.code === code && s.id !== currentEdit.id);
+            }
+            if (exists) {
+                alert(`This ${type} code is already used. Please enter a different code.`);
+                return false;
+            }
+            return true;
+        }
 
-    // 1. Programs
-    const progTypeFilter = document.getElementById('filter-program-type')?.value || "";
-    const pTable = document.getElementById('table-programs');
-    if (pTable) {
-        let filteredProgs = window.allPrograms
-            .filter(p => (p.name.toLowerCase().includes(search) || p.code.toLowerCase().includes(search)))
-            .filter(p => progTypeFilter === "" || p.type === progTypeFilter);
-        
-        pTable.innerHTML = filteredProgs.length > 0 ? filteredProgs.map(p => `
+        // --- DROPDOWNS ---
+        function populateDropdowns() {
+            document.querySelectorAll('select[name="program_id"]').forEach(select => {
+                select.innerHTML = '<option value="">Select Program</option>' + window.allPrograms.map(p => `<option value="${p.id}" data-duration="${p.duration}">${p.name} (${p.duration} Years)</option>`).join('');
+            });
+
+            document.querySelectorAll('select[name="branch_id"]').forEach(select => {
+                select.innerHTML = '<option value="">Select Branch</option>' + window.allBranches.map(b => `<option value="${b.id}" data-duration="${b.program_duration || b.duration || ''}">${b.program_name || b.program || ''} - ${b.name}</option>`).join('');
+            });
+
+            const progOptions = `<option value="">Select Program</option>` + window.allPrograms.map(p => `<option value="${p.id}">${p.name} (${p.code})</option>`).join('');
+            if (document.getElementById('select-program')) document.getElementById('select-program').innerHTML = progOptions;
+            if (document.getElementById('select-program-section')) document.getElementById('select-program-section').innerHTML = progOptions;
+            if (document.getElementById('select-program-subject')) document.getElementById('select-program-subject').innerHTML = progOptions;
+
+            const progFilterOpts = `<option value="">All Programs</option>` + window.allPrograms.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+            if (document.getElementById('filter-branch-program')) document.getElementById('filter-branch-program').innerHTML = progFilterOpts;
+            if (document.getElementById('filter-section-prog')) document.getElementById('filter-section-prog').innerHTML = progFilterOpts;
+            if (document.getElementById('filter-subject-prog')) document.getElementById('filter-subject-prog').innerHTML = progFilterOpts;
+
+            const branchFilterOpts = `<option value="">All Branches</option>` + window.allBranches.map(b => `<option value="${b.name}">${b.name}</option>`).join('');
+            if (document.getElementById('filter-section-branch-list')) document.getElementById('filter-section-branch-list').innerHTML = branchFilterOpts;
+            if (document.getElementById('filter-subject-branch-list')) document.getElementById('filter-subject-branch-list').innerHTML = branchFilterOpts;
+        }
+
+        function filterSectionBranches() {
+            const progId = document.getElementById('select-program-section').value;
+            const validBranches = window.allBranches.filter(b => b.program_id == progId);
+            document.getElementById('select-branch-section').innerHTML = `<option value="">Choose Branch</option>` + validBranches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+
+            const program = window.allPrograms.find(p => p.id == progId);
+            const yearSelect = document.querySelector('#form-section select[name="year"]');
+            const semInput = document.querySelector('#form-section input[name="semester"]');
+
+            if (program) {
+                let parsedDur = parseInt(program.duration);
+                if (yearSelect) {
+                    let options = '<option value="">Choose Year</option>';
+                    for (let i = 1; i <= parsedDur; i++) {
+                        options += `<option value="${i}">Year ${i}</option>`;
+                    }
+                    yearSelect.innerHTML = options;
+                }
+                if (semInput) {
+                    semInput.max = parsedDur * 2;
+                    semInput.placeholder = `Max: ${parsedDur * 2}`;
+                }
+            } else {
+                if (yearSelect) yearSelect.innerHTML = '<option value="">Select Program First</option>';
+                if (semInput) semInput.removeAttribute('max');
+            }
+        }
+
+        function filterSubjectBranches() {
+            const progId = document.getElementById('select-program-subject').value;
+            const validBranches = window.allBranches.filter(b => b.program_id == progId);
+            document.getElementById('select-branch-subject').innerHTML = `<option value="">Choose Branch</option>` + validBranches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+
+            const program = window.allPrograms.find(p => p.id == progId);
+            const yearSelect = document.querySelector('#form-subject select[name="year"]');
+            const semInput = document.querySelector('#form-subject input[name="semester"]');
+
+            if (program) {
+                let parsedDur = parseInt(program.duration);
+                if (yearSelect) {
+                    let options = '<option value="">Choose Year</option>';
+                    for (let i = 1; i <= parsedDur; i++) {
+                        options += `<option value="${i}">Year ${i}</option>`;
+                    }
+                    yearSelect.innerHTML = options;
+                }
+                if (semInput) {
+                    semInput.max = parsedDur * 2;
+                    semInput.placeholder = `Max: ${parsedDur * 2}`;
+                }
+            } else {
+                if (yearSelect) yearSelect.innerHTML = '<option value="">Select Program First</option>';
+                if (semInput) semInput.removeAttribute('max');
+            }
+        }
+
+        function filterSubjectSections() {
+            const branchId = document.getElementById('select-branch-subject').value;
+            const validSections = window.allSections.filter(s => s.branch_id == branchId);
+            document.getElementById('select-section-subject').innerHTML = `<option value="">Choose Section</option>` + validSections.map(s => `<option value="${s.id}">${s.name} (Sem ${s.semester})</option>`).join('');
+        }
+
+        // --- ADD / EDIT FORM SUBMISSION ---
+        async function saveForm(event, url) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+            const entityType = url.replace('/college/add-', '');
+
+            if (data.code && !validateUniqueCode(entityType, data.code)) {
+                return;
+            }
+
+            if (entityType === 'section') {
+                const isDuplicate = window.allSections && window.allSections.some(sec =>
+                    String(sec.branch_id) === String(data.branch_id) &&
+                    String(sec.year) === String(data.year) &&
+                    String(sec.semester) === String(data.semester) &&
+                    sec.name.toUpperCase() === data.name.toUpperCase()
+                );
+                if (isDuplicate) {
+                    alert('Validation Error: A section with this name already exists for the selected Branch, Year, and Semester.');
+                    return;
+                }
+            }
+
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    event.target.reset();
+                    await fetchAllData();
+                } else {
+                    alert(result.message || 'Error saving data.');
+                }
+            } catch (err) {
+                console.error("Save error:", err);
+            }
+        }
+
+        async function deleteItem(type, id) {
+            if (!confirm(`Are you sure you want to delete this ${type}?`)) return;
+            try {
+                const res = await fetch(`/college/delete-${type}/${id}`, { method: 'DELETE' });
+                const result = await res.json();
+                if (result.success) {
+                    fetchAllData();
+                } else {
+                    alert(result.message || 'Error deleting item.');
+                }
+            } catch (err) {
+                console.error("Delete error:", err);
+                alert(`Delete failed with an error. Ensure backend /college/delete-${type}/:id route is running.`);
+            }
+        }
+
+
+        // --- EDIT MODAL LOGIC ---
+        function openEditModal(type, id) {
+            currentEdit = { type, id };
+            document.getElementById('editModalTitle').textContent = `Edit ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+            const body = document.getElementById('editModalBody');
+            let formHTML = '';
+            let item = null;
+
+            if (type === 'program') {
+                item = window.allPrograms.find(p => p.id === id);
+                formHTML = `
+                <form onsubmit="submitEditForm(event)">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="block text-xs font-bold text-gray-500 mb-1">PROGRAM NAME</label>
+                            <input type="text" id="edit-name" value="${item.name}" oninput="this.value = this.value.toUpperCase()" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required></div>
+                        <div><label class="block text-xs font-bold text-gray-500 mb-1">CODE (Alphanumeric/Numeric)</label>
+                            <input type="text" id="edit-code" value="${item.code}" oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')" pattern="[A-Z0-9]+" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required></div>
+                        <div><label class="block text-xs font-bold text-gray-500 mb-1">TYPE</label>
+                            <select id="edit-type" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none">
+                                <option value="UG" ${item.type === 'UG' ? 'selected' : ''}>UG</option>
+                                <option value="PG" ${item.type === 'PG' ? 'selected' : ''}>PG</option>
+                            </select></div>
+                        <div><label class="block text-xs font-bold text-gray-500 mb-1">DURATION (YEARS)</label>
+                            <input type="number" id="edit-duration" value="${item.duration}" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required></div>
+                    </div>
+                    <div class="mt-6 flex justify-end gap-3">
+                        <button type="button" onclick="closeEditModal()" class="px-5 py-2 rounded-lg text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300">Cancel</button>
+                        <button type="submit" class="px-5 py-2 rounded-lg text-sm font-bold text-white bg-primary-500 hover:bg-primary-600">Update</button>
+                    </div>
+                </form>
+                `;
+            } else if (type === 'branch') {
+                item = window.allBranches.find(b => b.id === id);
+                formHTML = `
+                <form onsubmit="submitEditForm(event)">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="block text-xs font-bold text-gray-500 mb-1">BRANCH NAME</label>
+                            <input type="text" id="edit-name" value="${item.name}" oninput="this.value = this.value.toUpperCase()" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required></div>
+                        <div><label class="block text-xs font-bold text-gray-500 mb-1">CODE (Alphanumeric/Numeric)</label>
+                            <input type="text" id="edit-code" value="${item.code}" oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')" pattern="[A-Z0-9]+" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required></div>
+                        <div><label class="block text-xs font-bold text-gray-500 mb-1">ABBREVIATION</label>
+                            <input type="text" id="edit-abb" value="${item.abbreviation || ''}" oninput="this.value = this.value.toUpperCase()" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none"></div>
+                    </div>
+                    <div class="mt-6 flex justify-end gap-3">
+                        <button type="button" onclick="closeEditModal()" class="px-5 py-2 rounded-lg text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300">Cancel</button>
+                        <button type="submit" class="px-5 py-2 rounded-lg text-sm font-bold text-white bg-primary-500 hover:bg-primary-600">Update</button>
+                    </div>
+                </form>
+                `;
+            } else if (type === 'section') {
+                item = window.allSections.find(s => s.id === id);
+
+                let duration = item.program_duration;
+                if (!duration) {
+                    const branch = window.allBranches && window.allBranches.find(b => b.id === item.branch_id);
+                    const prog = branch && window.allPrograms && window.allPrograms.find(p => p.id === branch.program_id);
+                    if (prog) duration = prog.duration;
+                }
+
+                let parsedDuration = parseInt(duration) || 4;
+                let maxSemesters = parsedDuration * 2;
+
+                let yearOptions = '<option value="">Choose Year</option>';
+                for (let i = 1; i <= parsedDuration; i++) {
+                    yearOptions += `<option value="${i}" ${item.year == i ? 'selected' : ''}>Year ${i}</option>`;
+                }
+
+                formHTML = `
+                <form onsubmit="submitEditForm(event)">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="block text-xs font-bold text-gray-500 mb-1">SECTION NAME</label>
+                            <input type="text" id="edit-name" value="${item.name}" oninput="this.value = this.value.toUpperCase().replace(/[^A-Z]/g, '')" pattern="[A-Z]+" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required></div>
+                        <div><label class="block text-xs font-bold text-gray-500 mb-1">YEAR</label>
+                            <select id="edit-year" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required>
+                                ${yearOptions}
+                            </select>
+                        </div>
+                        <div><label class="block text-xs font-bold text-gray-500 mb-1">SEMESTER</label>
+                            <input type="number" id="edit-sem" value="${item.semester}" max="${maxSemesters}" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required></div>
+                        <div><label class="block text-xs font-bold text-gray-500 mb-1">CAPACITY</label>
+                            <input type="number" id="edit-cap" value="${item.capacity || ''}" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none"></div>
+                    </div>
+                    <div class="mt-6 flex justify-end gap-3">
+                        <button type="button" onclick="closeEditModal()" class="px-5 py-2 rounded-lg text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300">Cancel</button>
+                        <button type="submit" class="px-5 py-2 rounded-lg text-sm font-bold text-white bg-primary-500 hover:bg-primary-600">Update</button>
+                    </div>
+                </form>
+                `;
+            } else if (type === 'subject') {
+                item = window.allSubjects.find(s => s.id === id);
+
+                let duration = item.program_duration;
+                if (!duration) {
+                    const sec = window.allSections && window.allSections.find(s => s.id === item.section_id);
+                    const branch = sec && window.allBranches && window.allBranches.find(b => b.id === sec.branch_id);
+                    const prog = branch && window.allPrograms && window.allPrograms.find(p => p.id === branch.program_id);
+                    if (prog) duration = prog.duration;
+                }
+
+                let parsedDuration = parseInt(duration) || 4;
+
+                let yearOptions = '<option value="">Choose Year</option>';
+                for (let i = 1; i <= parsedDuration; i++) {
+                    yearOptions += `<option value="${i}" ${item.year == i ? 'selected' : ''}>Year ${i}</option>`;
+                }
+
+                formHTML = `
+                <form onsubmit="submitEditForm(event)">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="col-span-2"><label class="block text-xs font-bold text-gray-500 mb-1">SUBJECT NAME</label>
+                            <input type="text" id="edit-name" value="${item.name}" oninput="this.value = this.value.toUpperCase()" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required></div>
+                        <div><label class="block text-xs font-bold text-gray-500 mb-1">CODE</label>
+                            <input type="text" id="edit-code" value="${item.code}" oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required></div>
+                        <div><label class="block text-xs font-bold text-gray-500 mb-1">YEAR</label>
+                            <select id="edit-year" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required>
+                                ${yearOptions}
+                            </select>
+                        </div>
+                        <div><label class="block text-xs font-bold text-gray-500 mb-1">CREDITS</label>
+                            <input type="number" id="edit-credits" value="${item.credits || 3}" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm dark:text-white outline-none" required></div>
+                    </div>
+                    <div class="mt-6 flex justify-end gap-3">
+                        <button type="button" onclick="closeEditModal()" class="px-5 py-2 rounded-lg text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300">Cancel</button>
+                        <button type="submit" class="px-5 py-2 rounded-lg text-sm font-bold text-white bg-primary-500 hover:bg-primary-600">Update</button>
+                    </div>
+                </form>
+                `;
+            }
+
+            body.innerHTML = formHTML;
+            document.getElementById('editModalOverlay').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModalOverlay').classList.add('hidden');
+            currentEdit = { type: null, id: null };
+        }
+
+        async function submitEditForm(event) {
+            event.preventDefault();
+            let payload = {};
+
+            if (currentEdit.type === 'program') {
+                payload = {
+                    name: document.getElementById('edit-name').value,
+                    code: document.getElementById('edit-code').value,
+                    type: document.getElementById('edit-type').value,
+                    duration: document.getElementById('edit-duration').value
+                };
+            } else if (currentEdit.type === 'branch') {
+                payload = {
+                    name: document.getElementById('edit-name').value,
+                    code: document.getElementById('edit-code').value,
+                    abbreviation: document.getElementById('edit-abb').value
+                };
+            } else if (currentEdit.type === 'section') {
+                payload = {
+                    name: document.getElementById('edit-name').value,
+                    year: document.getElementById('edit-year').value,
+                    semester: document.getElementById('edit-sem').value,
+                    capacity: document.getElementById('edit-cap').value
+                };
+            } else if (currentEdit.type === 'subject') {
+                payload = {
+                    name: document.getElementById('edit-name').value,
+                    code: document.getElementById('edit-code').value,
+                    year: document.getElementById('edit-year').value,
+                    credits: document.getElementById('edit-credits').value
+                };
+            }
+
+            if (payload.code && !validateUniqueCode(currentEdit.type, payload.code)) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`/college/update-${currentEdit.type}/${currentEdit.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    closeEditModal();
+                    fetchAllData();
+                } else {
+                    alert(result.message || 'Error updating item.');
+                }
+            } catch (err) {
+                console.error("Update error:", err);
+                alert(`Update failed with an error. Ensure backend /college/update-${currentEdit.type}/:id route is running.`);
+            }
+        }
+
+
+        // --- RENDERING TABLES ---
+        function renderAllTables() {
+            const search = (document.getElementById('globalSearchInput')?.value || "").toLowerCase();
+
+            // 1. Programs
+            const pTypeFilter = document.getElementById('filter-program-type')?.value || "";
+            const pTable = document.getElementById('table-programs');
+            if (pTable) {
+                let filteredPrograms = window.allPrograms
+                    .filter(p => p.name.toLowerCase().includes(search) || p.code.toLowerCase().includes(search))
+                    .filter(p => pTypeFilter === "" || p.type === pTypeFilter);
+
+                pTable.innerHTML = filteredPrograms.length > 0 ? filteredPrograms.map(p => `
             <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                <td class="px-6 py-4 font-semibold">${p.code}</td>
-                <td class="px-6 py-4">${p.name}</td>
-                <td class="px-6 py-4"><span class="px-2 py-1 rounded bg-blue-50 text-blue-600 text-xs">${p.type}</span></td>
-                <td class="px-6 py-4">${p.duration} Yrs</td>
-                <td class="px-6 py-4 text-right">
-                    <button onclick="openEditModal('program', ${p.id})" class="text-blue-500 hover:text-blue-700 mr-3"><i class="fas fa-edit"></i></button>
-                    <button onclick="deleteItem('program', ${p.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white whitespace-nowrap">${p.code}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${p.name}</td>
+                <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 py-1 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 rounded text-xs font-bold">${p.type}</span></td>
+                <td class="px-6 py-4 whitespace-nowrap">${p.duration} Years</td>
+                <td class="px-6 py-4 text-right whitespace-nowrap">
+                    <div class="inline-flex items-center gap-3">
+                        <button onclick="openEditModal('program', ${p.id})" class="text-blue-500 hover:text-blue-700"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteItem('program', ${p.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                    </div>
                 </td>
             </tr>`).join('') : `<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No programs found</td></tr>`;
-    }
+            }
 
-    // 2. Branches
-    const branchProgFilter = document.getElementById('filter-branch-program')?.value || "";
-    const bTable = document.getElementById('table-branches');
-    if (bTable) {
-        let filteredBranches = window.allBranches
-            .filter(b => (b.name.toLowerCase().includes(search) || (b.code || '').toLowerCase().includes(search)))
-            .filter(b => branchProgFilter === "" || (b.program_name || window.allPrograms.find(p => p.id == b.program_id)?.name) === branchProgFilter);
-        
-        bTable.innerHTML = filteredBranches.length > 0 ? filteredBranches.map(b => {
-                let program = window.allPrograms.find(p => p.id == b.program_id) || {};
-                let pName = b.program_name || b.program || program.name || '-';
-                let pDur = b.program_duration || program.duration || '-';
-                
-                return `
-                <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                    <td class="px-6 py-4 text-xs font-medium text-gray-600 dark:text-gray-300">${pName}</td>
-                    <td class="px-6 py-4">${b.name}</td>
-                    <td class="px-6 py-4">${b.code || '-'}</td>
-                    <td class="px-6 py-4">${pDur} Years</td>
-                    <td class="px-6 py-4 text-right">
-                        <button onclick="openEditModal('branch', ${b.id})" class="text-blue-500 hover:text-blue-700 mr-3"><i class="fas fa-edit"></i></button>
-                        <button onclick="deleteItem('branch', ${b.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-                `;
-            }).join('') : `<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No branches found</td></tr>`;
-    }
 
-    // 3. Sections
-    const secProgFilter = document.getElementById('filter-section-prog')?.value || "";
-    const secBranchFilter = document.getElementById('filter-section-branch-list')?.value || "";
-    const secTable = document.getElementById('table-sections');
-    if (secTable) {
-        let filteredSections = window.allSections
-            .filter(s => (s.name.toLowerCase().includes(search) || (s.branch_name || '').toLowerCase().includes(search)))
-            .filter(s => secProgFilter === "" || (s.program_name || window.allBranches.find(b => b.id == s.branch_id)?.program_name) === secProgFilter)
-            .filter(s => secBranchFilter === "" || (s.branch_name || window.allBranches.find(b => b.id == s.branch_id)?.name) === secBranchFilter);
-        
-        secTable.innerHTML = filteredSections.length > 0 ? filteredSections.map(s => {
-                let branch = window.allBranches.find(b => b.id == s.branch_id) || {};
-                let program = window.allPrograms.find(p => p.id == (s.program_id || branch.program_id)) || {};
-                
-                let pName = s.program_name || s.program || program.name || '-';
-                let bName = s.branch_name || s.branch || branch.name || '-';
-                
-                let sYear = (s.year && String(s.year) !== 'undefined' && String(s.year) !== 'null') ? s.year : '-';
-                let sSem = (s.semester || s.sem);
-                sSem = (sSem && String(sSem) !== 'undefined' && String(sSem) !== 'null') ? sSem : '-';
+            // 2. Branches
+            const branchProgFilter = document.getElementById('filter-branch-program')?.value || "";
+            const bTable = document.getElementById('table-branches');
+            if (bTable) {
+                let filteredBranches = window.allBranches
+                    .filter(b => (b.name.toLowerCase().includes(search) || (b.code || '').toLowerCase().includes(search)))
+                    .filter(b => branchProgFilter === "" || (b.program_name || window.allPrograms.find(p => p.id == b.program_id)?.name) === branchProgFilter);
 
-                return `
-                <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                    <td class="px-6 py-4 text-xs font-medium text-gray-600 dark:text-gray-300">${pName} > ${bName}</td>
-                    <td class="px-6 py-4">Year ${sYear}, Sem ${sSem}</td> <td class="px-6 py-4">${s.name}</td>
-                    <td class="px-6 py-4 text-right">
-                        <button onclick="openEditModal('section', ${s.id})" class="text-blue-500 hover:text-blue-700 mr-3"><i class="fas fa-edit"></i></button>
-                        <button onclick="deleteItem('section', ${s.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-                `;
-            }).join('') : `<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">No sections found</td></tr>`;
-    }
-
-    // 4. Subjects (This block handles the screenshot you shared)
-    const subProgFilter = document.getElementById('filter-subject-prog')?.value || "";
-    const subBranchFilter = document.getElementById('filter-subject-branch-list')?.value || "";
-    const subTable = document.getElementById('table-subjects');
-    
-    if (subTable) {
-        let filteredSubjects = window.allSubjects
-            .filter(sub => (sub.name.toLowerCase().includes(search) || sub.code.toLowerCase().includes(search)))
-            .filter(sub => {
-                let b = window.allBranches.find(br => br.id == sub.branch_id) || {};
-                let pName = sub.program_name || window.allPrograms.find(p => p.id == (sub.program_id || b.program_id))?.name;
-                return subProgFilter === "" || pName === subProgFilter;
-            })
-            .filter(sub => {
-                let bName = sub.branch_name || window.allBranches.find(br => br.id == sub.branch_id)?.name;
-                return subBranchFilter === "" || bName === subBranchFilter;
-            });
-
-        subTable.innerHTML = filteredSubjects.length > 0 ? filteredSubjects.map(sub => {
-            // Robust checks to prevent "UNDEFINED" text
-            let branch = window.allBranches.find(b => b.id == sub.branch_id) || {};
-            let program = window.allPrograms.find(p => p.id == (sub.program_id || branch.program_id)) || {};
-            let section = window.allSections.find(s => s.id == sub.section_id) || {};
-
-            let pName = sub.program_name || program.name || '-';
-            let bName = sub.branch_name || branch.name || '-';
-            let secName = sub.section_name || section.name || '-';
-            
-            let sYear = (sub.year && String(sub.year) !== 'undefined' && String(sub.year) !== 'null') ? sub.year : (section.year || '-');
-            let sSem = (sub.semester || sub.sem || section.semester || section.sem);
-            sSem = (sSem && String(sSem) !== 'undefined' && String(sSem) !== 'null') ? sSem : '-';
-
-            return `
+                bTable.innerHTML = filteredBranches.length > 0 ? filteredBranches.map(b => {
+                    let program = window.allPrograms.find(p => p.id == b.program_id) || {};
+                    let pName = b.program_name || b.program || program.name || '-';
+                    let pDur = b.program_duration || program.duration || '-';
+                    return `
             <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                <td class="px-6 py-4 text-xs font-medium text-gray-600 dark:text-gray-300">${pName} > ${bName}</td>
-                <td class="px-6 py-4">Year ${sYear}, Sem ${sSem}</td> <td class="px-6 py-4">${secName}</td>
-                <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">${sub.name} (${sub.code})</td>
-                <td class="px-6 py-4">${sub.credits || '-'}</td>
-                <td class="px-6 py-4 text-right flex justify-end gap-3">
-                    <button onclick="openEditModal('subject', ${sub.id})" class="text-blue-500 hover:text-blue-700"><i class="fas fa-edit"></i></button>
-                    <button onclick="deleteItem('subject', ${sub.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                <td class="px-6 py-4 text-xs font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap">${pName}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${b.name}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${b.code || '-'}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${pDur} Years</td>
+                <td class="px-6 py-4 text-right whitespace-nowrap">
+                    <div class="inline-flex items-center gap-3">
+                        <button onclick="openEditModal('branch', ${b.id})" class="text-blue-500 hover:text-blue-700"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteItem('branch', ${b.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                    </div>
+                </td>
+            </tr>`;
+                }).join('') : `<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No branches found</td></tr>`;
+            }
+
+            // 3. Sections
+            const secProgFilter = document.getElementById('filter-section-prog')?.value || "";
+            const secBranchFilter = document.getElementById('filter-section-branch-list')?.value || "";
+            const sTable = document.getElementById('table-sections');
+            if (sTable) {
+                let filteredSections = window.allSections
+                    .filter(s => s.name.toLowerCase().includes(search) || (s.branch_name || '').toLowerCase().includes(search))
+                    .filter(s => {
+                        let bName = s.branch_name || window.allBranches.find(b => b.id == s.branch_id)?.name || '';
+                        let pName = s.program_name || window.allPrograms.find(p => p.id == s.program_id)?.name || '';
+                        if (!pName) {
+                            let b = window.allBranches.find(br => br.id == s.branch_id);
+                            if (b) pName = b.program_name || window.allPrograms.find(p => p.id == b.program_id)?.name;
+                        }
+
+                        let matchesProg = secProgFilter === "" || pName === secProgFilter;
+                        let matchesBranch = secBranchFilter === "" || bName === secBranchFilter;
+                        return matchesProg && matchesBranch;
+                    });
+
+                sTable.innerHTML = filteredSections.length > 0 ? filteredSections.map(s => {
+                    let branch = window.allBranches.find(b => b.id == s.branch_id) || {};
+                    let bName = s.branch_name || s.branch || branch.name || '-';
+                    let pName = s.program_name || s.program || branch.program_name || window.allPrograms.find(p => p.id == branch.program_id)?.name || '-';
+
+                    return `
+            <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <td class="px-6 py-4 text-xs font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap">${pName} > ${bName}</td>
+                <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white whitespace-nowrap">Year ${s.year}, Sem ${s.semester}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${s.name}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${s.capacity || '-'}</td>
+                <td class="px-6 py-4 text-right whitespace-nowrap">
+                    <div class="inline-flex items-center gap-3">
+                        <button onclick="openEditModal('section', ${s.id})" class="text-blue-500 hover:text-blue-700"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteItem('section', ${s.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                    </div>
                 </td>
             </tr>
             `;
-        }).join('') : `<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No subjects found</td></tr>`;
-    }
-}
+                }).join('') : `<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No sections found</td></tr>`;
+            }
 
-   // --- AUTH ---
-    function logoutAdmin() {
-        localStorage.removeItem("adminLogin");
-        fetch('/auth/logout', { method: 'POST' })
-            .then(() => window.location.href = '/login');
-    }
-</script>
+            // 4. Subjects
+            const subProgFilter = document.getElementById('filter-subject-prog')?.value || "";
+            const subBranchFilter = document.getElementById('filter-subject-branch-list')?.value || "";
+            const subTable = document.getElementById('table-subjects');
+            if (subTable) {
+                let filteredSubjects = window.allSubjects
+                    .filter(sub => (sub.name.toLowerCase().includes(search) || (sub.code || '').toLowerCase().includes(search)))
+                    .filter(sub => {
+                        let sName = sub.section_name || window.allSections.find(sec => sec.id == sub.section_id)?.name || '';
+                        let sec = window.allSections.find(sec => sec.id == sub.section_id) || {};
+                        let bName = sub.branch_name || sec.branch_name || window.allBranches.find(b => b.id == sec.branch_id)?.name || '';
+                        let pName = sub.program_name || sec.program_name || window.allPrograms.find(p => p.id == sec.program_id)?.name || '';
+
+                        if (!pName) {
+                            let b = window.allBranches.find(br => br.id == sec.branch_id);
+                            if (b) pName = b.program_name || window.allPrograms.find(p => p.id == b.program_id)?.name;
+                        }
+
+                        let matchesProg = subProgFilter === "" || pName === subProgFilter;
+                        let matchesBranch = subBranchFilter === "" || bName === subBranchFilter;
+                        return matchesProg && matchesBranch;
+                    });
+
+                subTable.innerHTML = filteredSubjects.length > 0 ? filteredSubjects.map(sub => {
+                    let sec = window.allSections.find(s => s.id == sub.section_id) || {};
+                    let branch = window.allBranches.find(b => b.id == sec.branch_id) || {};
+                    let bName = sub.branch_name || sec.branch_name || branch.name || '-';
+                    let pName = sub.program_name || sec.program_name || branch.program_name || window.allPrograms.find(p => p.id == branch.program_id)?.name || '-';
+                    let sYear = sub.year || sec.year || '-';
+                    let sSem = sub.semester || sec.semester || '-';
+                    let secName = sub.section_name || sec.name || '-';
+
+                    return `
+            <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <td class="px-6 py-4 text-xs font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap">${pName} > ${bName}</td>
+                <td class="px-6 py-4 whitespace-nowrap">Year ${sYear}, Sem ${sSem}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${secName}</td>
+                <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white whitespace-nowrap">${sub.name} (${sub.code})</td>
+                <td class="px-6 py-4 whitespace-nowrap">${sub.credits || '-'}</td>
+                <td class="px-6 py-4 text-right whitespace-nowrap">
+                    <div class="inline-flex items-center gap-3">
+                        <button onclick="openEditModal('subject', ${sub.id})" class="text-blue-500 hover:text-blue-700"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteItem('subject', ${sub.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                    </div>
+                </td>
+            </tr>
+            `;
+                }).join('') : `<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No subjects found</td></tr>`;
+            }
+        }
+    </script>
 </body>
 
 </html>

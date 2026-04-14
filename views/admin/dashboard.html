@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CampusCode</title>
-<link rel="icon" href="/campuscode-logo.jpeg" type="image/jpeg" />
+    <link rel="icon" href="/campuscode-logo.jpeg" type="image/jpeg" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet" />
@@ -28,10 +28,27 @@
         };
     </script>
     <script>
-        // Runs instantly before the page paints to screen
-        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        }
+        // 1. Immediately apply the theme on page load to prevent flashing
+        (function () {
+            const savedTheme = localStorage.getItem('theme');
+            // If your index.html uses a different key, replace 'theme' with that key (e.g., 'color-theme')
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+
+        // 2. Listen for theme changes across different tabs dynamically
+        window.addEventListener('storage', function (event) {
+            if (event.key === 'theme') {
+                if (event.newValue === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+        });
     </script>
 
     <style>
@@ -173,19 +190,23 @@
                     <i class="fas fa-chevron-left transition-transform duration-300"></i>
                 </button>
             </div>
-            
+
             <nav class="flex-1 px-4 space-y-1 overflow-y-auto mt-2">
                 <a href="/college/dashboard" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
-                <a href="/college/program" class="nav-item"><i class="fa-solid fa-layer-group"></i><span>Programs</span></a>
+                <a href="/college/program" class="nav-item"><i
+                        class="fa-solid fa-layer-group"></i><span>Programs</span></a>
                 <a href="/college/contest" class="nav-item"><i class="fas fa-trophy"></i><span>Contests</span></a>
                 <a href="/college/manage_user" class="nav-item"><i class="fa-solid fa-users"></i><span>User</span></a>
-                <a href="/college/community" class="nav-item active"><i class="fas fa-comments"></i><span>Community</span></a>
+                <a href="/college/community" class="nav-item active"><i
+                        class="fas fa-comments"></i><span>Community</span></a>
                 <a href="/college/report" class="nav-item"><i class="fas fa-file-invoice"></i><span>Reports</span></a>
                 <a href="/college/profile" class="nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
             </nav>
 
-            <div class="p-4 space-y-1 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0 bottom-menu">
-                <a href="/college/help_support" class="nav-item"><i class="far fa-question-circle"></i><span>Help & Support</span></a>
+            <div
+                class="p-4 space-y-1 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0 bottom-menu">
+                <a href="/college/help_support" class="nav-item"><i class="far fa-question-circle"></i><span>Help &
+                        Support</span></a>
                 <a href="/college/setting" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
             </div>
         </aside>
@@ -193,7 +214,7 @@
         <div class="flex-1 overflow-y-auto">
             <header class="bg-white dark:bg-gray-800 shadow-sm transition-colors duration-200 sticky top-0 z-40">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
-                    
+
                     <div class="flex-1">
                         <h2 class="text-lg font-bold text-gray-800 dark:text-white flex items-center">
                             <span id="headerCollegeName">Loading College...</span>
@@ -206,7 +227,7 @@
                             <i class="fas fa-moon text-xl transition-all duration-300"></i>
                         </button>
 
-                               <div class="relative">
+                        <div class="relative">
                             <button id="notificationBtn"
                                 class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none">
                                 <i class="fas fa-bell text-xl"></i>
@@ -244,8 +265,10 @@
                 <div class="mb-8">
                     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
                         <div>
-                            <h1 id="adminGreeting" class="text-2xl font-bold text-gray-800 dark:text-white">Welcome, Admin! 👋</h1>
-                            <p class="text-gray-600 dark:text-gray-400 mt-1">Overview of college statistics and activities</p>
+                            <h1 id="adminGreeting" class="text-2xl font-bold text-gray-800 dark:text-white">Welcome,
+                                Admin! 👋</h1>
+                            <p class="text-gray-600 dark:text-gray-400 mt-1">Overview of college statistics and
+                                activities</p>
                         </div>
 
                         <div class="flex flex-wrap items-center gap-3">
@@ -265,7 +288,8 @@
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6">
-                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 transition-colors group hover:border-red-400 dark:hover:border-red-400">
+                        <div
+                            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 transition-colors group hover:border-red-400 dark:hover:border-red-400">
                             <div class="flex items-center gap-4">
                                 <div class="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400">
                                     <i class="fa-solid fa-user-clock text-2xl"></i>
@@ -277,9 +301,11 @@
                             </div>
                         </div>
 
-                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 transition-colors group hover:border-primary-400 dark:hover:border-primary-400">
+                        <div
+                            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 transition-colors group hover:border-primary-400 dark:hover:border-primary-400">
                             <div class="flex items-center gap-4">
-                                <div class="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                                <div
+                                    class="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
                                     <i class="fa-solid fa-graduation-cap text-2xl"></i>
                                 </div>
                                 <div>
@@ -289,9 +315,11 @@
                             </div>
                         </div>
 
-                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 transition-colors group hover:border-primary-400 dark:hover:border-primary-400">
+                        <div
+                            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 transition-colors group hover:border-primary-400 dark:hover:border-primary-400">
                             <div class="flex items-center gap-4">
-                                <div class="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400">
+                                <div
+                                    class="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400">
                                     <i class="fa-solid fa-chalkboard-user text-2xl"></i>
                                 </div>
                                 <div>
@@ -301,9 +329,11 @@
                             </div>
                         </div>
 
-                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 transition-colors group hover:border-primary-400 dark:hover:border-primary-400">
+                        <div
+                            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 transition-colors group hover:border-primary-400 dark:hover:border-primary-400">
                             <div class="flex items-center gap-4">
-                                <div class="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400">
+                                <div
+                                    class="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400">
                                     <i class="fa-solid fa-layer-group text-2xl"></i>
                                 </div>
                                 <div>
@@ -313,9 +343,11 @@
                             </div>
                         </div>
 
-                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 transition-colors group hover:border-primary-400 dark:hover:border-primary-400">
+                        <div
+                            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 transition-colors group hover:border-primary-400 dark:hover:border-primary-400">
                             <div class="flex items-center gap-4">
-                                <div class="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400">
+                                <div
+                                    class="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400">
                                     <i class="fa-solid fa-trophy text-2xl"></i>
                                 </div>
                                 <div>
@@ -328,13 +360,17 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 flex flex-col">
+                    <div
+                        class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 flex flex-col">
                         <div class="flex justify-between items-start mb-4">
                             <div>
-                                <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Monthly Engagement Trends</h2>
-                                <p class="text-xs text-gray-500 mt-1">Comparing Active Logins with Total Platform Interactions</p>
+                                <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Monthly Engagement
+                                    Trends</h2>
+                                <p class="text-xs text-gray-500 mt-1">Comparing Active Logins with Total Platform
+                                    Interactions</p>
                             </div>
-                            <div class="p-2 bg-primary-50 dark:bg-primary-900/20 rounded-lg text-primary-600 dark:text-primary-400">
+                            <div
+                                class="p-2 bg-primary-50 dark:bg-primary-900/20 rounded-lg text-primary-600 dark:text-primary-400">
                                 <i class="fa-solid fa-chart-column"></i>
                             </div>
                         </div>
@@ -343,7 +379,8 @@
                         </div>
                     </div>
 
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 flex flex-col">
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 flex flex-col">
                         <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">User Distribution</h2>
                         <div class="flex-1 flex items-center justify-center relative min-h-[250px]">
                             <canvas id="pieChart"></canvas>
@@ -351,15 +388,20 @@
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mb-6">
-                    <div class="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800 relative z-20">
+                <div
+                    class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mb-6">
+                    <div
+                        class="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800 relative z-20">
                         <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Recent Registrations</h2>
-                        <a href="/college/manage_user" class="text-sm font-medium text-primary-500 hover:text-primary-600 transition-colors">View Directory →</a>
+                        <a href="/college/manage_user"
+                            class="text-sm font-medium text-primary-500 hover:text-primary-600 transition-colors">View
+                            Directory →</a>
                     </div>
 
                     <div class="overflow-x-auto max-h-[300px] overflow-y-auto relative">
                         <table class="w-full text-left border-collapse">
-                            <thead class="bg-gray-50 dark:bg-gray-800/90 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 sticky top-0 z-10 shadow-sm backdrop-blur-sm">
+                            <thead
+                                class="bg-gray-50 dark:bg-gray-800/90 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 sticky top-0 z-10 shadow-sm backdrop-blur-sm">
                                 <tr>
                                     <th class="py-3 px-6 font-medium">Name</th>
                                     <th class="py-3 px-6 font-medium">Email</th>
@@ -369,7 +411,8 @@
                             </thead>
                             <tbody id="recentUsersBody" class="divide-y divide-gray-100 dark:divide-gray-700/50">
                                 <tr>
-                                    <td colspan="4" class="p-6 text-center text-sm text-gray-500">Loading recent users...</td>
+                                    <td colspan="4" class="p-6 text-center text-sm text-gray-500">Loading recent
+                                        users...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -381,7 +424,8 @@
     </div>
     <div id="profileOverlay"
         class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
-        <div class="bg-white dark:bg-gray-800 w-[320px] rounded-3xl overflow-hidden shadow-2xl transform transition-all duration-300 scale-95 opacity-0">
+        <div
+            class="bg-white dark:bg-gray-800 w-[320px] rounded-3xl overflow-hidden shadow-2xl transform transition-all duration-300 scale-95 opacity-0">
             <div class="bg-[#1e4a7a] p-6 text-center relative h-32">
                 <button onclick="toggleProfile(event)" class="absolute top-4 right-4 text-white/80 hover:text-white">
                     <i class="fas fa-times text-lg"></i>
@@ -395,7 +439,8 @@
             <div class="pt-12 pb-6 px-6 text-center">
                 <h3 id="profileOverlayName" class="text-xl font-bold text-gray-800 dark:text-white">Loading...</h3>
                 <p id="profileOverlayCollege" class="text-xs text-gray-500 flex items-center justify-center gap-1 mt-1">
-                    <i class="fas fa-university"></i> Loading...</p>
+                    <i class="fas fa-university"></i> Loading...
+                </p>
                 <p id="profileOverlayRole" class="text-xs text-gray-500 mb-3 flex items-center justify-center gap-1">
                     Role: Loading...</p>
 
@@ -418,27 +463,39 @@
                     <a href="/college/profile" class="block">
                         <button
                             class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
-                            <div class="flex items-center gap-3"><i class="fas fa-user-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">My Profile</span></div>
-                            <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                            <div class="flex items-center gap-3"><i
+                                    class="fas fa-user-circle text-primary-400"></i><span
+                                    class="text-sm font-medium text-gray-700 dark:text-gray-200">My Profile</span></div>
+                            <i
+                                class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
                         </button>
                     </a>
 
                     <a href="/college/help_support" class="block">
                         <button
                             class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
-                            <div class="flex items-center gap-3"><i class="fas fa-question-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">Help & Support</span></div>
-                            <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                            <div class="flex items-center gap-3"><i
+                                    class="fas fa-question-circle text-primary-400"></i><span
+                                    class="text-sm font-medium text-gray-700 dark:text-gray-200">Help & Support</span>
+                            </div>
+                            <i
+                                class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
                         </button>
                     </a>
- <a href="setting.html">
-                            <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
-                                <div class="flex items-center gap-3"><i class="fas fa-cog text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200"> System Setting</span></div>
-                                <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
-                            </button>
-                        </a>
+                    <a href="setting.html">
+                        <button
+                            class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                            <div class="flex items-center gap-3"><i class="fas fa-cog text-primary-400"></i><span
+                                    class="text-sm font-medium text-gray-700 dark:text-gray-200"> System Setting</span>
+                            </div>
+                            <i
+                                class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </a>
                     <button id="logoutBtn" onclick="handleLogout()"
                         class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
-                        <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center">
+                        <div
+                            class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center">
                             <i class="fas fa-sign-out-alt"></i>
                         </div>
                         <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
@@ -687,25 +744,25 @@
                     if (contestsData.success) {
                         const contestsArray = contestsData.data || [];
                         const el = document.getElementById('overlayStatContests');
-                        if(el) el.textContent = contestsArray.length || 0;
+                        if (el) el.textContent = contestsArray.length || 0;
 
                         // Guarantee Dashboard update in case dashboard-data is delayed or missed
                         const mainContestEl = document.getElementById('statContests');
-                        if(mainContestEl && (mainContestEl.textContent === '0' || mainContestEl.textContent === '')) {
+                        if (mainContestEl && (mainContestEl.textContent === '0' || mainContestEl.textContent === '')) {
                             mainContestEl.textContent = contestsArray.length || 0;
                         }
                     }
-                    
-                    if (usersData.success || usersData.users) { 
+
+                    if (usersData.success || usersData.users) {
                         const el = document.getElementById('overlayStatUsers');
                         const usersArray = usersData.users || usersData;
-                        if(el) el.textContent = Array.isArray(usersArray) ? usersArray.length : 0;
+                        if (el) el.textContent = Array.isArray(usersArray) ? usersArray.length : 0;
                     }
-                    
+
                     if (programsData.success || Array.isArray(programsData) || programsData.data) {
                         const el = document.getElementById('overlayStatPrograms');
                         const programsArray = Array.isArray(programsData) ? programsData : (programsData.data || []);
-                        if(el) el.textContent = programsArray.length || 0;
+                        if (el) el.textContent = programsArray.length || 0;
                     }
                 } catch (error) {
                     console.error("Failed to load overlay stats:", error);

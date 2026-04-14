@@ -29,7 +29,29 @@
       }
     }
   </script>
+<script>
+    // 1. Immediately apply the theme on page load to prevent flashing
+    (function () {
+        const savedTheme = localStorage.getItem('theme');
+        // If your index.html uses a different key, replace 'theme' with that key (e.g., 'color-theme')
+        if (savedTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    })();
 
+    // 2. Listen for theme changes across different tabs dynamically
+    window.addEventListener('storage', function (event) {
+        if (event.key === 'theme') {
+            if (event.newValue === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+    });
+</script>
   <style>
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -515,7 +537,35 @@ if (themeToggleBtn) {
         else { localStorage.theme = 'light'; if (themeIcon) themeIcon.classList.replace('fa-sun', 'fa-moon'); }
     });
 }
+document.addEventListener('DOMContentLoaded', () => {
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    if (themeToggleBtn) {
+        const themeIcon = themeToggleBtn.querySelector('i');
 
+        // 1. Set the correct icon on load based on the current theme
+        if (document.documentElement.classList.contains('dark')) {
+            themeIcon.classList.remove('fa-moon');
+            themeIcon.classList.add('fa-sun');
+        }
+
+        // 2. Add click event listener to toggle theme
+        themeToggleBtn.addEventListener('click', () => {
+            // Toggle the 'dark' class on the html element
+            const isDark = document.documentElement.classList.toggle('dark');
+            
+            // Update localStorage and the icon
+            if (isDark) {
+                localStorage.setItem('theme', 'dark');
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                localStorage.setItem('theme', 'light');
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        });
+    }
+});
 // ====== DYNAMIC DATA LOGIC ======
 document.addEventListener('DOMContentLoaded', () => {
     const themeToggleBtn = document.getElementById('themeToggleBtn');
@@ -1271,27 +1321,32 @@ async function bulkDelete() {
 async function bulkVerify() {
     const checkboxes = document.querySelectorAll('.user-checkbox:checked');
     const userIds = Array.from(checkboxes).map(cb => cb.value);
-
+    
     if (userIds.length === 0) return;
     if (!confirm(`Are you sure you want to verify ${userIds.length} selected users?`)) return;
 
     try {
-        const promises = userIds.map(id => fetch(`/college/api/pending-faculty/${id}/approve`, {
-            method: 'POST', headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({})
-        }));
+        // Fix: Use the correct bulk-status API endpoint
+        const res = await fetch('/college/api/users/bulk-status', {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ userIds: userIds, status: 'active' })
+        });
         
-        await Promise.all(promises);
-        alert("Selected users verified successfully!");
+        const data = await res.json();
         
-        fetchData();
-        
-        const btn = document.getElementById('bulkVerifyBtn');
-        const selectAll = document.getElementById('selectAllCheckbox');
-        if(btn) btn.classList.add('hidden');
-        if(selectAll) selectAll.checked = false;
+        if (data.success) {
+            alert("Selected users verified and assigned successfully!");
+            fetchData(); // Refresh table
+            const btn = document.getElementById('bulkVerifyBtn');
+            const selectAll = document.getElementById('selectAllCheckbox');
+            if(btn) btn.classList.add('hidden');
+            if(selectAll) selectAll.checked = false;
+        } else {
+            alert(data.message || "Failed to verify users.");
+        }
     } catch (error) {
-        console.error(error);
+        console.error("Bulk verification error:", error);
         alert("An error occurred during bulk verification.");
     }
 }
@@ -1465,6 +1520,71 @@ async function processBulkImport() {
 }
 
 document.addEventListener('DOMContentLoaded', fetchData);
+// ==========================================
+// 1. ADD THIS: Bulk Approve Frontend Logic
+// ==========================================
+async function approveSelectedUsers() {
+    // Make sure your checkboxes in the table have the class 'user-checkbox' and their value is the user's ID
+    const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
+    const selectedIds = Array.from(selectedCheckboxes).map(cb => cb.value);
+
+    if (selectedIds.length === 0) {
+        alert("Please select at least one user to approve.");
+        return;
+    }
+
+    try {
+        const res = await fetch('/college/api/users/bulk-approve', { // Adjust path if your admin routes are mounted differently
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userIds: selectedIds })
+        });
+
+        const result = await res.json();
+        if (result.success) {
+            alert(result.message);
+            fetchData();     // Refresh the user table
+            fetchRealTimeStats(); // Refresh the active users count
+        } else {
+            alert(result.message || "Failed to approve users.");
+        }
+    } catch (error) {
+        console.error("Error bulk approving:", error);
+        alert("An error occurred while approving users.");
+    }
+}
+
+// ==========================================
+// 2. ADD THIS: Real-time Stats Fetching Logic
+// ==========================================
+async function fetchRealTimeStats() {
+    try {
+        const res = await fetch('/college/api/stats'); // Adjust path if necessary
+        const data = await res.json();
+        
+        if (data.success) {
+            // Update your HTML elements with these IDs
+            const activeElem = document.getElementById('active-users-count');
+            const collegeRankElem = document.getElementById('college-rank');
+            const globalRankElem = document.getElementById('global-rank');
+
+            if (activeElem) activeElem.innerText = data.activeUsers;
+            if (collegeRankElem) collegeRankElem.innerText = data.collegeRank;
+            if (globalRankElem) globalRankElem.innerText = data.globalRank;
+        }
+    } catch (error) {
+        console.error("Error fetching real-time stats:", error);
+    }
+}
+
+// Update your DOMContentLoaded listener to start the real-time fetch
+document.addEventListener('DOMContentLoaded', () => {
+    fetchData(); // Your existing function
+    fetchRealTimeStats(); // Fetch stats immediately on load
+    
+    // Poll for real-time updates every 30 seconds
+    setInterval(fetchRealTimeStats, 30000); 
+});
 </script>
 </body>
 </html>

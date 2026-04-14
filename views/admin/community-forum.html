@@ -151,7 +151,7 @@
             font-weight: 500;
         }
 
-        /* Advanced Filter and Card Styling from forum.html reference */
+        /* Advanced Filter and Card Styling */
         .filter-btn {
             transition: all 0.2s ease;
         }
@@ -166,21 +166,6 @@
             background-color: #1e4a7a;
             color: #fff;
             border-color: #60a5fa;
-        }
-
-        .topic-card {
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .topic-card.selected {
-            border-color: #3b82f6;
-            background-color: #eff6ff;
-            box-shadow: 0 4px 10px rgba(59, 130, 246, .08);
-        }
-
-        .dark .topic-card.selected {
-            background-color: rgba(30, 58, 138, .2);
         }
     </style>
 </head>
@@ -289,109 +274,162 @@
                         </div>
                         <div class="flex flex-wrap gap-3">
                             <button onclick="window.location.href='/college/dashboard'"
-                                class="px-5 py-2.5 rounded-xl bg-white/15 hover:bg-white/20 border border-white/20 text-sm font-semibold transition">Back
+                                class="px-6 py-2.5 rounded-xl bg-white/15 hover:bg-white/20 border border-white/20 text-sm font-semibold transition">Back
                                 to Dashboard</button>
                             <button onclick="toggleCreateModal()"
-                                class="px-5 py-2.5 rounded-xl bg-white text-primary-600 text-sm font-semibold shadow-sm hover:bg-blue-50 transition flex items-center"><i
+                                class="px-6 py-2.5 rounded-xl bg-white text-primary-600 text-sm font-semibold shadow-sm hover:bg-blue-50 transition flex items-center"><i
                                     class="fas fa-plus mr-2"></i> Start Discussion</button>
                         </div>
                     </div>
                 </section>
 
                 <section
-                    class="mb-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+                    class="mb-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-200 dark:border-gray-700 transition-colors duration-200">
                     <div class="flex flex-wrap gap-3 items-center">
                         <div id="scope-filters-container" class="flex gap-2"></div>
 
                         <select id="sort-select" onchange="fetchThreads()"
-                            class="px-5 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-semibold text-gray-800 dark:text-gray-100 ml-auto lg:ml-0">
+                            class="px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all ml-auto lg:ml-0">
                             <option value="latest">Latest Updates</option>
                             <option value="popular">Most Popular</option>
                         </select>
 
                         <button onclick="toggleTopicModal()" id="addTopicBtn"
-                            class="ml-auto px-4 py-2 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold transition flex items-center">
+                            class="ml-auto px-6 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold shadow-sm transition-all flex items-center">
                             <i class="fas fa-plus mr-2"></i> Add Topic
                         </button>
                     </div>
                 </section>
 
-                <section id="categories-container" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"></section>
+                <section id="categories-container" class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8"></section>
 
                 <div id="discussions-container" class="space-y-4"></div>
             </main>
         </div>
     </div>
 
-    <div id="topicModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40 p-4">
+    <div id="topicModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
         <div
-            class="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-xl">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Add Forum Topic</h3>
+            class="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-xl transition-colors duration-200">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-white flex items-center">
+                    <span class="w-2 h-6 bg-primary-400 rounded-full mr-3"></span>Add Forum Topic
+                </h3>
                 <button onclick="toggleTopicModal()"
-                    class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                    <i class="fas fa-times"></i>
+                    class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
+                    <i class="fas fa-times text-lg"></i>
                 </button>
             </div>
-            <form id="topicForm" class="space-y-3" onsubmit="event.preventDefault(); toggleTopicModal();">
-                <input id="topicNameInput" type="text" placeholder="Topic name (e.g. DevOps)"
-                    class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100"
-                    required />
-                <input id="topicSlugInput" type="text" placeholder="Optional slug (e.g. devops)"
-                    class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100" />
-                <input id="topicIconInput" type="text" placeholder="Optional icon class (fas fa-cloud)"
-                    class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100" />
+            <form id="topicForm" class="space-y-4" onsubmit="event.preventDefault(); toggleTopicModal();">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Topic Name <span class="text-red-500">*</span></label>
+                    <input id="topicNameInput" type="text" placeholder="e.g. DevOps"
+                        class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition-all" required />
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Slug</label>
+                    <input id="topicSlugInput" type="text" placeholder="e.g. devops"
+                        class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition-all" />
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Icon Class</label>
+                    <input id="topicIconInput" type="text" placeholder="e.g. fas fa-cloud"
+                        class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition-all" />
+                </div>
                 <p id="topicFormMsg" class="text-sm hidden"></p>
-                <button type="submit"
-                    class="w-full px-4 py-2 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold transition">Create
-                    Topic</button>
+                <div class="pt-4 flex justify-end gap-3 border-t border-gray-100 dark:border-gray-700 mt-6">
+                    <button type="button" onclick="toggleTopicModal()" class="px-6 py-2.5 rounded-xl text-center text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Cancel</button>
+                    <button type="submit"
+                        class="px-6 py-2.5 rounded-xl text-sm font-semibold bg-primary-500 text-white hover:bg-primary-600 shadow-sm transition-all">Create Topic</button>
+                </div>
             </form>
         </div>
     </div>
 
     <div id="createModal"
-        class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/60 backdrop-blur-sm">
-        <div
-            class="bg-white dark:bg-gray-800 w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden transform transition-all">
-            <div
-                class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900">
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Start New Discussion</h3>
-                <button onclick="toggleCreateModal()"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"><i
-                        class="fas fa-times text-lg"></i></button>
+        class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/60 backdrop-blur-sm overflow-y-auto py-6">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-4xl rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-all relative my-auto">
+            <div class="px-6 py-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-white flex items-center">
+                    <span class="w-2 h-6 bg-primary-400 rounded-full mr-3"></span>Start New Discussion
+                </h3>
+                <button onclick="toggleCreateModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
             </div>
             <div class="p-6">
-                <form id="createThreadForm" onsubmit="submitNewThread(event)">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
-                        <input type="text" id="threadTitle" required
-                            class="w-full px-4 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 outline-none"
-                            placeholder="What do you want to discuss?">
+                <form id="createThreadForm" onsubmit="submitNewThread(event)" class="space-y-6">
+                    
+                    <div>
+                        <label for="threadTitle" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Thread Title <span class="text-red-500">*</span></label>
+                        <input type="text" id="threadTitle" required placeholder="Give your discussion a descriptive title..." 
+                            class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none transition-all">
                     </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Topic /
-                            Category</label>
-                        <select id="threadTopic"
-                            class="w-full px-4 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 outline-none">
-                            <option value="general">General Topic</option>
-                            <option value="algo">Algorithms</option>
-                            <option value="web">Web Development</option>
-                            <option value="back">Backend</option>
-                        </select>
+                    
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Topic Category <span class="text-red-500">*</span></label>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            
+                            <label class="cursor-pointer relative group">
+                                <input type="radio" name="threadTopic" value="general" class="peer sr-only" checked>
+                                <div class="p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-center peer-checked:border-primary-500 peer-checked:bg-primary-50 dark:peer-checked:border-primary-400 dark:peer-checked:bg-primary-900/20 group-hover:border-primary-300 dark:group-hover:border-primary-600 transition-all">
+                                    <i class="fa-solid fa-comments text-xl mb-2 text-primary-500 dark:text-primary-400"></i>
+                                    <div class="font-bold text-sm text-gray-800 dark:text-gray-200">General</div>
+                                </div>
+                            </label>
+                            
+                            <label class="cursor-pointer relative group">
+                                <input type="radio" name="threadTopic" value="algo" class="peer sr-only">
+                                <div class="p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-center peer-checked:border-yellow-500 peer-checked:bg-yellow-50 dark:peer-checked:border-yellow-500 dark:peer-checked:bg-yellow-900/20 group-hover:border-yellow-300 dark:group-hover:border-yellow-600 transition-all">
+                                    <i class="fa-solid fa-brain text-xl mb-2 text-yellow-500"></i>
+                                    <div class="font-bold text-sm text-gray-800 dark:text-gray-200">Algorithms</div>
+                                </div>
+                            </label>
+                            
+                            <label class="cursor-pointer relative group">
+                                <input type="radio" name="threadTopic" value="web" class="peer sr-only">
+                                <div class="p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-center peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:border-blue-500 dark:peer-checked:bg-blue-900/20 group-hover:border-blue-300 dark:group-hover:border-blue-600 transition-all">
+                                    <i class="fa-solid fa-code text-xl mb-2 text-blue-500"></i>
+                                    <div class="font-bold text-sm text-gray-800 dark:text-gray-200">Web Dev</div>
+                                </div>
+                            </label>
+
+                            <label class="cursor-pointer relative group">
+                                <input type="radio" name="threadTopic" value="back" class="peer sr-only">
+                                <div class="p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-center peer-checked:border-green-500 peer-checked:bg-green-50 dark:peer-checked:border-green-500 dark:peer-checked:bg-green-900/20 group-hover:border-green-300 dark:group-hover:border-green-600 transition-all">
+                                    <i class="fa-solid fa-server text-xl mb-2 text-green-500"></i>
+                                    <div class="font-bold text-sm text-gray-800 dark:text-gray-200">Backend</div>
+                                </div>
+                            </label>
+
+                        </div>
                     </div>
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Content</label>
-                        <textarea id="threadContent" required rows="5"
-                            class="w-full px-4 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 outline-none"
-                            placeholder="Write your details here..."></textarea>
+
+                    <div>
+                        <label for="threadContent" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Message Content <span class="text-red-500">*</span></label>
+                        <div class="border border-gray-300 dark:border-gray-600 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-primary-400 focus-within:border-transparent transition-all">
+                            <div class="bg-gray-50 dark:bg-gray-700/80 px-4 py-2 border-b border-gray-300 dark:border-gray-600 flex gap-3 text-gray-500 dark:text-gray-400">
+                                <button type="button" class="hover:text-primary-500 dark:hover:text-primary-400 transition" title="Bold"><i class="fas fa-bold"></i></button>
+                                <button type="button" class="hover:text-primary-500 dark:hover:text-primary-400 transition" title="Italic"><i class="fas fa-italic"></i></button>
+                                <div class="w-px h-5 bg-gray-300 dark:bg-gray-600 mx-1 self-center"></div>
+                                <button type="button" class="hover:text-primary-500 dark:hover:text-primary-400 transition" title="Link"><i class="fas fa-link"></i></button>
+                                <button type="button" class="hover:text-primary-500 dark:hover:text-primary-400 transition" title="Code snippet"><i class="fas fa-code"></i></button>
+                                <button type="button" class="hover:text-primary-500 dark:hover:text-primary-400 transition" title="List"><i class="fas fa-list-ul"></i></button>
+                            </div>
+                            <textarea id="threadContent" rows="8" required placeholder="Describe your issue, share your solution, or ask a question. Markdown is supported..." 
+                                class="w-full px-4 py-3 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 outline-none resize-y border-0 focus:ring-0"></textarea>
+                        </div>
                     </div>
-                    <div class="flex justify-end gap-3">
-                        <button type="button" onclick="toggleCreateModal()"
-                            class="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg font-medium transition-colors">Cancel</button>
-                        <button type="submit" id="submitThreadBtn"
-                            class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors">Post
-                            Discussion</button>
+
+                    <div class="pt-4 border-t border-gray-100 dark:border-gray-700 flex flex-col-reverse sm:flex-row justify-end gap-3 mt-8">
+                        <button type="button" onclick="toggleCreateModal()" class="px-6 py-2.5 rounded-xl text-center text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" id="submitThreadBtn" class="px-6 py-2.5 rounded-xl text-sm font-semibold bg-primary-500 text-white hover:bg-primary-600 shadow-sm transition-all flex justify-center items-center gap-2">
+                            <i class="fa-solid fa-paper-plane"></i> Post Discussion
+                        </button>
                     </div>
+
                 </form>
             </div>
         </div>
@@ -584,8 +622,6 @@
 
                     document.getElementById('headerName').innerText = currentUser.fullName;
                     document.getElementById('headerInitials').innerText = initials;
-
-                    // Note: Removed the old modal updates from here since fetchProfile() handles the new overlay!
                 }
             } catch (err) {
                 console.error("Failed to fetch user context", err);
@@ -623,7 +659,7 @@
             scopeContainer.innerHTML = forumState.scopes.map(scope => {
                 const isActive = scope.id === currentScope;
                 return `<button 
-                    class="filter-btn ${isActive ? 'active' : ''} px-5 py-2 rounded-xl bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-sm font-semibold"
+                    class="filter-btn ${isActive ? 'active' : ''} px-5 py-2.5 rounded-xl bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-sm font-semibold transition-all"
                     onclick="setScope('${scope.id}')"
                 >
                     ${scope.label}
@@ -631,16 +667,32 @@
             }).join('');
         }
 
+        function getCategoryStyle(id, isActive) {
+            const styles = {
+                all: { icon: 'text-purple-500', active: 'border-purple-500 bg-purple-50 dark:border-purple-400 dark:bg-purple-900/20', hover: 'hover:border-purple-300 dark:hover:border-purple-600' },
+                algo: { icon: 'text-yellow-500', active: 'border-yellow-500 bg-yellow-50 dark:border-yellow-500 dark:bg-yellow-900/20', hover: 'hover:border-yellow-300 dark:hover:border-yellow-600' },
+                web: { icon: 'text-blue-500', active: 'border-blue-500 bg-blue-50 dark:border-blue-500 dark:bg-blue-900/20', hover: 'hover:border-blue-300 dark:hover:border-blue-600' },
+                back: { icon: 'text-green-500', active: 'border-green-500 bg-green-50 dark:border-green-500 dark:bg-green-900/20', hover: 'hover:border-green-300 dark:hover:border-green-600' },
+                general: { icon: 'text-primary-500 dark:text-primary-400', active: 'border-primary-500 bg-primary-50 dark:border-primary-400 dark:bg-primary-900/20', hover: 'hover:border-primary-300 dark:hover:border-primary-600' }
+            };
+            const s = styles[id] || styles.general;
+            return {
+                icon: `${s.icon} ${isActive ? '' : 'opacity-80 group-hover:opacity-100'}`,
+                border: isActive ? s.active : `border-gray-200 dark:border-gray-600 ${s.hover}`
+            };
+        }
+
         function renderCategories() {
             const catContainer = document.getElementById('categories-container');
             catContainer.innerHTML = forumState.categories.map(cat => {
                 const isActive = cat.id === currentCategory;
-                const activeClasses = isActive ? 'selected' : '';
+                const style = getCategoryStyle(cat.id, isActive);
+                
                 return `
-                <div class="topic-card ${activeClasses} bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 text-center transition-all duration-200"
+                <div class="p-4 rounded-xl border-2 transition-all cursor-pointer text-center group bg-gray-50 dark:bg-gray-700/50 ${style.border}"
                      onclick="setCategory('${cat.id}')">
-                    <i class="fa-solid ${cat.icon} text-2xl ${isActive ? 'text-blue-600' : 'text-primary-500'}"></i>
-                    <p class="mt-3 text-sm lg:text-base font-bold text-gray-800 dark:text-gray-100">${cat.label}</p>
+                    <i class="fa-solid ${cat.icon} text-xl mb-2 transition-all ${style.icon}"></i>
+                    <div class="font-bold text-sm text-gray-800 dark:text-gray-200">${cat.label}</div>
                 </div>`
             }).join('');
         }
@@ -655,8 +707,8 @@
 
             if (filteredThreads.length === 0) {
                 container.innerHTML = `
-                    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-16 text-center shadow-sm">
-                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 dark:bg-gray-900 mb-4">
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-16 text-center shadow-sm transition-colors duration-200">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 dark:bg-gray-900 mb-4 border border-gray-100 dark:border-gray-700">
                             <i class="fa-regular fa-comments text-2xl text-gray-400"></i>
                         </div>
                         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">No discussions found</h3>
@@ -669,8 +721,8 @@
                 const date = new Date(thread.createdAt).toLocaleDateString();
 
                 return `
-                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-md transition-shadow cursor-pointer flex gap-4 items-start"
-                     onclick="window.location.href='/college/forum/thread/${thread.id}'"> 
+              <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-md transition-all duration-200 cursor-pointer flex gap-4 items-start"
+     onclick="window.location.href='thread.html?id=${thread.id}'">
                     
                     <div class="flex-1">
                         <div class="flex items-center gap-2 mb-1">
@@ -702,12 +754,18 @@
         async function submitNewThread(e) {
             e.preventDefault();
             const btn = document.getElementById('submitThreadBtn');
+            const originalBtnText = btn.innerHTML;
+            
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Posting...';
+
+            // Fetch correctly using names defined in our newly styled form
+            const selectedTopicRadio = document.querySelector('input[name="threadTopic"]:checked');
+            const topicValue = selectedTopicRadio ? selectedTopicRadio.value : 'general';
 
             const payload = {
                 title: document.getElementById('threadTitle').value,
-                topic: document.getElementById('threadTopic').value,
+                topic: topicValue,
                 content: document.getElementById('threadContent').value
             };
 
@@ -731,7 +789,7 @@
                 alert("An error occurred while posting.");
             } finally {
                 btn.disabled = false;
-                btn.innerText = 'Post Discussion';
+                btn.innerHTML = originalBtnText;
             }
         }
 
@@ -756,11 +814,12 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchUserContext();
-            fetchProfile(); // Add this line so the overlay gets populated!
+            fetchProfile(); 
             renderScopes();
             renderCategories();
             fetchThreads();
         });
+
         //fetch profile
         async function fetchProfile() {
             try {
@@ -779,7 +838,7 @@
                     if (headerName) headerName.textContent = name;
                     if (headerInitials) headerInitials.textContent = initials;
 
-                    // Update Modal Overlay with exact new IDs
+                    // Update Modal Overlay
                     const modalName = document.getElementById('profileOverlayName');
                     const modalCollege = document.getElementById('profileOverlayCollege');
                     const modalRole = document.getElementById('profileOverlayRole');
@@ -831,6 +890,7 @@
                 console.error('Error fetching profile and stats:', err);
             }
         }
+
         // notification
         document.addEventListener('DOMContentLoaded', () => {
             const notificationBtn = document.getElementById('notificationBtn');
@@ -839,7 +899,7 @@
             if (notificationBtn && notifDropdown) {
                 // Toggle dropdown when clicking the bell icon
                 notificationBtn.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent click from instantly triggering the document click listener
+                    e.stopPropagation(); 
                     notifDropdown.classList.toggle('hidden');
                 });
 

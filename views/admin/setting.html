@@ -7,7 +7,8 @@
     <title>Settings - CampusCode</title>
     <link rel="icon" href="/campuscode-logo.jpeg" type="image/jpeg" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -28,129 +29,173 @@
             document.documentElement.classList.add('dark');
         }
     </script>
-   <style>
-    /* Custom Scrollbar to match Dashboard */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    .dark ::-webkit-scrollbar-track { background: #111827; }
-    ::-webkit-scrollbar-thumb { background: #7ba4d0; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #2e5e99; }
+    <style>
+        /* Custom Scrollbar to match Dashboard */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
 
-    /* --- Sidebar Logic (Exact Match) --- */
-    .sidebar {
-        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        overflow: hidden;
-    }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
 
-    .sidebar.collapsed {
-        width: 5rem;
-    }
+        .dark ::-webkit-scrollbar-track {
+            background: #111827;
+        }
 
-    .sidebar.collapsed .nav-item {
-        justify-content: center;
-        padding-left: 0;
-        padding-right: 0;
-    }
+        ::-webkit-scrollbar-thumb {
+            background: #7ba4d0;
+            border-radius: 3px;
+        }
 
-    .sidebar.collapsed .nav-item i {
-        margin-right: 0;
-        font-size: 1.25rem;
-    }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2e5e99;
+        }
 
-    .sidebar.collapsed .nav-item span,
-    .sidebar.collapsed .logo-text,
-    .sidebar.collapsed .bottom-menu span {
-        display: none;
-    }
+        /* --- Sidebar Logic (Exact Match) --- */
+        .sidebar {
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
 
-    .sidebar.collapsed .bottom-menu .nav-item {
-        justify-content: center;
-    }
+        .sidebar.collapsed {
+            width: 5rem;
+        }
 
-    /* --- Nav Item Styling (Exact Match) --- */
-    .nav-item {
-        transition: all 0.2s ease;
-        position: relative;
-        display: flex;
-        align-items: center;
-        padding: 0.75rem 1rem; /* Matched to dashboard */
-        margin-bottom: 0.25rem;
-        color: #374151;
-        border-radius: 0.5rem;
-        cursor: pointer;
-        white-space: nowrap;
-        text-decoration: none;
-    }
+        .sidebar.collapsed .nav-item {
+            justify-content: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
 
-    .nav-item:hover {
-        background-color: #f3f4f6;
-        color: #111827;
-    }
+        .sidebar.collapsed .nav-item i {
+            margin-right: 0;
+            font-size: 1.25rem;
+        }
 
-    .dark .nav-item {
-        color: #d1d5db;
-    }
+        .sidebar.collapsed .nav-item span,
+        .sidebar.collapsed .logo-text,
+        .sidebar.collapsed .bottom-menu span {
+            display: none;
+        }
 
-    .dark .nav-item:hover {
-        background-color: #374151;
-        color: #ffffff;
-    }
+        .sidebar.collapsed .bottom-menu .nav-item {
+            justify-content: center;
+        }
 
-    /* Active State styling from Dashboard */
-    .nav-item.active {
-        background-color: #d0e1f5;
-        color: #1e4a7a;
-    }
+        /* --- Nav Item Styling (Exact Match) --- */
+        .nav-item {
+            transition: all 0.2s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            /* Matched to dashboard */
+            margin-bottom: 0.25rem;
+            color: #374151;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            white-space: nowrap;
+            text-decoration: none;
+        }
 
-    .dark .nav-item.active {
-        background-color: #1e4a7a;
-        color: #ffffff;
-    }
+        .nav-item:hover {
+            background-color: #f3f4f6;
+            color: #111827;
+        }
 
-    .nav-item.active::before {
-        content: "";
-        position: absolute;
-        left: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        height: 60%;
-        width: 4px;
-        background-color: #2e5e99;
-        border-radius: 0 4px 4px 0;
-    }
+        .dark .nav-item {
+            color: #d1d5db;
+        }
 
-    .dark .nav-item.active::before {
-        background-color: #60a5fa;
-    }
+        .dark .nav-item:hover {
+            background-color: #374151;
+            color: #ffffff;
+        }
 
-    /* Icon and Text alignment from Dashboard */
-    .nav-item i {
-        width: 1.5rem;
-        text-align: center;
-        margin-right: 0.75rem;
-        font-size: 1.1rem;
-        flex-shrink: 0;
-    }
+        /* Active State styling from Dashboard */
+        .nav-item.active {
+            background-color: #d0e1f5;
+            color: #1e4a7a;
+        }
 
-    .nav-item span {
-        font-size: 0.875rem;
-        font-weight: 500; /* Dashboard uses 500 for nav text */
-    }
+        .dark .nav-item.active {
+            background-color: #1e4a7a;
+            color: #ffffff;
+        }
 
-    /* --- Enhanced Settings Tabs (Kept from your current page) --- */
-    .tab-btn { transition: all 0.3s ease; border-left: 3px solid transparent; }
-    .tab-btn:hover { transform: translateX(4px); }
-    .tab-btn.active { background-color: #E7F0FA !important; color: #1E4A7A !important; border-left-color: #1E4A7A; font-weight: 600; }
-    .dark .tab-btn.active { background-color: #1F2937 !important; color: #60a5fa !important; border-left-color: #60a5fa; }
-    .tab-btn:not(.active):hover { background-color: #f9fafb !important; color: #111827 !important; }
-    .dark .tab-btn:not(.active):hover { background-color: #374151 !important; color: #ffffff !important; }
-</style>
+        .nav-item.active::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 60%;
+            width: 4px;
+            background-color: #2e5e99;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .dark .nav-item.active::before {
+            background-color: #60a5fa;
+        }
+
+        /* Icon and Text alignment from Dashboard */
+        .nav-item i {
+            width: 1.5rem;
+            text-align: center;
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .nav-item span {
+            font-size: 0.875rem;
+            font-weight: 500;
+            /* Dashboard uses 500 for nav text */
+        }
+
+        /* --- Enhanced Settings Tabs (Kept from your current page) --- */
+        .tab-btn {
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .tab-btn:hover {
+            transform: translateX(4px);
+        }
+
+        .tab-btn.active {
+            background-color: #E7F0FA !important;
+            color: #1E4A7A !important;
+            border-left-color: #1E4A7A;
+            font-weight: 600;
+        }
+
+        .dark .tab-btn.active {
+            background-color: #1F2937 !important;
+            color: #60a5fa !important;
+            border-left-color: #60a5fa;
+        }
+
+        .tab-btn:not(.active):hover {
+            background-color: #f9fafb !important;
+            color: #111827 !important;
+        }
+
+        .dark .tab-btn:not(.active):hover {
+            background-color: #374151 !important;
+            color: #ffffff !important;
+        }
+    </style>
 </head>
 
-<body class="bg-gray-50 dark:bg-gray-900 font-sans text-slate-900 dark:text-slate-100 transition-colors overflow-hidden">
+<body
+    class="bg-gray-50 dark:bg-gray-900 font-sans text-slate-900 dark:text-slate-100 transition-colors overflow-hidden">
     <div class="flex h-screen overflow-hidden">
 
-       <aside id="mainSidebar"
+        <aside id="mainSidebar"
             class="sidebar w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen flex-shrink-0 transition-colors duration-200 z-50">
             <div class="px-4 py-6 flex-shrink-0 flex items-center justify-between h-[88px]">
                 <h1
@@ -164,10 +209,11 @@
                     <i class="fas fa-chevron-left transition-transform duration-300"></i>
                 </button>
             </div>
-            
+
             <nav class="flex-1 px-4 space-y-1 overflow-y-auto mt-2">
                 <a href="/college/dashboard" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
-                <a href="/college/program" class="nav-item"><i class="fa-solid fa-layer-group"></i><span>Programs</span></a>
+                <a href="/college/program" class="nav-item"><i
+                        class="fa-solid fa-layer-group"></i><span>Programs</span></a>
                 <a href="/college/contest" class="nav-item"><i class="fas fa-trophy"></i><span>Contests</span></a>
                 <a href="/college/manage_user" class="nav-item"><i class="fa-solid fa-users"></i><span>User</span></a>
                 <a href="/college/community" class="nav-item"><i class="fas fa-comments"></i><span>Community</span></a>
@@ -175,14 +221,16 @@
                 <a href="/college/profile" class="nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
             </nav>
 
-            <div class="p-4 space-y-1 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0 bottom-menu">
-                <a href="/college/help_support" class="nav-item"><i class="far fa-question-circle"></i><span>Help & Support</span></a>
+            <div
+                class="p-4 space-y-1 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0 bottom-menu">
+                <a href="/college/help_support" class="nav-item"><i class="far fa-question-circle"></i><span>Help &
+                        Support</span></a>
                 <a href="/college/setting" class="nav-item active"><i class="fas fa-cog"></i><span>Settings</span></a>
             </div>
         </aside>
 
         <div class="flex-1 flex flex-col overflow-hidden relative">
-            
+
             <header class="bg-white dark:bg-gray-800 shadow-sm transition-colors duration-200 sticky top-0 z-40">
                 <div class="px-8 py-3 flex justify-between items-center h-[88px]">
                     <div class="flex-1 max-w-2xl flex items-center gap-4">
@@ -190,7 +238,9 @@
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <i class="fas fa-search text-gray-400"></i>
                             </div>
-                            <input type="text" id="globalSearchInput" class="block w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all" placeholder="Search across ..." />
+                            <input type="text" id="globalSearchInput"
+                                class="block w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
+                                placeholder="Search across ..." />
                         </div>
                     </div>
 
@@ -204,12 +254,16 @@
                             <button id="notificationBtn"
                                 class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none">
                                 <i class="fas fa-bell text-xl"></i>
-                                <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-800"></span>
+                                <span
+                                    class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-800"></span>
                             </button>
-                            <div id="notifDropdown" class="hidden absolute right-0 mt-3 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 z-50">
-                                <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                            <div id="notifDropdown"
+                                class="hidden absolute right-0 mt-3 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 z-50">
+                                <div
+                                    class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
                                     <h3 class="font-semibold text-gray-800 dark:text-white text-sm">Notifications</h3>
-                                    <button class="text-xs text-primary-500 font-medium hover:text-primary-600">Mark all read</button>
+                                    <button class="text-xs text-primary-500 font-medium hover:text-primary-600">Mark all
+                                        read</button>
                                 </div>
                                 <div class="max-h-64 overflow-y-auto p-4 text-center text-xs text-gray-500">
                                     No new notifications
@@ -220,8 +274,11 @@
                         <div class="relative">
                             <button onclick="toggleProfile()"
                                 class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none">
-                                <div class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm shadow-sm" id="headerInitials">AD</div>
-                                <span class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block truncate max-w-[150px]" id="headerName">Admin</span>
+                                <div class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm shadow-sm"
+                                    id="headerInitials">AD</div>
+                                <span
+                                    class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block truncate max-w-[150px]"
+                                    id="headerName">Admin</span>
                             </button>
                         </div>
                     </div>
@@ -230,21 +287,27 @@
 
             <main class="flex-1 overflow-y-auto p-4 sm:p-8 bg-[#F8FAFC] dark:bg-gray-900 transition-colors">
                 <div class="max-w-6xl mx-auto flex flex-col md:flex-row gap-8">
-                    
+
                     <div class="w-full md:w-64 flex-shrink-0">
-                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sticky top-4">
-                            <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4 px-2">Configuration</h3>
+                        <div
+                            class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sticky top-4">
+                            <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4 px-2">
+                                Configuration</h3>
                             <nav class="space-y-1.5">
-                                <button onclick="switchTab('account')" id="btn-account" class="tab-btn active w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl text-left text-gray-600 dark:text-gray-300">
+                                <button onclick="switchTab('account')" id="btn-account"
+                                    class="tab-btn active w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl text-left text-gray-600 dark:text-gray-300">
                                     <i class="fas fa-id-badge w-5 text-center"></i> Account Overview
                                 </button>
-                                <button onclick="switchTab('security')" id="btn-security" class="tab-btn w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl text-left text-gray-600 dark:text-gray-300">
+                                <button onclick="switchTab('security')" id="btn-security"
+                                    class="tab-btn w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl text-left text-gray-600 dark:text-gray-300">
                                     <i class="fas fa-shield-alt w-5 text-center"></i> Security & Access
                                 </button>
-                                <button onclick="switchTab('notifications')" id="btn-notifications" class="tab-btn w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl text-left text-gray-600 dark:text-gray-300">
+                                <button onclick="switchTab('notifications')" id="btn-notifications"
+                                    class="tab-btn w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl text-left text-gray-600 dark:text-gray-300">
                                     <i class="fas fa-bell w-5 text-center"></i> Notifications
                                 </button>
-                                <button onclick="switchTab('preferences')" id="btn-preferences" class="tab-btn w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl text-left text-gray-600 dark:text-gray-300">
+                                <button onclick="switchTab('preferences')" id="btn-preferences"
+                                    class="tab-btn w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl text-left text-gray-600 dark:text-gray-300">
                                     <i class="fas fa-sliders-h w-5 text-center"></i> Preferences
                                 </button>
                             </nav>
@@ -252,139 +315,226 @@
                     </div>
 
                     <div class="flex-1 space-y-6">
-                        
+
                         <div id="tab-account" class="tab-content block animate-[fadeIn_0.3s_ease-out]">
-                            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                                <div class="p-6 sm:p-8 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                            <div
+                                class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                <div
+                                    class="p-6 sm:p-8 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
                                     <div class="flex items-center gap-4">
-                                        <div class="h-12 w-12 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-500">
+                                        <div
+                                            class="h-12 w-12 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-500">
                                             <i class="fas fa-university text-xl"></i>
                                         </div>
                                         <div>
-                                            <h3 class="text-xl font-bold text-gray-900 dark:text-white">Account Overview</h3>
-                                            <p class="text-sm text-gray-500">Your administrative identity and assigned college details.</p>
+                                            <h3 class="text-xl font-bold text-gray-900 dark:text-white">Account Overview
+                                            </h3>
+                                            <p class="text-sm text-gray-500">Your administrative identity and assigned
+                                                college details.</p>
                                         </div>
                                     </div>
-                                    <button onclick="toggleCollegeEdit()" id="btn-edit-college" class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                                    <button onclick="toggleCollegeEdit()" id="btn-edit-college"
+                                        class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
                                         <i class="fas fa-pen"></i> Edit Details
                                     </button>
                                 </div>
                                 <div class="p-6 sm:p-8 space-y-6">
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                        <div class="bg-gray-50 dark:bg-gray-800/60 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
+                                        <div
+                                            class="bg-gray-50 dark:bg-gray-800/60 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
                                             <div class="flex items-center justify-between mb-2">
-                                                <p class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Assigned College</p>
+                                                <p class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">
+                                                    Assigned College</p>
                                                 <i class="fas fa-building text-gray-300 dark:text-gray-600"></i>
                                             </div>
-                                            <p id="disp-college" class="text-lg font-bold text-gray-900 dark:text-white">Loading...</p>
-                                        </div>
-                                        
-                                        <div class="bg-gray-50 dark:bg-gray-800/60 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
-                                            <div class="flex items-center justify-between mb-2">
-                                                <p class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">System Role</p>
-                                                <i class="fas fa-user-shield text-primary-200 dark:text-primary-800"></i>
-                                            </div>
-                                            <p id="disp-role" class="text-lg font-bold text-primary-500 uppercase">Loading...</p>
-                                        </div>
-                                        
-                                        <div class="bg-gray-50 dark:bg-gray-800/60 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow relative">
-                                            <div class="flex items-center justify-between mb-2">
-                                                <p class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">University Affiliation</p>
-                                                <i class="fas fa-graduation-cap text-gray-300 dark:text-gray-600"></i>
-                                            </div>
-                                            <p id="disp-university" class="text-base font-semibold text-gray-700 dark:text-gray-300 block">Pending Update</p>
-                                            <input type="text" id="input-university" class="hidden w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary-500/50 outline-none transition-all mt-1" placeholder="e.g. State University" />
-                                        </div>
-                                        
-                                        <div class="bg-gray-50 dark:bg-gray-800/60 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow relative">
-                                            <div class="flex items-center justify-between mb-2">
-                                                <p class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Accreditation Status</p>
-                                                <i class="fas fa-award text-gray-300 dark:text-gray-600"></i>
-                                            </div>
-                                            <p id="disp-accreditation" class="text-base font-semibold text-gray-700 dark:text-gray-300 block">Pending Update</p>
-                                            <input type="text" id="input-accreditation" class="hidden w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary-500/50 outline-none transition-all mt-1" placeholder="e.g. NAAC A+" />
+                                            <p id="disp-college"
+                                                class="text-lg font-bold text-gray-900 dark:text-white">Loading...</p>
                                         </div>
 
-                                        <div class="bg-gray-50 dark:bg-gray-800/60 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow md:col-span-2">
+                                        <div
+                                            class="bg-gray-50 dark:bg-gray-800/60 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
                                             <div class="flex items-center justify-between mb-2">
-                                                <p class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Registered Email</p>
+                                                <p class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">
+                                                    System Role</p>
+                                                <i
+                                                    class="fas fa-user-shield text-primary-200 dark:text-primary-800"></i>
+                                            </div>
+                                            <p id="disp-role" class="text-lg font-bold text-primary-500 uppercase">
+                                                Loading...</p>
+                                        </div>
+
+                                        <div
+                                            class="bg-gray-50 dark:bg-gray-800/60 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow relative">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <p class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">
+                                                    University Affiliation</p>
+                                                <i class="fas fa-graduation-cap text-gray-300 dark:text-gray-600"></i>
+                                            </div>
+                                            <p id="disp-university"
+                                                class="text-base font-semibold text-gray-700 dark:text-gray-300 block">
+                                                Pending Update</p>
+                                            <select id="input-university"
+                                                class="hidden w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary-500/50 outline-none transition-all mt-1">
+                                                <option value="">Select University Affiliation</option>
+                                            </select>
+                                        </div>
+
+                                        <div
+                                            class="bg-gray-50 dark:bg-gray-800/60 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow relative">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <p class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">
+                                                    Accreditation Status</p>
+                                                <i class="fas fa-award text-gray-300 dark:text-gray-600"></i>
+                                            </div>
+                                            <p id="disp-accreditation"
+                                                class="text-base font-semibold text-gray-700 dark:text-gray-300 block">
+                                                Pending Update</p>
+                                            <select id="input-accreditation"
+                                                class="hidden w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary-500/50 outline-none transition-all mt-1">
+                                                <option value="">Select Accreditation Status</option>
+                                            </select>
+                                        </div>
+
+                                        <div
+                                            class="bg-gray-50 dark:bg-gray-800/60 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow md:col-span-2">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <p class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">
+                                                    Registered Email</p>
                                                 <div class="flex items-center gap-2">
-                                                    <span class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
-                                                    <p id="disp-status" class="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wide">Active</p>
+                                                    <span
+                                                        class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
+                                                    <p id="disp-status"
+                                                        class="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wide">
+                                                        Active</p>
                                                 </div>
                                             </div>
-                                            <p id="disp-email" class="text-lg font-bold text-gray-900 dark:text-white truncate">Loading...</p>
+                                            <p id="disp-email"
+                                                class="text-lg font-bold text-gray-900 dark:text-white truncate">
+                                                Loading...</p>
                                         </div>
                                     </div>
-                                    
-                                    <div id="edit-actions" class="hidden flex justify-end gap-3 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                                        <button onclick="toggleCollegeEdit()" class="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Cancel</button>
-                                        <button onclick="saveCollegeInfo(event)" class="bg-primary-500 hover:bg-primary-600 text-white px-6 py-2 rounded-xl text-sm font-medium shadow-md transition-all flex items-center gap-2 transform active:scale-95">
+
+                                    <div id="edit-actions"
+                                        class="hidden flex justify-end gap-3 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                                        <button onclick="toggleCollegeEdit()"
+                                            class="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Cancel</button>
+                                        <button onclick="saveCollegeInfo(event)"
+                                            class="bg-primary-500 hover:bg-primary-600 text-white px-6 py-2 rounded-xl text-sm font-medium shadow-md transition-all flex items-center gap-2 transform active:scale-95">
                                             <i class="fas fa-save"></i> Save Details
                                         </button>
                                     </div>
 
-                                    <div class="mt-6 flex items-center gap-3 text-sm text-gray-500 bg-blue-50/50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
+                                    <div
+                                        class="mt-6 flex items-center gap-3 text-sm text-gray-500 bg-blue-50/50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
                                         <i class="fas fa-info-circle text-blue-500"></i>
-                                        <p>Account established on <span id="disp-joined" class="font-bold text-gray-700 dark:text-gray-300">Loading...</span></p>
+                                        <p>Account established on <span id="disp-joined"
+                                                class="font-bold text-gray-700 dark:text-gray-300">Loading...</span></p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div id="tab-security" class="tab-content hidden animate-[fadeIn_0.3s_ease-out]">
-                            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                                <div class="p-6 sm:p-8 border-b border-gray-100 dark:border-gray-700 flex items-center gap-4">
-                                    <div class="h-12 w-12 rounded-full bg-red-50 dark:bg-red-900/30 flex items-center justify-center text-red-500">
+                            <div
+                                class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                <div
+                                    class="p-6 sm:p-8 border-b border-gray-100 dark:border-gray-700 flex items-center gap-4">
+                                    <div
+                                        class="h-12 w-12 rounded-full bg-red-50 dark:bg-red-900/30 flex items-center justify-center text-red-500">
                                         <i class="fas fa-shield-alt text-xl"></i>
                                     </div>
                                     <div>
-                                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Security & Access</h3>
-                                        <p class="text-sm text-gray-500">Manage your login credentials to secure your administration portal.</p>
+                                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Security & Access
+                                        </h3>
+                                        <p class="text-sm text-gray-500">Manage your login credentials to secure your
+                                            administration portal.</p>
                                     </div>
                                 </div>
                                 <div class="p-6 sm:p-8 space-y-8">
-                                    
-                                    <div class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
-                                        <h4 class="text-base font-bold text-gray-900 dark:text-white mb-1">Update Email Address</h4>
-                                        <p class="text-sm text-gray-500 mb-5">Change the email used for login and important platform communications.</p>
-                                        <form id="emailForm" class="max-w-xl space-y-4">
-                                            <div>
-                                                <div class="relative">
-                                                    <i class="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                                                    <input type="email" id="newEmail" required class="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all shadow-sm" placeholder="Enter new email address" />
+                                    <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Change
+                                            Email Address</h3>
+                                        <form id="emailUpdateForm" class="space-y-4 max-w-md">
+                                            <div class="mb-4">
+                                                <label
+                                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New
+                                                    Email Address</label>
+                                                <input type="email" id="newEmail"
+                                                    class="w-full px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+                                                    placeholder="Enter new email" required />
+                                            </div>
+
+                                            <div id="otpSection" class="hidden space-y-4">
+                                                <div class="p-3 bg-blue-50 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded-lg text-sm border border-blue-200 dark:border-blue-800"
+                                                    id="otpSentAlert">
+                                                </div>
+
+                                                <div>
+                                                    <label
+                                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Verification
+                                                        Code (OTP)</label>
+                                                    <input type="text" id="emailOtp"
+                                                        class="w-full px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+                                                        placeholder="Enter 6-digit code" />
                                                 </div>
                                             </div>
-                                            <button type="submit" id="btnSaveEmail" class="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 font-medium py-2.5 px-6 rounded-xl shadow-md transition-all hover:bg-gray-800 dark:hover:bg-white transform active:scale-95 text-sm">
-                                                Update Email
-                                            </button>
+
+                                            <div class="flex items-center gap-3 mt-4">
+                                                <button type="button" id="btnRequestOtp"
+                                                    class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-medium transition-all shadow-sm">
+                                                    Send OTP
+                                                </button>
+                                                <button type="submit" id="btnVerifyUpdate"
+                                                    class="hidden px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium transition-all shadow-sm">
+                                                    Verify & Update
+                                                </button>
+                                                <button type="button" id="btnCancelEmail"
+                                                    class="hidden px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl font-medium transition-all">
+                                                    Cancel
+                                                </button>
+                                            </div>
                                         </form>
                                     </div>
 
-                                    <div class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
-                                        <h4 class="text-base font-bold text-gray-900 dark:text-white mb-1">Change Password</h4>
-                                        <p class="text-sm text-gray-500 mb-5">Ensure your account is using a long, random password to stay secure.</p>
+                                    <div
+                                        class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+                                        <h4 class="text-base font-bold text-gray-900 dark:text-white mb-1">Change
+                                            Password</h4>
+                                        <p class="text-sm text-gray-500 mb-5">Ensure your account is using a long,
+                                            random password to stay secure.</p>
                                         <form id="passwordForm" class="space-y-5 max-w-xl">
                                             <div>
                                                 <div class="relative">
-                                                    <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                                                    <input type="password" id="currPass" required class="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all shadow-sm" placeholder="Current password" />
+                                                    <i
+                                                        class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                                    <input type="password" id="currPass" required
+                                                        class="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all shadow-sm"
+                                                        placeholder="Current password" />
                                                 </div>
                                                 <div class="flex justify-end mt-2">
-                                                    <button type="button" onclick="handleForgotPassword()" class="text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors">Forgot your password?</button>
+                                                    <button type="button" onclick="handleForgotPassword()"
+                                                        class="text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors">Forgot
+                                                        your password?</button>
                                                 </div>
                                             </div>
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                                 <div class="relative">
-                                                    <i class="fas fa-key absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                                                    <input type="password" id="newPass" required class="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all shadow-sm" placeholder="New password" />
+                                                    <i
+                                                        class="fas fa-key absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                                    <input type="password" id="newPass" required
+                                                        class="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all shadow-sm"
+                                                        placeholder="New password" />
                                                 </div>
                                                 <div class="relative">
-                                                    <i class="fas fa-check-circle absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                                                    <input type="password" id="confirmPass" required class="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all shadow-sm" placeholder="Confirm new password" />
+                                                    <i
+                                                        class="fas fa-check-circle absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                                    <input type="password" id="confirmPass" required
+                                                        class="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all shadow-sm"
+                                                        placeholder="Confirm new password" />
                                                 </div>
                                             </div>
-                                            <button type="submit" id="btnSavePassword" class="bg-primary-500 hover:bg-primary-600 text-white font-medium py-2.5 px-6 rounded-xl shadow-md shadow-primary-500/20 transition-all transform active:scale-95 text-sm flex items-center gap-2">
+                                            <button type="submit" id="btnSavePassword"
+                                                class="bg-primary-500 hover:bg-primary-600 text-white font-medium py-2.5 px-6 rounded-xl shadow-md shadow-primary-500/20 transition-all transform active:scale-95 text-sm flex items-center gap-2">
                                                 <i class="fas fa-save"></i> Update Password
                                             </button>
                                         </form>
@@ -394,49 +544,70 @@
                         </div>
 
                         <div id="tab-notifications" class="tab-content hidden animate-[fadeIn_0.3s_ease-out]">
-                            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                                <div class="p-6 sm:p-8 border-b border-gray-100 dark:border-gray-700 flex items-center gap-4">
-                                    <div class="h-12 w-12 rounded-full bg-yellow-50 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-500">
+                            <div
+                                class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                <div
+                                    class="p-6 sm:p-8 border-b border-gray-100 dark:border-gray-700 flex items-center gap-4">
+                                    <div
+                                        class="h-12 w-12 rounded-full bg-yellow-50 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-500">
                                         <i class="fas fa-bell text-xl"></i>
                                     </div>
                                     <div>
-                                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Notification Preferences</h3>
-                                        <p class="text-sm text-gray-500">Control system alerts dispatched to your administrative dashboard.</p>
+                                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Notification
+                                            Preferences</h3>
+                                        <p class="text-sm text-gray-500">Control system alerts dispatched to your
+                                            administrative dashboard.</p>
                                     </div>
                                 </div>
                                 <div class="p-6 sm:p-8 space-y-6">
-                                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/40 rounded-xl border border-gray-100 dark:border-gray-700">
+                                    <div
+                                        class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/40 rounded-xl border border-gray-100 dark:border-gray-700">
                                         <div>
-                                            <h4 class="text-sm font-bold text-gray-900 dark:text-white">Contest Creation Alerts</h4>
-                                            <p class="text-xs text-gray-500 mt-1">Notify when faculty members create or schedule new contests.</p>
+                                            <h4 class="text-sm font-bold text-gray-900 dark:text-white">Contest Creation
+                                                Alerts</h4>
+                                            <p class="text-xs text-gray-500 mt-1">Notify when faculty members create or
+                                                schedule new contests.</p>
                                         </div>
                                         <label class="relative inline-flex items-center cursor-pointer">
                                             <input type="checkbox" id="notif_contest" class="sr-only peer" checked>
-                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 peer-checked:bg-primary-500"></div>
+                                            <div
+                                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 peer-checked:bg-primary-500">
+                                            </div>
                                         </label>
                                     </div>
-                                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/40 rounded-xl border border-gray-100 dark:border-gray-700">
+                                    <div
+                                        class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/40 rounded-xl border border-gray-100 dark:border-gray-700">
                                         <div>
-                                            <h4 class="text-sm font-bold text-gray-900 dark:text-white">Submission & Results</h4>
-                                            <p class="text-xs text-gray-500 mt-1">Alerts when student contest submissions are fully graded and published.</p>
+                                            <h4 class="text-sm font-bold text-gray-900 dark:text-white">Submission &
+                                                Results</h4>
+                                            <p class="text-xs text-gray-500 mt-1">Alerts when student contest
+                                                submissions are fully graded and published.</p>
                                         </div>
                                         <label class="relative inline-flex items-center cursor-pointer">
                                             <input type="checkbox" id="notif_results" class="sr-only peer" checked>
-                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 peer-checked:bg-primary-500"></div>
+                                            <div
+                                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 peer-checked:bg-primary-500">
+                                            </div>
                                         </label>
                                     </div>
-                                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/40 rounded-xl border border-gray-100 dark:border-gray-700">
+                                    <div
+                                        class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/40 rounded-xl border border-gray-100 dark:border-gray-700">
                                         <div>
-                                            <h4 class="text-sm font-bold text-gray-900 dark:text-white">Deadline Reminders</h4>
-                                            <p class="text-xs text-gray-500 mt-1">Receive reminders for pending administrative tasks or verification requests.</p>
+                                            <h4 class="text-sm font-bold text-gray-900 dark:text-white">Deadline
+                                                Reminders</h4>
+                                            <p class="text-xs text-gray-500 mt-1">Receive reminders for pending
+                                                administrative tasks or verification requests.</p>
                                         </div>
                                         <label class="relative inline-flex items-center cursor-pointer">
                                             <input type="checkbox" id="notif_deadline" class="sr-only peer" checked>
-                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 peer-checked:bg-primary-500"></div>
+                                            <div
+                                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 peer-checked:bg-primary-500">
+                                            </div>
                                         </label>
                                     </div>
                                     <div class="pt-4">
-                                        <button type="button" onclick="saveNotifications(event)" class="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 font-medium py-2.5 px-6 rounded-xl transition-all shadow-md hover:shadow-lg transform active:scale-95 text-sm">
+                                        <button type="button" onclick="saveNotifications(event)"
+                                            class="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 font-medium py-2.5 px-6 rounded-xl transition-all shadow-md hover:shadow-lg transform active:scale-95 text-sm">
                                             Save Preferences
                                         </button>
                                     </div>
@@ -445,36 +616,47 @@
                         </div>
 
                         <div id="tab-preferences" class="tab-content hidden animate-[fadeIn_0.3s_ease-out]">
-                            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                                <div class="p-6 sm:p-8 border-b border-gray-100 dark:border-gray-700 flex items-center gap-4">
-                                    <div class="h-12 w-12 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-500">
+                            <div
+                                class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                <div
+                                    class="p-6 sm:p-8 border-b border-gray-100 dark:border-gray-700 flex items-center gap-4">
+                                    <div
+                                        class="h-12 w-12 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-500">
                                         <i class="fas fa-paint-roller text-xl"></i>
                                     </div>
                                     <div>
-                                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Interface Preferences</h3>
+                                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Interface
+                                            Preferences</h3>
                                         <p class="text-sm text-gray-500">Customize your platform viewing experience.</p>
                                     </div>
                                 </div>
                                 <div class="p-6 sm:p-8">
-                                    <h4 class="text-sm font-bold text-gray-900 dark:text-white mb-4">Theme Selection</h4>
+                                    <h4 class="text-sm font-bold text-gray-900 dark:text-white mb-4">Theme Selection
+                                    </h4>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                        
-                                        <button onclick="setThemePreference('light')" id="theme-btn-light" class="relative overflow-hidden group p-6 rounded-2xl border-2 transition-all duration-300 flex items-center text-left hover:shadow-md bg-gray-50 dark:bg-gray-800/40">
-                                            <div class="h-12 w-12 rounded-full bg-white shadow-sm text-yellow-500 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
+
+                                        <button onclick="setThemePreference('light')" id="theme-btn-light"
+                                            class="relative overflow-hidden group p-6 rounded-2xl border-2 transition-all duration-300 flex items-center text-left hover:shadow-md bg-gray-50 dark:bg-gray-800/40">
+                                            <div
+                                                class="h-12 w-12 rounded-full bg-white shadow-sm text-yellow-500 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
                                                 <i class="fas fa-sun text-xl"></i>
                                             </div>
                                             <div>
-                                                <p class="text-base font-bold text-gray-900 dark:text-white">Light Mode</p>
+                                                <p class="text-base font-bold text-gray-900 dark:text-white">Light Mode
+                                                </p>
                                                 <p class="text-xs text-gray-500 mt-1">Bright and clean design</p>
                                             </div>
                                         </button>
 
-                                        <button onclick="setThemePreference('dark')" id="theme-btn-dark" class="relative overflow-hidden group p-6 rounded-2xl border-2 transition-all duration-300 flex items-center text-left hover:shadow-md bg-gray-50 dark:bg-gray-800/40">
-                                            <div class="h-12 w-12 rounded-full bg-gray-900 shadow-sm text-blue-400 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
+                                        <button onclick="setThemePreference('dark')" id="theme-btn-dark"
+                                            class="relative overflow-hidden group p-6 rounded-2xl border-2 transition-all duration-300 flex items-center text-left hover:shadow-md bg-gray-50 dark:bg-gray-800/40">
+                                            <div
+                                                class="h-12 w-12 rounded-full bg-gray-900 shadow-sm text-blue-400 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
                                                 <i class="fas fa-moon text-xl"></i>
                                             </div>
                                             <div>
-                                                <p class="text-base font-bold text-gray-900 dark:text-white">Dark Mode</p>
+                                                <p class="text-base font-bold text-gray-900 dark:text-white">Dark Mode
+                                                </p>
                                                 <p class="text-xs text-gray-500 mt-1">Easy on the eyes</p>
                                             </div>
                                         </button>
@@ -490,18 +672,25 @@
         </div>
     </div>
 
-    <div id="profileOverlay" class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div class="bg-white dark:bg-gray-800 w-[320px] rounded-3xl overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-700">
+    <div id="profileOverlay"
+        class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div
+            class="bg-white dark:bg-gray-800 w-[320px] rounded-3xl overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-700">
             <div class="bg-[#1e4a7a] p-6 text-center relative h-32">
-                <button onclick="toggleProfile()" class="absolute top-4 right-4 text-white/80 hover:text-white"><i class="fas fa-times text-lg"></i></button>
+                <button onclick="toggleProfile()" class="absolute top-4 right-4 text-white/80 hover:text-white"><i
+                        class="fas fa-times text-lg"></i></button>
                 <div class="absolute -bottom-10 left-1/2 -translate-x-1/2">
-                    <div id="modalInitials" class="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 bg-[#1e4a7a] flex items-center justify-center text-white text-2xl font-bold">AD</div>
+                    <div id="modalInitials"
+                        class="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 bg-[#1e4a7a] flex items-center justify-center text-white text-2xl font-bold">
+                        AD</div>
                 </div>
             </div>
             <div class="pt-12 pb-6 px-6 text-center">
                 <h3 id="modalName" class="text-xl font-bold text-gray-800 dark:text-white">Admin</h3>
-                <p id="modalCollege" class="text-xs text-gray-500 flex items-center justify-center gap-1 mt-1"><i class="fas fa-university"></i> Loading College...</p>
-                <p id="modalRole" class="text-xs text-gray-500 mb-6 uppercase flex items-center justify-center gap-1 mt-1">Admin</p>
+                <p id="modalCollege" class="text-xs text-gray-500 flex items-center justify-center gap-1 mt-1"><i
+                        class="fas fa-university"></i> Loading College...</p>
+                <p id="modalRole"
+                    class="text-xs text-gray-500 mb-6 uppercase flex items-center justify-center gap-1 mt-1">Admin</p>
                 <div class="space-y-1">
                     <div class="flex justify-between border-y border-gray-100 dark:border-gray-700 py-4 mb-6">
                         <div>
@@ -519,28 +708,47 @@
                     </div>
                     <div class="space-y-1">
                         <a href="/college/profile" class="block">
-                            <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
-                                <div class="flex items-center gap-3"><i class="fas fa-user-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">My Profile</span></div>
-                                <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                            <button
+                                class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                                <div class="flex items-center gap-3"><i
+                                        class="fas fa-user-circle text-primary-400"></i><span
+                                        class="text-sm font-medium text-gray-700 dark:text-gray-200">My Profile</span>
+                                </div>
+                                <i
+                                    class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
                             </button>
                         </a>
                         <a href="help_support.html">
-                            <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
-                                <div class="flex items-center gap-3"><i class="fas fa-question-circle text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200">Help & Support</span></div>
-                                <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                            <button
+                                class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                                <div class="flex items-center gap-3"><i
+                                        class="fas fa-question-circle text-primary-400"></i><span
+                                        class="text-sm font-medium text-gray-700 dark:text-gray-200">Help &
+                                        Support</span></div>
+                                <i
+                                    class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
                             </button>
                         </a>
-                         <a href="setting.html">
-                            <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
-                                <div class="flex items-center gap-3"><i class="fas fa-cog text-primary-400"></i><span class="text-sm font-medium text-gray-700 dark:text-gray-200"> System Setting</span></div>
-                                <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+                        <a href="setting.html">
+                            <button
+                                class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                                <div class="flex items-center gap-3"><i class="fas fa-cog text-primary-400"></i><span
+                                        class="text-sm font-medium text-gray-700 dark:text-gray-200"> System
+                                        Setting</span></div>
+                                <i
+                                    class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
                             </button>
                         </a>
-                        <button id="modalLogoutBtn" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
-                            <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center"><i class="fas fa-sign-out-alt"></i></div>
+                        <button id="modalLogoutBtn"
+                            class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
+                            <div
+                                class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </div>
                             <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
                         </button>
-                        <button onclick="toggleProfile()" class="mt-4 text-[10px] font-bold text-gray-400 uppercase hover:text-gray-600 transition-colors">Close</button>
+                        <button onclick="toggleProfile()"
+                            class="mt-4 text-[10px] font-bold text-gray-400 uppercase hover:text-gray-600 transition-colors">Close</button>
                     </div>
                 </div>
             </div>
@@ -550,8 +758,15 @@
     <style>
         /* Smooth Fade In Animation */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 
@@ -560,15 +775,15 @@
         const html = document.documentElement;
         const themeToggleBtn = document.getElementById('themeToggleBtn');
         const themeIcon = document.getElementById('themeIcon');
-        
+
         function updateThemeIcon() {
             const isDark = html.classList.contains('dark');
             themeIcon.classList.replace(isDark ? 'fa-moon' : 'fa-sun', isDark ? 'fa-sun' : 'fa-moon');
-            
+
             // Highlight active theme button in Preferences
             const lightBtn = document.getElementById('theme-btn-light');
             const darkBtn = document.getElementById('theme-btn-dark');
-            if(lightBtn && darkBtn) {
+            if (lightBtn && darkBtn) {
                 if (isDark) {
                     darkBtn.classList.add('border-primary-500', 'bg-blue-50/10');
                     darkBtn.classList.remove('border-transparent');
@@ -582,18 +797,18 @@
                 }
             }
         }
-        
+
         themeToggleBtn.addEventListener('click', () => {
             html.classList.toggle('dark');
             localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
             updateThemeIcon();
         });
-        
+
         // Ensure UI updates on load
         setTimeout(updateThemeIcon, 100);
 
         function setThemePreference(mode) {
-            if(mode === 'dark') {
+            if (mode === 'dark') {
                 html.classList.add('dark');
                 localStorage.theme = 'dark';
             } else {
@@ -653,26 +868,57 @@
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('block'));
-            
+
             document.querySelectorAll('.tab-btn').forEach(el => {
                 el.classList.remove('active');
             });
 
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
             document.getElementById(`tab-${tabId}`).classList.add('block');
-            
+
             const btn = document.getElementById(`btn-${tabId}`);
             btn.classList.add('active');
+        }
+
+        let collegeInfoOptions = { universities: [], accreditations: [] };
+
+        function populateCollegeInfoDropdowns() {
+            const uniSelect = document.getElementById('input-university');
+            const accSelect = document.getElementById('input-accreditation');
+            const currentUniversity = document.getElementById('disp-university').innerText.trim();
+            const currentAccreditation = document.getElementById('disp-accreditation').innerText.trim();
+
+            const universities = [...new Set([...collegeInfoOptions.universities, currentUniversity].filter(v => v && v !== 'Pending Update'))];
+            const accreditations = [...new Set([...collegeInfoOptions.accreditations, currentAccreditation].filter(v => v && v !== 'Pending Update'))];
+
+            uniSelect.innerHTML = `<option value="">Select University Affiliation</option>` + universities.map(value => `<option value="${value}">${value}</option>`).join('');
+            accSelect.innerHTML = `<option value="">Select Accreditation Status</option>` + accreditations.map(value => `<option value="${value}">${value}</option>`).join('');
+        }
+
+        async function fetchCollegeInfoOptions() {
+            try {
+                const res = await fetch('/college/college-info-options');
+                const data = await res.json();
+                if (data.success) {
+                    collegeInfoOptions = {
+                        universities: data.universities || [],
+                        accreditations: data.accreditations || []
+                    };
+                    populateCollegeInfoDropdowns();
+                }
+            } catch (err) {
+                console.error('Failed to load college info options:', err);
+            }
         }
 
         // --- ⭐ Edit College Details Logic ---
         let isEditingCollege = false;
         function toggleCollegeEdit() {
             isEditingCollege = !isEditingCollege;
-            
+
             const btn = document.getElementById('btn-edit-college');
             const actions = document.getElementById('edit-actions');
-            
+
             const dUni = document.getElementById('disp-university');
             const iUni = document.getElementById('input-university');
             const dAcc = document.getElementById('disp-accreditation');
@@ -682,22 +928,23 @@
                 // Enter Edit Mode
                 btn.classList.add('hidden');
                 actions.classList.remove('hidden');
-                
+                populateCollegeInfoDropdowns();
+
                 dUni.classList.add('hidden');
                 iUni.classList.remove('hidden');
-                iUni.value = dUni.innerText === 'Pending Update' ? '' : dUni.innerText;
-                
+                iUni.value = dUni.innerText === 'Pending Update' ? '' : dUni.innerText.trim();
+
                 dAcc.classList.add('hidden');
                 iAcc.classList.remove('hidden');
-                iAcc.value = dAcc.innerText === 'Pending Update' ? '' : dAcc.innerText;
+                iAcc.value = dAcc.innerText === 'Pending Update' ? '' : dAcc.innerText.trim();
             } else {
                 // Cancel Edit Mode
                 btn.classList.remove('hidden');
                 actions.classList.add('hidden');
-                
+
                 dUni.classList.remove('hidden');
                 iUni.classList.add('hidden');
-                
+
                 dAcc.classList.remove('hidden');
                 iAcc.classList.add('hidden');
             }
@@ -736,10 +983,12 @@
             }
         }
 
-        // --- Data Fetching ---
+// --- Data Fetching ---
+        let currentOldEmail = ""; // Declare globally for the OTP logic
+
         window.addEventListener('DOMContentLoaded', async () => {
             try {
-                // Fetch Stats for Profile Modal 
+                // Fetch Stats
                 try {
                     const statsRes = await fetch('/college/api/dashboard-data');
                     const statsData = await statsRes.json();
@@ -757,10 +1006,10 @@
                 const profRes = await fetch('/college/api/profile');
                 const profData = await profRes.json();
 
-                if(profData.success && profData.user) {
-                    const u = profData.user;
+                if(profData.success) {
+                    const u = profData.user || {};
+                    const c = profData.college || {}; // Fallback if backend separates college data
                     
-                    // Format names & initials
                     const fullName = u.fullName || 'Admin User';
                     const parts = fullName.split(' ');
                     const firstName = u.firstName || parts[0] || 'Admin';
@@ -768,24 +1017,30 @@
                     const initials = getInitials(firstName, lastName);
                     const collegeDisplay = u.collegeName || "Unknown College";
 
-                    // Update Top Header Map
                     document.getElementById('headerName').innerText = fullName;
                     document.getElementById('headerInitials').innerText = initials;
-
-                    // Update Profile Modal Overlay Map
                     document.getElementById('modalName').innerText = fullName;
                     document.getElementById('modalInitials').innerText = initials;
                     document.getElementById('modalCollege').innerHTML = `<i class="fas fa-university"></i> ${collegeDisplay}`;
                     document.getElementById('modalRole').innerText = u.role || 'Admin';
 
-                    // Update Settings Account Tab
+                    // Update Settings
                     document.getElementById('disp-college').innerText = u.collegeName || "N/A";
                     document.getElementById('disp-role').innerText = u.role || "Admin";
                     document.getElementById('disp-email').innerText = u.email || "N/A";
                     document.getElementById('disp-status').innerText = u.status || "Active";
                     
-                    if(u.university) document.getElementById('disp-university').innerText = u.university;
-                    if(u.accreditation) document.getElementById('disp-accreditation').innerText = u.accreditation;
+                    // Set the email dynamically for the OTP request
+                    currentOldEmail = u.email || ""; 
+                    
+                    // FIXED: Check both user and college objects for the data to ensure it displays
+                    const uniData = c.university || u.university || "Not Set";
+                    const accData = c.accreditation || u.accreditation || "Not Set";
+                    
+                    if(document.getElementById('disp-university')) document.getElementById('disp-university').innerText = uniData;
+                    if(document.getElementById('disp-accreditation')) document.getElementById('disp-accreditation').innerText = accData;
+                    
+                    populateCollegeInfoDropdowns();
 
                     if(u.joiningDate) {
                         document.getElementById('disp-joined').innerText = new Date(u.joiningDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -796,50 +1051,18 @@
                     }
                 }
 
+                await fetchCollegeInfoOptions();
+
             } catch (err) {
                 console.error("Failed to load data:", err);
-            }
-        });
-
-        // --- Email Form Submission ---
-        document.getElementById('emailForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btnSaveEmail');
-            const ogContent = btn.innerHTML;
-            const newEmail = document.getElementById('newEmail').value;
-
-            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Updating...`;
-            btn.disabled = true;
-
-            try {
-                const res = await fetch('/college/update-email', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ newEmail })
-                });
-                
-                const data = await res.json();
-                if (data.success) {
-                    btn.innerHTML = `Email Updated!`;
-                    document.getElementById('disp-email').innerText = newEmail; 
-                    document.getElementById('emailForm').reset();
-                } else {
-                    alert(data.message || "Failed to update email");
-                    btn.innerHTML = ogContent;
-                }
-            } catch (err) {
-                alert("An error occurred");
-                btn.innerHTML = ogContent;
-            } finally {
-                setTimeout(() => { btn.innerHTML = ogContent; btn.disabled = false; }, 2500);
             }
         });
 
         // --- Forgot Password Action ---
         async function handleForgotPassword() {
             const email = document.getElementById('disp-email').innerText;
-            if(email && email !== "Loading..." && email !== "N/A") {
-                if(confirm(`Would you like to send a password reset link to ${email}?`)) {
+            if (email && email !== "Loading..." && email !== "N/A") {
+                if (confirm(`Would you like to send a password reset link to ${email}?`)) {
                     try {
                         const response = await fetch('/auth/forgot-password', {
                             method: 'POST',
@@ -864,16 +1087,16 @@
         // --- Password Form Submission ---
         document.getElementById('passwordForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const currPassInput = document.getElementById('currPass');
-            if(!currPassInput.value) {
+            if (!currPassInput.value) {
                 alert("Please enter your current password.");
                 return;
             }
 
             const btn = document.getElementById('btnSavePassword');
             const ogContent = btn.innerHTML;
-            
+
             const currPass = currPassInput.value;
             const newPass = document.getElementById('newPass').value;
             const confirmPass = document.getElementById('confirmPass').value;
@@ -892,7 +1115,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ currPass, newPass })
                 });
-                
+
                 const data = await res.json();
                 if (data.success) {
                     btn.innerHTML = `Updated!`;
@@ -917,6 +1140,132 @@
             btn.disabled = true;
             setTimeout(() => { btn.innerHTML = ogContent; btn.disabled = false; }, 2000);
         }
+
+        // --- Email Update Logic (Ensures OTP is sent to Old Email) ---
+
+        // Helper function to mask the email address for security
+        function getMaskedEmail(email) {
+            if (!email || !email.includes('@')) return email;
+            const [localPart, domain] = email.split('@');
+            if (localPart.length <= 2) {
+                return `${localPart}***@${domain}`;
+            }
+            return `${localPart.substring(0, 2)}***${localPart.substring(localPart.length - 1)}@${domain}`;
+        }
+
+        const emailUpdateForm = document.getElementById('emailUpdateForm');
+        const btnRequestOtp = document.getElementById('btnRequestOtp');
+        const btnVerifyUpdate = document.getElementById('btnVerifyUpdate');
+        const btnCancelEmail = document.getElementById('btnCancelEmail');
+        const otpSection = document.getElementById('otpSection');
+        const newEmailInput = document.getElementById('newEmail');
+        const otpSentAlert = document.getElementById('otpSentAlert');
+
+        if(btnRequestOtp) {
+            // Handle Sending OTP
+            btnRequestOtp.addEventListener('click', async () => {
+                const newEmail = newEmailInput.value.trim();
+
+                if (!newEmail) {
+                    alert("Please enter a new email address.");
+                    return;
+                }
+                if (newEmail === currentOldEmail) {
+                    alert("New email cannot be the same as your current email.");
+                    return;
+                }
+
+                const ogContent = btnRequestOtp.innerHTML;
+                btnRequestOtp.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Sending...`;
+                btnRequestOtp.disabled = true;
+
+                try {
+                    // Call the CORRECT backend API from admin.js
+                    const res = await fetch('/college/send-email-update-otp', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: newEmail }) // Backend already knows old email via session
+                    });
+
+                    const data = await res.json();
+                    if (data.success) {
+                        // Reveal OTP Verification Inputs
+                        otpSection.classList.remove('hidden');
+                        btnRequestOtp.classList.add('hidden');
+                        btnVerifyUpdate.classList.remove('hidden');
+                        btnCancelEmail.classList.remove('hidden');
+                        newEmailInput.disabled = true;
+
+                        // Display message showing exactly WHICH email received the OTP (masked)
+                        const maskedEmail = getMaskedEmail(currentOldEmail);
+                        otpSentAlert.innerHTML = `<i class="fas fa-info-circle mr-1"></i> Verification code sent to your registered email: <strong>${maskedEmail}</strong>`;
+                    } else {
+                        alert(data.message || "Failed to send OTP.");
+                    }
+                } catch (err) {
+                    console.error("OTP Request Error:", err);
+                    alert("An error occurred. Please try again.");
+                } finally {
+                    btnRequestOtp.innerHTML = ogContent;
+                    btnRequestOtp.disabled = false;
+                }
+            });
+        }
+
+        if(emailUpdateForm) {
+            // Handle Verification & Final Update
+            emailUpdateForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const newEmail = newEmailInput.value.trim();
+                const otp = document.getElementById('emailOtp').value.trim();
+
+                if (!otp) {
+                    alert("Please enter the Verification Code.");
+                    return;
+                }
+
+                const ogContent = btnVerifyUpdate.innerHTML;
+                btnVerifyUpdate.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Verifying...`;
+                btnVerifyUpdate.disabled = true;
+
+                try {
+                    // Call the CORRECT backend API for verification
+                    const res = await fetch('/college/verify-email-otp', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: newEmail, otp: otp })
+                    });
+
+                    const data = await res.json();
+                    if (data.success) {
+                        alert("Email successfully updated!");
+                        currentOldEmail = newEmail; // Update active old email dynamically
+                        document.getElementById('disp-email').innerText = newEmail; // Update UI Display
+                        btnCancelEmail.click(); // Reset the form UI
+                    } else {
+                        alert(data.message || "Invalid or expired verification code.");
+                    }
+                } catch (err) {
+                    console.error("OTP Verify Error:", err);
+                    alert("An error occurred during verification.");
+                } finally {
+                    btnVerifyUpdate.innerHTML = ogContent;
+                    btnVerifyUpdate.disabled = false;
+                }
+            });
+        }
+        if(btnCancelEmail) {
+            // Handle Form Cancellation
+            btnCancelEmail.addEventListener('click', () => {
+                emailUpdateForm.reset();
+                otpSection.classList.add('hidden');
+                btnRequestOtp.classList.remove('hidden');
+                btnVerifyUpdate.classList.add('hidden');
+                btnCancelEmail.classList.add('hidden');
+                newEmailInput.disabled = false;
+            });
+        }
     </script>
 </body>
+
 </html>

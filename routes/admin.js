@@ -34,6 +34,30 @@ module.exports = (db, transporter) => {
         });
     });
 
+    const dbGetAsync = (query, params = []) => new Promise((resolve, reject) => {
+        db.get(query, params, (err, row) => {
+            if (err) return reject(err);
+            resolve(row || null);
+        });
+    });
+
+    const normalizeEntityCode = (value) => String(value || '').trim().toUpperCase();
+
+    const ensureUniqueAcademicCode = async ({ table, code, collegeName, excludeId = null }) => {
+        const normalizedCode = normalizeEntityCode(code);
+        if (!normalizedCode) return null;
+
+        let query = `SELECT id FROM ${table} WHERE collegeName = ? AND UPPER(TRIM(code)) = ?`;
+        const params = [collegeName, normalizedCode];
+
+        if (excludeId) {
+            query += ` AND id != ?`;
+            params.push(excludeId);
+        }
+
+        return dbGetAsync(query, params);
+    };
+
     const normalizeLookupValue = (value) => String(value || '')
         .trim()
         .replace(/\s+/g, ' ')
@@ -253,7 +277,54 @@ module.exports = (db, transporter) => {
         // This will serve the thread.html file from your views folder
         res.sendFile(path.join(__dirname, '../views/admin/thread.html'));
     });
+    router.get('/thread.html', requireRole('admin'), (req, res) => {
+        res.sendFile(path.join(__dirname, '../views/admin/thread.html'));
+    });
+    router.get('/thread', requireRole('admin'), (req, res) => {
+        res.sendFile(path.join(__dirname, '../views/admin/thread.html'));
+    });
+// ==========================================
+    // 1. ADD THIS: Bulk Approve Users API
+    // ==========================================
+    router.post('/bulk-approve', requireRole('admin'), (req, res) => {
+        const { userIds } = req.body;
+        if (!userIds || !userIds.length) {
+            return res.status(400).json({ success: false, message: "No users selected" });
+        }
 
+        try {
+            // Create placeholders for the SQL query based on the number of IDs
+            const placeholders = userIds.map(() => '?').join(',');
+            const query = `UPDATE users SET status = 'active' WHERE id IN (${placeholders}) AND status = 'pending'`;
+            
+            db.run(query, userIds, function(err) {
+                if (err) return res.status(500).json({ success: false, message: err.message });
+                res.json({ success: true, message: "Selected users approved successfully!" });
+            });
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
+        }
+    });
+
+    // ==========================================
+    // 2. ADD THIS: Real-time Stats API (Active, Ranks)
+    // ==========================================
+    router.get('/stats', requireRole('admin'), (req, res) => {
+        const collegeName = req.session.user.collegeName;
+
+        // Query active users for this specific college
+        db.get(`SELECT COUNT(*) as activeCount FROM users WHERE collegeName = ? AND status = 'active'`, [collegeName], (err, row) => {
+            if (err) return res.status(500).json({ success: false, message: err.message });
+            
+            // NOTE: Replace the static '1' and '150' with actual database logic if you have dedicated rank tables.
+            res.json({
+                success: true,
+                activeUsers: row ? row.activeCount : 0,
+                collegeRank: 1,   // Placeholder for real-time college rank
+                globalRank: 150   // Placeholder for real-time global rank
+            });
+        });
+    });
 
     // ==========================================
     // SMART ALIAS ROUTES (.html extensions)
@@ -290,8 +361,12 @@ module.exports = (db, transporter) => {
     // ==========================================
     router.get('/api/profile', requireRole('admin'), (req, res) => {
         const userId = req.session.user.id;
-        // FIX: Changed to SELECT * to fetch all database columns (branch, program, year, section, etc.)
-        db.get(`SELECT * FROM users WHERE id = ?`, [userId], (err, user) => {
+        db.get(`
+            SELECT u.*, COALESCE(c.university, '') AS university, COALESCE(c.accreditation, '') AS accreditation
+            FROM users u
+            LEFT JOIN colleges c ON LOWER(TRIM(COALESCE(c.name, ''))) = LOWER(TRIM(COALESCE(u.collegeName, '')))
+            WHERE u.id = ?
+        `, [userId], (err, user) => {
             if (err) return res.status(500).json({ success: false, message: err.message });
             
             if (user) {
@@ -330,6 +405,9 @@ module.exports = (db, transporter) => {
             const contests = await safeQuery(`SELECT id FROM contests WHERE collegeName = ?`, [collegeName]);
             const feedRows = await safeQuery(`SELECT action, createdAt FROM activity_feed WHERE collegeName = ? ORDER BY createdAt DESC LIMIT 10`, [collegeName]);
             
+            // 👉 ADDED: Fetch programs count for the dashboard and profile overlay
+            const programs = await safeQuery(`SELECT id FROM programs WHERE collegeName = ? OR collegeName IS NULL`, [collegeName]);
+
             // Removed the system_alerts query to fix the SQLITE_ERROR in the console.
 
             res.json({
@@ -337,7 +415,8 @@ module.exports = (db, transporter) => {
                 stats: {
                     totalContests: contests.length,
                     totalUsers: totalUsers,
-                    activeLogins: activeLogins
+                    activeLogins: activeLogins,
+                    totalPrograms: programs.length // 👉 ADDED: Sending program count to frontend
                 },
                 activityFeed: feedRows
                 // Removed systemAlerts from the JSON response
@@ -391,33 +470,53 @@ module.exports = (db, transporter) => {
     // OTP & PASSWORD APIs
     // ==========================================
     router.post('/send-email-update-otp', requireRole('admin'), (req, res) => {
-        const { email } = req.body;
-        if (!email) return res.status(400).json({ success: false, message: "Email is required" });
+        const normalizedEmail = String(req.body.email || '').trim().toLowerCase();
+        const userId = req.session.user.id;
 
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        otpStore.set(`email_${req.session.user.id}`, { email, otp, expiresAt: Date.now() + 5 * 60 * 1000 });
-        
-        console.log(`[DEV MODE] Email Update OTP for ${email}: ${otp}`);
-        
-        if (transporter) {
-            const mailOptions = {
-                from: process.env.EMAIL_USER,
-                to: email,
-                subject: 'CampusCode - Email Update OTP',
-                html: `<div style="font-family: sans-serif; padding: 20px;">
-                        <h2>Email Update Request</h2>
-                        <p>Your OTP to verify your new email address is: <strong style="font-size: 24px; color: #1E4A7A;">${otp}</strong></p>
-                        <p>This code is valid for 5 minutes.</p>
-                    </div>`
-            };
-            transporter.sendMail(mailOptions).catch(err => console.error('Failed to send OTP email:', err));
-        }
+        if (!normalizedEmail) return res.status(400).json({ success: false, message: "Email is required" });
 
-        res.json({ success: true, message: "OTP sent successfully" });
+        db.get(`SELECT email FROM users WHERE id = ?`, [userId], (userErr, currentUser) => {
+            if (userErr) return res.status(500).json({ success: false, message: userErr.message });
+            if (!currentUser) return res.status(404).json({ success: false, message: "User not found" });
+            if (String(currentUser.email || '').trim().toLowerCase() === normalizedEmail) {
+                return res.status(400).json({ success: false, message: "This is already your current email address." });
+            }
+
+            db.get(`SELECT id FROM users WHERE LOWER(TRIM(email)) = ? AND id != ?`, [normalizedEmail, userId], (err, existingUser) => {
+                if (err) return res.status(500).json({ success: false, message: err.message });
+                if (existingUser) {
+                    return res.status(400).json({ success: false, message: "Email is already in use by another account." });
+                }
+
+                const currentEmail = String(currentUser.email || '').trim().toLowerCase();
+                const otp = Math.floor(100000 + Math.random() * 900000).toString();
+                otpStore.set(`email_${userId}`, { email: normalizedEmail, otp, expiresAt: Date.now() + 5 * 60 * 1000 });
+                
+                console.log(`[DEV MODE] Email Update OTP for ${normalizedEmail} sent to current email ${currentEmail}: ${otp}`);
+                
+                if (transporter) {
+                    const mailOptions = {
+                        from: process.env.EMAIL_USER,
+                        to: currentEmail,
+                        subject: 'CampusCode - Email Update OTP',
+                        html: `<div style="font-family: sans-serif; padding: 20px;">
+                                <h2>Email Update Request</h2>
+                                <p>You requested to update your CampusCode login email to <strong>${normalizedEmail}</strong>.</p>
+                                <p>Your OTP to verify your new email address is: <strong style="font-size: 24px; color: #1E4A7A;">${otp}</strong></p>
+                                <p>This code is valid for 5 minutes.</p>
+                            </div>`
+                    };
+                    transporter.sendMail(mailOptions).catch(err => console.error('Failed to send OTP email:', err));
+                }
+
+                res.json({ success: true, message: `OTP sent successfully to your current email: ${currentEmail}` });
+            });
+        });
     });
 
     router.post('/verify-email-otp', requireRole('admin'), (req, res) => {
-        const { email, otp } = req.body;
+        const email = String(req.body.email || '').trim().toLowerCase();
+        const otp = String(req.body.otp || '').trim();
         const userId = req.session.user.id;
         const stored = otpStore.get(`email_${userId}`);
 
@@ -425,12 +524,19 @@ module.exports = (db, transporter) => {
             return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
         }
 
-        otpStore.delete(`email_${userId}`);
+        db.get(`SELECT id FROM users WHERE LOWER(TRIM(email)) = ? AND id != ?`, [email, userId], (lookupErr, existingUser) => {
+            if (lookupErr) return res.status(500).json({ success: false, message: lookupErr.message });
+            if (existingUser) {
+                return res.status(400).json({ success: false, message: "Email is already in use by another account." });
+            }
 
-        db.run(`UPDATE users SET email = ? WHERE id = ?`, [email, userId], function(err) {
-            if (err) return res.status(500).json({ success: false, message: err.message });
-            req.session.user.email = email;
-            res.json({ success: true, message: "Email updated successfully" });
+            otpStore.delete(`email_${userId}`);
+
+            db.run(`UPDATE users SET email = ? WHERE id = ?`, [email, userId], function(err) {
+                if (err) return res.status(500).json({ success: false, message: err.message });
+                req.session.user.email = email;
+                res.json({ success: true, message: "Email updated successfully" });
+            });
         });
     });
 
@@ -481,39 +587,32 @@ module.exports = (db, transporter) => {
         }
     });
 
-router.post('/update-profile', requireRole('admin'), async (req, res) => {
-        const { fullName, designation, currPass, newPass, mobile, gender, program, branch, post, joiningDate } = req.body;
-        const userId = req.session.user.id;
+router.post('/update-profile', requireRole('admin'), (req, res) => {
+    // 1. We removed 'designation' (and 'post' if it was there) from req.body
+    const { fullName, mobile, gender, program, branch, joiningDate } = req.body;
+    const userId = req.session.user.id;
 
-        try {
-            if (newPass && newPass.trim() !== '') {
-                const user = await new Promise((resolve, reject) => {
-                    db.get(`SELECT password FROM users WHERE id = ?`, [userId], (err, row) => {
-                        if (err) reject(err); else resolve(row);
-                    });
-                });
+    // 2. Remove 'designation = ?' from the SQL query
+    const query = `UPDATE users SET fullName = ?, mobile = ?, gender = ?, program = ?, branch = ?, joiningDate = ? WHERE id = ?`;
+    
+    // 3. Remove the designation variable from the params array
+    const params = [fullName, mobile, gender, program, branch, joiningDate, userId];
 
-                const match = await bcrypt.compare(currPass, user.password);
-                if (!match) return res.status(400).json({ success: false, message: "Current password is incorrect" });
-
-                const hashedPassword = await bcrypt.hash(newPass, 10);
-                
-                db.run(`UPDATE users SET fullName = ?, designation = ?, password = ?, mobile = ?, gender = ?, program = ?, branch = ?, post = ?, joiningDate = ? WHERE id = ?`, 
-                    [fullName, designation || null, hashedPassword, mobile || '', gender || '', program || '', branch || '', post || '', joiningDate || '', userId], function(err) {
-                    if (err) return res.status(500).json({ success: false, message: err.message });
-                    res.json({ success: true, message: "Profile and password updated successfully" });
-                });
-            } else {
-                db.run(`UPDATE users SET fullName = ?, designation = ?, mobile = ?, gender = ?, program = ?, branch = ?, post = ?, joiningDate = ? WHERE id = ?`, 
-                    [fullName, designation || null, mobile || '', gender || '', program || '', branch || '', post || '', joiningDate || '', userId], function(err) {
-                    if (err) return res.status(500).json({ success: false, message: err.message });
-                    res.json({ success: true, message: "Profile updated successfully" });
-                });
-            }
-        } catch (err) {
-            res.status(500).json({ success: false, message: err.message });
+    db.run(query, params, function(err) {
+        if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json({ success: false, message: err.message });
         }
+        
+        // Update session info if needed
+        if (req.session && req.session.user) {
+            req.session.user.fullName = fullName;
+            // update other session variables if your app relies on them...
+        }
+        
+        res.json({ success: true, message: "Profile updated successfully" });
     });
+});
 
     // ==========================================
     // ADMIN APIs (Manage Users in their College)
@@ -972,22 +1071,39 @@ router.post('/update-profile', requireRole('admin'), async (req, res) => {
     router.post('/add-program', requireRole('admin'), (req, res) => {
         const { name, code, type, duration } = req.body;
         const collegeName = req.session.user.collegeName; 
-        
-        db.run(`INSERT INTO programs (collegeName, name, code, type, duration) VALUES (?, ?, ?, ?, ?)`, 
-            [collegeName, name, code, type, duration], function(err) {
-            if (err) return res.status(500).json({ success: false, message: err.message });
-            res.json({ success: true, id: this.lastID, message: "Program added!" });
-        });
+
+        ensureUniqueAcademicCode({ table: 'programs', code, collegeName })
+            .then((existingCode) => {
+                if (existingCode) {
+                    return res.status(409).json({ success: false, message: 'This program code is already used. Please enter a different code.' });
+                }
+
+                db.run(`INSERT INTO programs (collegeName, name, code, type, duration) VALUES (?, ?, ?, ?, ?)`, 
+                    [collegeName, name, normalizeEntityCode(code), type, duration], function(err) {
+                    if (err) return res.status(500).json({ success: false, message: err.message });
+                    res.json({ success: true, id: this.lastID, message: "Program added!" });
+                });
+            })
+            .catch((err) => res.status(500).json({ success: false, message: err.message }));
     });
 
     router.post('/add-branch', requireRole('admin'), (req, res) => {
         const { program_id, name, code, abbreviation } = req.body;
         const collegeName = req.session.user.collegeName;
-        db.run(`INSERT INTO branches (program_id, name, code, abbreviation, collegeName) VALUES (?, ?, ?, ?, ?)`, 
-            [program_id, name, code, abbreviation, collegeName], function(err) {
-            if (err) return res.status(500).json({ success: false, message: err.message });
-            res.json({ success: true, id: this.lastID, message: "Branch added!" });
-        });
+
+        ensureUniqueAcademicCode({ table: 'branches', code, collegeName })
+            .then((existingCode) => {
+                if (existingCode) {
+                    return res.status(409).json({ success: false, message: 'This branch code is already used. Please enter a different code.' });
+                }
+
+                db.run(`INSERT INTO branches (program_id, name, code, abbreviation, collegeName) VALUES (?, ?, ?, ?, ?)`, 
+                    [program_id, name, normalizeEntityCode(code), abbreviation, collegeName], function(err) {
+                    if (err) return res.status(500).json({ success: false, message: err.message });
+                    res.json({ success: true, id: this.lastID, message: "Branch added!" });
+                });
+            })
+            .catch((err) => res.status(500).json({ success: false, message: err.message }));
     });
 
     router.post('/add-section', requireRole('admin'), (req, res) => {
@@ -1004,36 +1120,61 @@ router.post('/update-profile', requireRole('admin'), async (req, res) => {
         const { branch_id, section_id, name, code, credits } = req.body;
         const collegeName = req.session.user.collegeName;
 
-        db.get(`SELECT year, semester FROM sections WHERE id = ?`, [section_id], (err, section) => {
-            const finalYear = (section && section.year) ? section.year : null; 
-            const finalSemester = (section && section.semester) ? section.semester : null;
+        ensureUniqueAcademicCode({ table: 'subjects', code, collegeName })
+            .then((existingCode) => {
+                if (existingCode) {
+                    return res.status(409).json({ success: false, message: 'This subject code is already used. Please enter a different code.' });
+                }
 
-            db.run(`INSERT INTO subjects (branch_id, section_id, name, code, credits, year, semester, collegeName) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
-                [branch_id, section_id || null, name, code, credits, finalYear, finalSemester, collegeName], function(err) {
-                if (err) return res.status(500).json({ success: false, message: err.message });
-                res.json({ success: true, id: this.lastID, message: "Subject added!" });
-            });
-        });
+                db.get(`SELECT year, semester FROM sections WHERE id = ?`, [section_id], (err, section) => {
+                    const finalYear = (section && section.year) ? section.year : null; 
+                    const finalSemester = (section && section.semester) ? section.semester : null;
+
+                    db.run(`INSERT INTO subjects (branch_id, section_id, name, code, credits, year, semester, collegeName) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
+                        [branch_id, section_id || null, name, normalizeEntityCode(code), credits, finalYear, finalSemester, collegeName], function(err) {
+                        if (err) return res.status(500).json({ success: false, message: err.message });
+                        res.json({ success: true, id: this.lastID, message: "Subject added!" });
+                    });
+                });
+            })
+            .catch((err) => res.status(500).json({ success: false, message: err.message }));
     });
 
     router.post('/edit-program', requireRole('admin'), (req, res) => {
         const { id, name, code, type, duration } = req.body;
         const collegeName = req.session.user.collegeName;
-        
-        db.run(`UPDATE programs SET name=?, code=?, type=?, duration=? WHERE id=? AND collegeName=?`, 
-            [name, code, type, duration, id, collegeName], function(err) {
-            if (err) return res.status(500).json({ success: false, message: err.message });
-            res.json({ success: true });
-        });
+
+        ensureUniqueAcademicCode({ table: 'programs', code, collegeName, excludeId: id })
+            .then((existingCode) => {
+                if (existingCode) {
+                    return res.status(409).json({ success: false, message: 'This program code is already used. Please enter a different code.' });
+                }
+
+                db.run(`UPDATE programs SET name=?, code=?, type=?, duration=? WHERE id=? AND collegeName=?`, 
+                    [name, normalizeEntityCode(code), type, duration, id, collegeName], function(err) {
+                    if (err) return res.status(500).json({ success: false, message: err.message });
+                    res.json({ success: true });
+                });
+            })
+            .catch((err) => res.status(500).json({ success: false, message: err.message }));
     });
 
     router.post('/edit-branch', requireRole('admin'), (req, res) => {
         const { id, program_id, name, code, abbreviation } = req.body;
-        db.run(`UPDATE branches SET program_id=?, name=?, code=?, abbreviation=? WHERE id=?`, 
-            [program_id, name, code, abbreviation, id], function(err) {
-            if (err) return res.status(500).json({ success: false, message: err.message });
-            res.json({ success: true });
-        });
+
+        ensureUniqueAcademicCode({ table: 'branches', code, collegeName: req.session.user.collegeName, excludeId: id })
+            .then((existingCode) => {
+                if (existingCode) {
+                    return res.status(409).json({ success: false, message: 'This branch code is already used. Please enter a different code.' });
+                }
+
+                db.run(`UPDATE branches SET program_id=?, name=?, code=?, abbreviation=? WHERE id=?`, 
+                    [program_id, name, normalizeEntityCode(code), abbreviation, id], function(err) {
+                    if (err) return res.status(500).json({ success: false, message: err.message });
+                    res.json({ success: true });
+                });
+            })
+            .catch((err) => res.status(500).json({ success: false, message: err.message }));
     });
 
     router.post('/edit-section', requireRole('admin'), (req, res) => {
@@ -1048,16 +1189,24 @@ router.post('/update-profile', requireRole('admin'), async (req, res) => {
     router.post('/edit-subject', requireRole('admin'), (req, res) => {
         const { id, branch_id, section_id, name, code, credits } = req.body;
 
-        db.get(`SELECT year, semester FROM sections WHERE id = ?`, [section_id], (err, section) => {
-            const finalYear = (section && section.year) ? section.year : null; 
-            const finalSemester = (section && section.semester) ? section.semester : null;
+        ensureUniqueAcademicCode({ table: 'subjects', code, collegeName: req.session.user.collegeName, excludeId: id })
+            .then((existingCode) => {
+                if (existingCode) {
+                    return res.status(409).json({ success: false, message: 'This subject code is already used. Please enter a different code.' });
+                }
+        
+                db.get(`SELECT year, semester FROM sections WHERE id = ?`, [section_id], (err, section) => {
+                    const finalYear = (section && section.year) ? section.year : null; 
+                    const finalSemester = (section && section.semester) ? section.semester : null;
 
-            db.run(`UPDATE subjects SET branch_id=?, section_id=?, name=?, code=?, credits=?, year=?, semester=? WHERE id=?`, 
-                [branch_id, section_id || null, name, code, credits, finalYear, finalSemester, id], function(err) {
-                if (err) return res.status(500).json({ success: false, message: err.message });
-                res.json({ success: true });
-            });
-        });
+                    db.run(`UPDATE subjects SET branch_id=?, section_id=?, name=?, code=?, credits=?, year=?, semester=? WHERE id=?`, 
+                        [branch_id, section_id || null, name, normalizeEntityCode(code), credits, finalYear, finalSemester, id], function(err) {
+                        if (err) return res.status(500).json({ success: false, message: err.message });
+                        res.json({ success: true });
+                    });
+                });
+            })
+            .catch((err) => res.status(500).json({ success: false, message: err.message }));
     });
 
     router.delete('/delete-program/:id', requireRole('admin'), (req, res) => {
@@ -1092,20 +1241,38 @@ router.post('/update-profile', requireRole('admin'), async (req, res) => {
     router.put('/update-program/:id', requireRole('admin'), (req, res) => {
         const { name, code, type, duration } = req.body;
         const collegeName = req.session.user.collegeName;
-        db.run(`UPDATE programs SET name=?, code=?, type=?, duration=? WHERE id=? AND collegeName=?`, 
-            [name, code, type, duration, req.params.id, collegeName], function(err) {
-            if (err) return res.status(500).json({ success: false, message: err.message });
-            res.json({ success: true });
-        });
+
+        ensureUniqueAcademicCode({ table: 'programs', code, collegeName, excludeId: req.params.id })
+            .then((existingCode) => {
+                if (existingCode) {
+                    return res.status(409).json({ success: false, message: 'This program code is already used. Please enter a different code.' });
+                }
+
+                db.run(`UPDATE programs SET name=?, code=?, type=?, duration=? WHERE id=? AND collegeName=?`, 
+                    [name, normalizeEntityCode(code), type, duration, req.params.id, collegeName], function(err) {
+                    if (err) return res.status(500).json({ success: false, message: err.message });
+                    res.json({ success: true });
+                });
+            })
+            .catch((err) => res.status(500).json({ success: false, message: err.message }));
     });
 
     router.put('/update-branch/:id', requireRole('admin'), (req, res) => {
         const { name, code, abbreviation } = req.body;
-        db.run(`UPDATE branches SET name=?, code=?, abbreviation=? WHERE id=?`, 
-            [name, code, abbreviation, req.params.id], function(err) {
-            if (err) return res.status(500).json({ success: false, message: err.message });
-            res.json({ success: true });
-        });
+
+        ensureUniqueAcademicCode({ table: 'branches', code, collegeName: req.session.user.collegeName, excludeId: req.params.id })
+            .then((existingCode) => {
+                if (existingCode) {
+                    return res.status(409).json({ success: false, message: 'This branch code is already used. Please enter a different code.' });
+                }
+
+                db.run(`UPDATE branches SET name=?, code=?, abbreviation=? WHERE id=?`, 
+                    [name, normalizeEntityCode(code), abbreviation, req.params.id], function(err) {
+                    if (err) return res.status(500).json({ success: false, message: err.message });
+                    res.json({ success: true });
+                });
+            })
+            .catch((err) => res.status(500).json({ success: false, message: err.message }));
     });
 
     router.put('/update-section/:id', requireRole('admin'), (req, res) => {
@@ -1119,17 +1286,25 @@ router.post('/update-profile', requireRole('admin'), async (req, res) => {
 
     router.put('/update-subject/:id', requireRole('admin'), (req, res) => {
         const { name, code, credits, section_id } = req.body;
-        
-        db.get(`SELECT year, semester FROM sections WHERE id = ?`, [section_id], (err, section) => {
-            const finalYear = (section && section.year) ? section.year : null;
-            const finalSemester = (section && section.semester) ? section.semester : null;
 
-            db.run(`UPDATE subjects SET name=?, code=?, credits=?, section_id=?, year=?, semester=? WHERE id=?`, 
-                [name, code, credits, section_id || null, finalYear, finalSemester, req.params.id], function(err) {
-                if (err) return res.status(500).json({ success: false, message: err.message });
-                res.json({ success: true });
-            });
-        });
+        ensureUniqueAcademicCode({ table: 'subjects', code, collegeName: req.session.user.collegeName, excludeId: req.params.id })
+            .then((existingCode) => {
+                if (existingCode) {
+                    return res.status(409).json({ success: false, message: 'This subject code is already used. Please enter a different code.' });
+                }
+
+                db.get(`SELECT year, semester FROM sections WHERE id = ?`, [section_id], (err, section) => {
+                    const finalYear = (section && section.year) ? section.year : null;
+                    const finalSemester = (section && section.semester) ? section.semester : null;
+
+                    db.run(`UPDATE subjects SET name=?, code=?, credits=?, section_id=?, year=?, semester=? WHERE id=?`, 
+                        [name, normalizeEntityCode(code), credits, section_id || null, finalYear, finalSemester, req.params.id], function(err) {
+                        if (err) return res.status(500).json({ success: false, message: err.message });
+                        res.json({ success: true });
+                    });
+                });
+            })
+            .catch((err) => res.status(500).json({ success: false, message: err.message }));
     });
 
     // ==========================================
@@ -1223,15 +1398,17 @@ router.post('/update-profile', requireRole('admin'), async (req, res) => {
     });
 
     router.get('/api/problems', requireRole('admin'), (req, res) => {
-        // JOIN with users table to get the creator's college and role for frontend filtering
+        const collegeName = req.session.user.collegeName;
         const query = `
-            SELECT p.*, u.collegeName, u.role as creator_role 
-            FROM problems p 
-            LEFT JOIN users u ON p.faculty_id = u.id OR p.created_by = u.id
+            SELECT p.*, u.collegeName, u.role as creator_role
+            FROM problems p
+            LEFT JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id
+            WHERE LOWER(COALESCE(u.collegeName, '')) = LOWER(?)
+               OR LOWER(COALESCE(u.role, '')) = 'superadmin'
             ORDER BY p.id DESC
         `;
-        
-        db.all(query, [], (err, rows) => {
+
+        db.all(query, [collegeName], (err, rows) => {
             if (err) return res.status(500).json({ success: false, message: err.message });
             res.json({ success: true, data: rows });
         });
@@ -1462,11 +1639,16 @@ router.put('/api/contests/:id', requireRole('admin'), (req, res) => {
         if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
             return res.status(400).json({ success: false, message: "No users selected" });
         }
-        
+
         // Create placeholders (?, ?, ?) based on how many IDs are selected
         const placeholders = userIds.map(() => '?').join(',');
-        const query = `UPDATE users SET status = ? WHERE id IN (${placeholders}) AND collegeName = ?`;
         
+        // Dynamically set query to also assign is_verified properties if activating
+        let query = `UPDATE users SET status = ? WHERE id IN (${placeholders}) AND collegeName = ?`;
+        if (status === 'active') {
+            query = `UPDATE users SET status = ?, is_verified = 1, isVerified = 1 WHERE id IN (${placeholders}) AND collegeName = ?`;
+        }
+
         db.run(query, [status, ...userIds, req.session.user.collegeName], function(err) {
             if (err) return res.status(500).json({ success: false, message: err.message });
             res.json({ success: true, message: `Successfully updated ${this.changes} users to ${status}.` });
@@ -1539,55 +1721,51 @@ router.put('/api/contests/:id', requireRole('admin'), (req, res) => {
 
     // 2. Update Email API
     router.post('/update-email', requireRole('admin'), async (req, res) => {
-        const { newEmail } = req.body;
-        const userId = req.session.user.id;
-
-        if (!newEmail) return res.status(400).json({ success: false, message: "Email is required" });
-
-        try {
-            // Check if email already exists for another user
-            const existingUser = await new Promise((resolve, reject) => {
-                db.get(`SELECT id FROM users WHERE email = ?`, [newEmail], (err, row) => {
-                    if (err) reject(err); else resolve(row);
-                });
-            });
-
-            if (existingUser && existingUser.id !== userId) {
-                return res.status(400).json({ success: false, message: "Email is already in use by another account." });
-            }
-
-            db.run(`UPDATE users SET email = ? WHERE id = ?`, [newEmail, userId], function(err) {
-                if (err) return res.status(500).json({ success: false, message: err.message });
-                
-                // Update the active session email
-                if (req.session && req.session.user) {
-                    req.session.user.email = newEmail;
-                }
-                res.json({ success: true, message: "Email updated successfully" });
-            });
-        } catch (err) {
-            res.status(500).json({ success: false, message: err.message });
-        }
+        res.status(403).json({ success: false, message: "Email update requires verification. Please request and verify the OTP first." });
     });
 
     // 3. Update College Info (University & Accreditation) API
     router.post('/update-college-info', requireRole('admin'), (req, res) => {
         const { university, accreditation } = req.body;
-        const userId = req.session.user.id;
+        const collegeName = String(req.session?.user?.collegeName || '').trim();
 
-        // NOTE: Since database.js cannot be changed right now, we simulate a successful save.
-        // When you add 'university' and 'accreditation' columns to your database, uncomment the code below:
-        
-        /*
-        db.run(`UPDATE users SET university = ?, accreditation = ? WHERE id = ?`, 
-            [university, accreditation, userId], function(err) {
-            if (err) return res.status(500).json({ success: false, message: err.message });
-            res.json({ success: true, message: "College Info updated successfully" });
-        });
-        */
+        if (!collegeName) {
+            return res.status(400).json({ success: false, message: "No college is linked to this admin account." });
+        }
 
-        // Simulated Success Response (Remove this when you uncomment the above)
-        res.json({ success: true, message: "College Info updated locally." });
+        db.run(
+            `INSERT OR IGNORE INTO colleges (name, university, accreditation, status) VALUES (?, '', '', 'active')`,
+            [collegeName],
+            (insertErr) => {
+                if (insertErr) return res.status(500).json({ success: false, message: insertErr.message });
+
+                db.run(
+                    `UPDATE colleges SET university = ?, accreditation = ? WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))`,
+                    [String(university || '').trim(), String(accreditation || '').trim(), collegeName],
+                    function(err) {
+                        if (err) return res.status(500).json({ success: false, message: err.message });
+                        res.json({ success: true, message: "College Info updated successfully" });
+                    }
+                );
+            }
+        );
+    });
+
+    router.get('/college-info-options', requireRole('admin'), async (req, res) => {
+        try {
+            const [universities, accreditations] = await Promise.all([
+                dbAllAsync(`SELECT DISTINCT TRIM(COALESCE(university, '')) AS value FROM colleges WHERE TRIM(COALESCE(university, '')) != '' ORDER BY value COLLATE NOCASE ASC`),
+                dbAllAsync(`SELECT DISTINCT TRIM(COALESCE(accreditation, '')) AS value FROM colleges WHERE TRIM(COALESCE(accreditation, '')) != '' ORDER BY value COLLATE NOCASE ASC`)
+            ]);
+
+            res.json({
+                success: true,
+                universities: universities.map(row => row.value).filter(Boolean),
+                accreditations: accreditations.map(row => row.value).filter(Boolean)
+            });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
     });
     return router;
 };

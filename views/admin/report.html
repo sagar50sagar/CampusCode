@@ -606,8 +606,8 @@
                                         <th>Streak</th>
                                         <th>Contests</th>
                                         <th>Solved Qs</th>
-                                        <th>Col Rank</th>
-                                        <th>Global Rank</th>
+                                        <th>C.Rank</th>
+                                        <th>G.Rank</th>
                                         <th>Level</th>
                                         <th>Accuracy</th>
                                         <th>Last Active</th>
@@ -738,8 +738,8 @@
                         document.getElementById('displayCollegeName').textContent = user.collegeName || "Admin Dashboard";
                         
                         // Dynamic University & Accreditation Logic
-                        const university = user.university ? `University: ${user.university}` : '';
-                        const accreditation = user.accreditation ? `Accreditation: ${user.accreditation}` : '';
+                        const university = user.university ? `${user.university}` : '';
+                        const accreditation = user.accreditation ? `${user.accreditation}` : '';
                         
                         const displayUniversityEl = document.getElementById('displayUniversityName');
                         if (displayUniversityEl) displayUniversityEl.textContent = university;

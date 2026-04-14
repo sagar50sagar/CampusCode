@@ -13,7 +13,29 @@
 
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<script>
+    // 1. Immediately apply the theme on page load to prevent flashing
+    (function () {
+        const savedTheme = localStorage.getItem('theme');
+        // If your index.html uses a different key, replace 'theme' with that key (e.g., 'color-theme')
+        if (savedTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    })();
 
+    // 2. Listen for theme changes across different tabs dynamically
+    window.addEventListener('storage', function (event) {
+        if (event.key === 'theme') {
+            if (event.newValue === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+    });
+</script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -416,11 +438,10 @@
     </div>
 
     <script>
-        const themeToggleBtn = document.getElementById('themeToggleBtn');
         const themeIcon = document.getElementById('themeIcon');
-        
-        themeToggleBtn.addEventListener('click', () => {
-            document.documentElement.classList.toggle('dark');
+
+        function syncThemeIcon() {
+            if (!themeIcon) return;
             if (document.documentElement.classList.contains('dark')) {
                 themeIcon.classList.remove('fa-moon');
                 themeIcon.classList.add('fa-sun');
@@ -428,7 +449,18 @@
                 themeIcon.classList.remove('fa-sun');
                 themeIcon.classList.add('fa-moon');
             }
-        });
+        }
+
+        syncThemeIcon();
+
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+                localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+                syncThemeIcon();
+            });
+        }
 
         const sidebar = document.getElementById('mainSidebar');
         const toggleBtn = document.getElementById('sidebarToggleBtn');
@@ -446,6 +478,7 @@
         let currentUserCollege = null;
 
         document.addEventListener("DOMContentLoaded", () => {
+            syncThemeIcon();
             fetchAdminProfile();
             fetchCollegesFromDB();
             fetchProgramsFromDB(); 
@@ -769,7 +802,10 @@
 
         function restrictPastDates() {
             const today = new Date().toISOString().split('T')[0];
+            const now = new Date();
+            const localDateTime = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
             document.getElementById('contestDate').setAttribute('min', today);
+            document.getElementById('contestDeadline').setAttribute('min', localDateTime);
         }
 
         function openCreateModal() {
@@ -873,6 +909,7 @@
             }
 
             if (!title) { showToast("Title is required!"); return; }
+            if (deadline && new Date(deadline) < new Date()) { showToast("Registration deadline must be present or future date."); return; }
 
             const payload = {
                 title, scope, level: scope, date, deadline, duration, description, 
@@ -936,17 +973,11 @@
             const tbody = document.getElementById('available-problems-list');
             tbody.innerHTML = '';
             
-            const allowedProblems = availableProblems.filter(p => {
-                const pCollege = p.college || p.collegeName || p.college_name;
-                const pRole = p.role || p.creator_role || p.creatorRole || p.createdByRole;
-                
-                const isMyCollege = pCollege && currentUserCollege && pCollege.toLowerCase() === currentUserCollege.toLowerCase();
-                const isSuperadmin = pRole === 'superadmin' || p.is_superadmin === true || p.isSuperAdmin === true || !pCollege;
-                
-                return isMyCollege || isSuperadmin;
+            const filtered = availableProblems.filter(p => {
+                const title = String(p.title || '').toLowerCase();
+                const difficulty = String(p.difficulty || '').toLowerCase();
+                return title.includes(search) || difficulty.includes(search);
             });
-
-            const filtered = allowedProblems.filter(p => p.title.toLowerCase().includes(search) || p.difficulty.toLowerCase().includes(search));
             
             if (filtered.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="4" class="text-center py-10 text-gray-500 dark:text-gray-400 font-medium">No problems found.</td></tr>`;
@@ -984,17 +1015,11 @@
         function toggleSelectAllProblems() {
             const search = document.getElementById('problemSearch').value.toLowerCase();
             
-            const allowedProblems = availableProblems.filter(p => {
-                const pCollege = p.college || p.collegeName || p.college_name;
-                const pRole = p.role || p.creator_role || p.creatorRole || p.createdByRole;
-                
-                const isMyCollege = pCollege && currentUserCollege && pCollege.toLowerCase() === currentUserCollege.toLowerCase();
-                const isSuperadmin = pRole === 'superadmin' || p.is_superadmin === true || p.isSuperAdmin === true || !pCollege;
-                
-                return isMyCollege || isSuperadmin;
+            const filtered = availableProblems.filter(p => {
+                const title = String(p.title || '').toLowerCase();
+                const difficulty = String(p.difficulty || '').toLowerCase();
+                return title.includes(search) || difficulty.includes(search);
             });
-            
-            const filtered = allowedProblems.filter(p => p.title.toLowerCase().includes(search) || p.difficulty.toLowerCase().includes(search));
             const isAllChecked = document.getElementById('selectAllProblemsCb').checked;
             
             filtered.forEach(p => {

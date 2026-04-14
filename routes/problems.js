@@ -736,7 +736,9 @@ module.exports = (db) => {
             }
 
             const finalStatus = allPassed ? 'accepted' : 'wrong_answer';
-            const pointsEarned = allPassed ? (problem.points || 50) : 0;
+            const difficulty = String(problem.difficulty || 'easy').toLowerCase();
+            const xpByDifficulty = { easy: 5, medium: 10, hard: 15 };
+            const pointsEarned = allPassed ? (xpByDifficulty[difficulty] || 5) : 0;
 
             // Save submission
             db.run(`INSERT INTO submissions (problem_id, contest_id, user_id, language, code, status, result_details, points_earned)

@@ -819,8 +819,44 @@
             }
         });
 
+        // --- FILTERING LOGIC ---
+        function applyProblemFilters() {
+            const query = (document.getElementById('problemFilterSearch').value || '').toLowerCase();
+            const checkedSubjects = Array.from(document.querySelectorAll('.problem-filter-subject:checked')).map(cb => cb.value.toLowerCase());
+            const checkedDiffs = Array.from(document.querySelectorAll('.problem-filter-difficulty:checked')).map(cb => cb.value.toLowerCase());
+            const checkedTags = Array.from(document.querySelectorAll('.problem-filter-tag:checked')).map(cb => cb.value.toLowerCase());
+
+            const allRows = document.querySelectorAll('tr[data-problem-id]');
+            
+            allRows.forEach(row => {
+                const title = row.dataset.problemTitle || '';
+                const subject = row.dataset.problemSubject || '';
+                const tags = row.dataset.problemTags || '';
+                const diff = row.dataset.problemDifficulty || '';
+
+                const matchesSearch = !query || title.includes(query) || subject.includes(query) || tags.includes(query);
+                const matchesSubject = checkedSubjects.length === 0 || checkedSubjects.includes(subject);
+                const matchesDiff = checkedDiffs.length === 0 || checkedDiffs.includes(diff);
+                const matchesTag = checkedTags.length === 0 || checkedTags.some(tag => tags.includes(tag));
+
+                if (matchesSearch && matchesSubject && matchesDiff && matchesTag) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
         // Handle URL params
         document.addEventListener('DOMContentLoaded', () => {
+            // Attach listeners for filters
+            const searchInput = document.getElementById('problemFilterSearch');
+            if (searchInput) searchInput.addEventListener('input', applyProblemFilters);
+
+            document.querySelectorAll('.problem-filter-subject, .problem-filter-difficulty, .problem-filter-tag').forEach(cb => {
+                cb.addEventListener('change', applyProblemFilters);
+            });
+
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('action') === 'create') {
                 openCreateProblemView();

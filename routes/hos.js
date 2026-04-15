@@ -974,12 +974,8 @@ module.exports = (db) => {
                     });
             });
 
-            const years = await new Promise((resolve) => {
-                db.all(`SELECT DISTINCT section as year_name FROM faculty_assignments WHERE 1=0`, [], (e, r) => resolve([]));
-            });
-            const sections = await new Promise((resolve) => {
-                db.all(`SELECT DISTINCT section as section_name FROM faculty_assignments WHERE 1=0`, [], (e, r) => resolve([]));
-            });
+            const years = [...new Set(students.map(s => s.year).filter(Boolean))].map(y => ({ year_name: y }));
+            const sections = [...new Set(students.map(s => s.section).filter(Boolean))].map(s => ({ section_name: s }));
 
             res.render('hos/student.html', {
                 user: req.session.user,
@@ -1812,6 +1808,79 @@ module.exports = (db) => {
                 res.json({ success: true, message: 'Student updated successfully!' });
             }
         );
+    });
+
+    // ⭐ HOS: View Detailed Student Profile Page
+    router.get('/hos/view_student', requireRole('hos'), (req, res) => {
+        res.render('hos/view_student.html', { 
+            user: req.session.user, 
+            currentPage: 'student',
+            queryId: req.query.id
+        });
+    });
+
+    // ⭐ HOS: View Detailed Faculty Profile Page
+    router.get('/hos/view_faculty', requireRole('hos'), (req, res) => {
+        res.render('hos/view_faculty.html', { 
+            user: req.session.user, 
+            currentPage: 'faculty',
+            queryId: req.query.id
+        });
+    });
+
+    // ⭐ HOS: Detailed Student Profile API
+    router.get('/hos/api/student/public-profile/:id', requireRole('hos'), (req, res) => {
+        const studentId = req.params.id;
+        const collegeName = req.session.user.collegeName;
+
+        db.get(`
+            SELECT id, fullName, email, department, branch, program, year, section, collegeName, role, status
+            FROM account_users 
+            WHERE id = ? AND collegeName = ? AND role = 'student'
+        `, [studentId, collegeName], (err, user) => {
+            if (err) return res.status(500).json({ success: false, message: "Database error" });
+            if (!user) return res.status(404).json({ success: false, message: "Student not found" });
+
+            res.json({
+                success: true,
+                student: {
+                    ...user,
+                    points: user.points || 0,
+                    rank: user.rank || 'Unranked',
+                    solvedCount: user.solvedCount || 0
+                }
+            });
+        });
+    });
+
+    // ⭐ HOS: Detailed Faculty Profile API
+    router.get('/hos/api/faculty/public-profile/:id', requireRole('hos'), (req, res) => {
+        const facultyId = req.params.id;
+        const collegeName = req.session.user.collegeName;
+
+        db.get(`SELECT id, fullName, email, department, branch, program, collegeName, role, status, is_hod 
+                FROM account_users WHERE id = ? AND collegeName = ?`, 
+        [facultyId, collegeName], (err, user) => {
+            if (err) return res.status(500).json({ success: false, message: "Database error" });
+            if (!user) return res.status(404).json({ success: false, message: "Faculty not found" });
+
+            const statsQuery = `
+                SELECT 
+                    (SELECT COUNT(*) FROM contests WHERE createdBy = ?) as totalContests,
+                    (SELECT COUNT(*) FROM problems WHERE faculty_id = ?) as totalProblems
+            `;
+
+            db.get(statsQuery, [facultyId, facultyId], (err, stats) => {
+                res.json({
+                    success: true,
+                    faculty: user,
+                    stats: {
+                        problemsCreated: stats ? stats.totalProblems : 0,
+                        activeContests: stats ? stats.totalContests : 0
+                    }
+                });
+            });
+        });
     });
 
     return router;

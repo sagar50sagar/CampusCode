@@ -1,166 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pending Questions Approval - HOS Dashboard</title>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet" />
+    <title>Pending Questions Approval | HOS Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/css/shared.css">
     <link rel="stylesheet" href="/css/hos/style.css">
-
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: { sans: ["Poppins", "sans-serif"] },
                     colors: {
-                        primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" },
-                        dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" }
-                    },
-                },
-            },
-        };
+                        dark: {
+                            DEFAULT: '#0f172a',
+                            sub: '#1e293b',
+                            lighter: '#334155'
+                        },
+                        primary: {
+                            500: '#3b82f6',
+                            600: '#2563eb'
+                        }
+                    }
+                }
+            }
+        }
     </script>
-    <script src="/js/nav-toggle.js"></script>
+    <script>
+        try {
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        } catch (_) {}
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; transition: background-color 0.3s, color 0.3s; }
+        .dark body { background: #0f172a; color: #f1f5f9; }
+        .dark .bg-dark-sub { background: #1e293b !important; }
+        .dark .border-slate-800 { border-color: #334155 !important; }
+        .q-row:hover { background: rgba(59, 130, 246, 0.05); }
+        .dark .q-row:hover { background: rgba(59, 130, 246, 0.1); }
+        .active-tab { color: #3b82f6 !important; border-color: #3b82f6 !important; }
+        .dark .active-tab { color: #60a5fa !important; border-color: #60a5fa !important; }
+    </style>
 </head>
-
-<body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200">
+<body class="bg-slate-50 text-slate-900 dark:bg-dark dark:text-slate-200 min-h-screen">
     <div class="flex h-screen overflow-hidden">
         <%- include('partials/sidebar.html', { currentPage: 'pending_questions' }) %>
-
-        <div class="flex-1 overflow-y-auto">
-            <%- include('partials/header.html', { pageTitle: 'Pending Questions', user: user }) %>
-
-            <!-- Main Scrollable Area -->
-            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
-                <!-- Title Section -->
-                <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                            <i class="fas fa-clipboard-check text-orange-500"></i>
-                            Pending Questions Approval
-                        </h1>
-                        <p class="text-gray-600 dark:text-gray-400 mt-1">Review and approve questions submitted by faculty members</p>
+        
+        <div class="flex-1 flex flex-col h-screen overflow-hidden">
+            <header class="bg-white dark:bg-dark-sub border-b border-slate-200 dark:border-slate-800 h-[88px] flex items-center px-8 justify-between shrink-0">
+                <div class="flex flex-col">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Pending Questions Approval</h2>
                     </div>
-                    <div class="flex flex-wrap gap-2">
-                        <a href="/hos/problem" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
-                            <i class="fas fa-arrow-left"></i> Back
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="themeToggleBtn" class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-white transition-colors flex items-center justify-center">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button id="btnBulkApprove" onclick="bulkUpdate('approve')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold transition-all opacity-50 cursor-not-allowed" disabled>
+                        Bulk Approve
+                    </button>
+                    <button id="btnBulkReject" onclick="bulkUpdate('reject')" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-sm font-bold transition-all opacity-50 cursor-not-allowed" disabled>
+                        Bulk Reject
+                    </button>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-8 bg-slate-50 dark:bg-dark custom-scrollbar">
+                <div class="max-w-7xl mx-auto space-y-8">
+                    <!-- Back Button & Breadcrumb -->
+                    <div class="flex items-center justify-between mb-2">
+                        <a href="/hos/dashboard" class="group flex items-center gap-2 text-slate-400 hover:text-blue-500 transition-all">
+                            <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-dark-sub flex items-center justify-center group-hover:bg-blue-500/10 transition-all">
+                                <i class="fas fa-arrow-left text-xs"></i>
+                            </div>
+                            <span class="text-xs font-black uppercase tracking-widest">Back to Dashboard</span>
                         </a>
-                        <button id="btnBulkApprove" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2 opacity-50 cursor-not-allowed" disabled>
-                            <i class="fas fa-check-double"></i> Bulk Approve
-                        </button>
-                        <button id="btnBulkReject" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2 opacity-50 cursor-not-allowed" disabled>
-                            <i class="fas fa-times-circle"></i> Bulk Reject
-                        </button>
-                        <button id="btnExportData" class="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
-                            <i class="fas fa-download"></i> Export
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Stats Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Total Pending</p>
-                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-1" id="statTotal"><%= questionStats.total %></h3>
+                        <div class="flex items-center gap-2 text-[10px] font-black text-slate-300 uppercase tracking-tighter">
+                            <span>HOS</span>
+                            <i class="fas fa-chevron-right text-[8px] opacity-30"></i>
+                            <span class="text-slate-500">Question Verification</span>
                         </div>
-                        <div class="p-3 bg-orange-500/10 rounded-lg"><i class="fas fa-clock text-orange-500 text-xl"></i></div>
                     </div>
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Approved</p>
-                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-1" id="statApproved"><%= questionStats.approved %></h3>
-                        </div>
-                        <div class="p-3 bg-green-500/10 rounded-lg"><i class="fas fa-check-circle text-green-500 text-xl"></i></div>
-                    </div>
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Rejected</p>
-                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-1" id="statRejected"><%= questionStats.rejected %></h3>
-                        </div>
-                        <div class="p-3 bg-red-500/10 rounded-lg"><i class="fas fa-times-circle text-red-500 text-xl"></i></div>
-                    </div>
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">This Week</p>
-                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-1" id="statWeek"><%= questionStats.thisWeek %></h3>
-                        </div>
-                        <div class="p-3 bg-blue-500/10 rounded-lg"><i class="fas fa-calendar-week text-blue-500 text-xl"></i></div>
-                    </div>
-                </div>
-
-                <!-- Table Container -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <!-- Tabs -->
-                    <div class="flex border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
-                        <button class="approval-tab active px-6 py-4 text-sm font-medium text-primary-600 dark:text-primary-400 border-b-2 border-primary-500 focus:outline-none whitespace-nowrap" data-tab="pending">
-                            Pending <span class="ml-2 px-2 py-0.5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-xs"><%= questionStats.total %></span>
-                        </button>
-                        <button class="approval-tab px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none whitespace-nowrap" data-tab="approved">
-                            Approved <span class="ml-2 px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-xs"><%= questionStats.approved %></span>
-                        </button>
-                        <button class="approval-tab px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none whitespace-nowrap" data-tab="rejected">
-                            Rejected <span class="ml-2 px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-xs"><%= questionStats.rejected %></span>
-                        </button>
-                    </div>
-
-                    <!-- Filters -->
-                    <div class="p-4 bg-gray-50 dark:bg-gray-800/30 border-b border-gray-200 dark:border-gray-700">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 uppercase tracking-wider">Subject</label>
-                                <select id="filterSubject" class="w-full text-sm border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                                    <option value="">All Subjects</option>
-                                    <% subjects.forEach(s => { %><option value="<%= s %>"><%= s %></option><% }) %>
-                                </select>
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <% const statsData = [
+                            { label: 'Total Pending', value: questionStats.total, icon: 'fa-clock', color: 'orange' },
+                            { label: 'Approved', value: questionStats.approved, icon: 'fa-check-circle', color: 'green' },
+                            { label: 'Rejected', value: questionStats.rejected, icon: 'fa-times-circle', color: 'red' },
+                            { label: 'This Week', value: questionStats.thisWeek, icon: 'fa-calendar-alt', color: 'blue' }
+                        ] %>
+                        <% statsData.forEach(s => { %>
+                            <div class="bg-white dark:bg-dark-sub border border-slate-200 dark:border-slate-800 p-6 rounded-2xl flex items-center justify-between shadow-sm">
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1"><%= s.label %></p>
+                                    <h3 class="text-3xl font-extrabold text-slate-800 dark:text-white"><%= s.value %></h3>
+                                </div>
+                                <div class="w-12 h-12 bg-<%= s.color %>-500/10 rounded-xl flex items-center justify-center text-<%= s.color %>-500">
+                                    <i class="fas <%= s.icon %> text-xl"></i>
+                                </div>
                             </div>
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 uppercase tracking-wider">Date From</label>
-                                <input type="date" id="filterDateFrom" class="w-full text-sm border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 uppercase tracking-wider">Date To</label>
-                                <input type="date" id="filterDateTo" class="w-full text-sm border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                            </div>
-                            <div class="flex items-end gap-2">
-                                <button id="btnApplyFilters" class="flex-1 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors">Apply</button>
-                                <button id="btnResetFilters" class="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm transition-colors"><i class="fas fa-redo"></i></button>
-                            </div>
+                        <% }) %>
+                    </div>
+
+                    <div class="bg-white dark:bg-dark-sub border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
+                        <!-- Tabs -->
+                        <div class="flex border-b border-slate-100 dark:border-slate-800 overflow-x-auto">
+                            <button onclick="switchTab('pending')" id="tab-pending" class="px-8 py-5 text-sm font-bold border-b-2 active-tab transition-all">Pending</button>
+                            <button onclick="switchTab('approved')" id="tab-approved" class="px-8 py-5 text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all">Approved</button>
+                            <button onclick="switchTab('rejected')" id="tab-rejected" class="px-8 py-5 text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all">Rejected</button>
                         </div>
-                    </div>
 
-                    <!-- Table -->
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50 uppercase tracking-wider">
-                                    <th class="px-4 py-3 w-10"><input type="checkbox" id="selectAll" class="rounded border-gray-300 text-primary-600"></th>
-                                    <th class="px-4 py-3">Title</th>
-                                    <th class="px-4 py-3">Difficulty</th>
-                                    <th class="px-4 py-3">Faculty</th>
-                                    <th class="px-4 py-3">Subject</th>
-                                    <th class="px-4 py-3 text-center">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="questionsTableBody" class="divide-y divide-gray-200 dark:divide-gray-700 text-sm">
-                                <!-- Data injected by JS -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Pagination -->
-                    <div class="px-4 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                        <span class="text-xs text-gray-500">Page <span id="currentPage">1</span> of <span id="totalPages">1</span> (<span id="displayCount">0</span> items)</span>
-                        <div class="flex gap-2">
-                            <button id="btnPrevPage" class="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs disabled:opacity-50">Prev</button>
-                            <button id="btnNextPage" class="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs disabled:opacity-50">Next</button>
+                        <!-- Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr class="bg-slate-50/50 dark:bg-slate-900/50 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">
+                                        <th class="px-8 py-4 w-12"><input type="checkbox" id="selectAll" class="rounded border-slate-300"></th>
+                                        <th class="px-4 py-4">Title</th>
+                                        <th class="px-4 py-4 text-center">Difficulty</th>
+                                        <th class="px-4 py-4">Faculty</th>
+                                        <th class="px-4 py-4">Subject</th>
+                                        <th class="px-8 py-4 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="questionsBody" class="divide-y divide-slate-50 dark:divide-slate-800">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -168,192 +145,100 @@
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toastNotification" class="fixed bottom-6 right-6 z-50 hidden flex items-center gap-3 bg-white dark:bg-gray-800 shadow-xl rounded-2xl px-4 py-3 border border-gray-200 dark:border-gray-700 min-w-[260px]">
-        <div id="toastIcon" class="w-8 h-8 rounded-full flex items-center justify-center text-white"><i class="fas fa-check"></i></div>
-        <div>
-            <p id="toastTitle" class="text-sm font-semibold text-gray-800 dark:text-white"></p>
-            <p id="toastMessage" class="text-xs text-gray-500 dark:text-gray-400"></p>
-        </div>
-    </div>
-
-    <!-- Confirm Dialog -->
-    <div id="confirmDialog" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm mx-4">
-            <p id="confirmMessage" class="text-gray-800 dark:text-white text-sm font-medium mb-5"></p>
-            <div class="flex gap-3 justify-end">
-                <button id="confirmCancelBtn" class="px-4 py-2 rounded-lg text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">Cancel</button>
-                <button id="confirmOkBtn" class="px-4 py-2 rounded-lg text-sm bg-primary-500 hover:bg-primary-600 text-white transition-colors">Confirm</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modals -->
-
     <script>
         let allQuestions = <%- JSON.stringify(questions) %>;
         let currentTab = 'pending';
-        let currentPage = 1;
-        const itemsPerPage = 8;
 
+        function switchTab(tab) {
+            currentTab = tab;
+            ['pending', 'approved', 'rejected'].forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                el.className = t === tab ? 'px-8 py-5 text-sm font-bold border-b-2 active-tab transition-all' : 'px-8 py-5 text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all';
+            });
+            render();
+        }
 
-
-        // Table
-        const render = () => {
-            let data = allQuestions.filter(q => {
-                if(currentTab === 'approved') return q.status === 'accepted';
-                if(currentTab === 'rejected') return q.status === 'rejected';
-                return q.status === 'pending';
+        function render() {
+            const body = document.getElementById('questionsBody');
+            const data = allQuestions.filter(q => {
+                if (currentTab === 'pending') return q.status === 'pending';
+                if (currentTab === 'approved') return (q.status === 'accepted' || q.status === 'approved');
+                return q.status === 'rejected';
             });
 
-            const sub = document.getElementById('filterSubject').value;
-            const from = document.getElementById('filterDateFrom').value;
-            const to = document.getElementById('filterDateTo').value;
-            if(sub) data = data.filter(q => q.subject === sub);
-            if(from) data = data.filter(q => q.createdAt >= from);
-            if(to) data = data.filter(q => q.createdAt <= to);
-
-            const pages = Math.ceil(data.length / itemsPerPage) || 1;
-            const slice = data.slice((currentPage-1)*itemsPerPage, currentPage*itemsPerPage);
-
-            document.getElementById('displayCount').innerText = data.length;
-            document.getElementById('totalPages').innerText = pages;
-            document.getElementById('currentPage').innerText = currentPage;
-            document.getElementById('btnPrevPage').disabled = currentPage === 1;
-            document.getElementById('btnNextPage').disabled = currentPage === pages;
-
-            const body = document.getElementById('questionsTableBody');
-            if(!slice.length) {
-                body.innerHTML = `<tr><td colspan="6" class="text-center py-20 text-gray-400">No questions found</td></tr>`;
-                return;
-            }
-
-            body.innerHTML = slice.map(q => `
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                    <td class="px-4 py-3">${q.status === 'pending' ? '<input type="checkbox" class="row-checkbox rounded" data-id="' + q.id + '">' : ''}</td>
-                    <td class="px-4 py-3 font-medium">${q.title}</td>
-                    <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-full text-xs ${q.difficulty === 'Easy' ? 'bg-green-100 text-green-700' : q.difficulty === 'Hard' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}">${q.difficulty}</span></td>
-                    <td class="px-4 py-3">${q.faculty}</td>
-                    <td class="px-4 py-3 text-gray-500">${q.subject}</td>
-                    <td class="px-4 py-3 text-center">
-                        <div class="flex items-center justify-center gap-1">
-                            <a href="/hos/pending-question/${q.id}" class="p-1.5 text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded" title="View Full Details"><i class="fas fa-eye"></i></a>
-                            ${q.status === 'pending' ? `
-                                <button onclick="verifyOne(${q.id}, 'approve')" class="p-1.5 text-green-500 hover:bg-green-100 dark:hover:bg-green-900/30 rounded" title="Approve"><i class="fas fa-check"></i></button>
-                                <button onclick="verifyOne(${q.id}, 'reject')" class="p-1.5 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded" title="Reject"><i class="fas fa-times"></i></button>
-                            ` : `<span class="px-2 py-0.5 ml-1 text-[10px] font-bold uppercase rounded ${q.status === 'accepted' || q.status === 'approved' ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'}">${q.status}</span>`}
+            body.innerHTML = data.map(q => `
+                <tr class="q-row group transition-all">
+                    <td class="px-8 py-5">
+                        ${q.status === 'pending' ? `<input type="checkbox" class="q-checkbox rounded border-slate-300 text-primary-600" data-id="${q.id}">` : '<i class="fas fa-lock text-slate-300 dark:text-slate-700 text-[10px]"></i>'}
+                    </td>
+                    <td class="px-4 py-5">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-bold text-slate-800 dark:text-white">${q.title}</span>
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider mt-0.5">ID: #${q.id}</span>
                         </div>
                     </td>
+                    <td class="px-4 py-5 text-center">
+                        <span class="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
+                            q.difficulty === 'Easy' ? 'bg-green-500/10 text-green-500' : 
+                            q.difficulty === 'Medium' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-red-500/10 text-red-500'
+                        }">${q.difficulty}</span>
+                    </td>
+                    <td class="px-4 py-5">
+                        <span class="text-sm text-slate-600 dark:text-slate-400 font-medium">${q.faculty || 'Unassigned'}</span>
+                    </td>
+                    <td class="px-4 py-5">
+                        <span class="px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-[10px] font-bold text-slate-500 uppercase tracking-widest">${q.subject}</span>
+                    </td>
+                    <td class="px-8 py-5 text-right">
+                        <a href="/hos/pending-question/${q.id}" class="inline-flex items-center gap-2 px-4 py-2 bg-primary-500/10 hover:bg-primary-500 text-primary-600 hover:text-white rounded-xl text-xs font-bold transition-all">
+                           <i class="fas fa-eye"></i> Review
+                        </a>
+                    </td>
                 </tr>
-            `).join('');
-            updateBulk();
-        };
+            `).join('') || `<tr><td colspan="6" class="px-8 py-20 text-center text-slate-400 italic font-medium">No records found.</td></tr>`;
 
-        const updateBulk = () => {
-            const count = document.querySelectorAll('.row-checkbox:checked').length;
-            ['btnBulkApprove', 'btnBulkReject'].forEach(id => {
-                const btn = document.getElementById(id);
-                btn.disabled = !count;
-                btn.classList.toggle('opacity-50', !count);
-                btn.classList.toggle('cursor-not-allowed', !count);
-            });
-        };
+            setupCheckboxes();
+        }
 
-        document.getElementById('selectAll').onchange = (e) => {
-            document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = e.target.checked);
-            updateBulk();
-        };
-        document.getElementById('questionsTableBody').onclick = (e) => { if(e.target.classList.contains('row-checkbox')) updateBulk(); };
+        function setupCheckboxes() {
+            const boxes = document.querySelectorAll('.q-checkbox');
+            const bulkApp = document.getElementById('btnBulkApprove');
+            const bulkRej = document.getElementById('btnBulkReject');
+            const master = document.getElementById('selectAll');
 
-        document.querySelectorAll('.approval-tab').forEach(btn => btn.onclick = () => {
-            document.querySelectorAll('.approval-tab').forEach(b => b.classList.remove('active', 'text-primary-600', 'border-b-2', 'border-primary-500'));
-            btn.classList.add('active', 'text-primary-600', 'border-b-2', 'border-primary-500');
-            currentTab = btn.dataset.tab;
-            currentPage = 1;
-            render();
-        });
-
-        document.getElementById('btnApplyFilters').onclick = render;
-        document.getElementById('btnResetFilters').onclick = () => {
-            document.querySelectorAll('#filterSubject, #filterDateFrom, #filterDateTo').forEach(i => i.value = '');
-            render();
-        };
-
-        const performAction = async (ids, action) => {
-            const resp = await fetch('/hos/bulk-verify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ questionIds: ids, action })
-            });
-            const res = await resp.json();
-            if(res.success) {
-                toast(res.message, 'success', 'Done');
-                allQuestions.forEach(q => {
-                    if (ids.includes(q.id)) {
-                        q.status = action === 'approve' ? 'accepted' : 'rejected';
-                    }
+            const update = () => {
+                const checked = document.querySelectorAll('.q-checkbox:checked').length;
+                [bulkApp, bulkRej].forEach(b => {
+                    b.disabled = !checked;
+                    b.classList.toggle('opacity-50', !checked);
+                    b.classList.toggle('cursor-not-allowed', !checked);
                 });
-                
-                // Also optionally update the stats visually immediately or let a refresh handle it
-                const stApproved = document.getElementById('statApproved');
-                const stRejected = document.getElementById('statRejected');
-                const stTotal = document.getElementById('statTotal');
-                const tabApproved = document.querySelector('button[data-tab="approved"] span');
-                const tabRejected = document.querySelector('button[data-tab="rejected"] span');
-                // Decrement total
-                if (stTotal && !isNaN(parseInt(stTotal.innerText))) {
-                   stTotal.innerText = parseInt(stTotal.innerText) - ids.length;
-                }
-                
-                if (action === 'approve') {
-                    if (stApproved) stApproved.innerText = parseInt(stApproved.innerText || 0) + ids.length;
-                    if (tabApproved) tabApproved.innerText = parseInt(tabApproved.innerText || 0) + ids.length;
-                } else {
-                    if (stRejected) stRejected.innerText = parseInt(stRejected.innerText || 0) + ids.length;
-                    if (tabRejected) tabRejected.innerText = parseInt(tabRejected.innerText || 0) + ids.length;
-                }
-                
-                render();
-            } else toast(res.error, 'error', 'Failed');
-        };
+            }
 
-        const verifyOne = async (id, action) => {
-            if(await confirm(`Are you sure you want to ${action}?`)) performAction([id], action);
-        };
-        document.getElementById('btnBulkApprove').onclick = async () => {
-            const ids = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => parseInt(cb.dataset.id));
-            if (!ids.length) return;
-            if (await confirm(`Approve ${ids.length} selected question(s)?`)) performAction(ids, 'approve');
-        };
-        document.getElementById('btnBulkReject').onclick = async () => {
-            const ids = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => parseInt(cb.dataset.id));
-            if (!ids.length) return;
-            if (await confirm(`Reject ${ids.length} selected question(s)?`)) performAction(ids, 'reject');
-        };
+            boxes.forEach(b => b.onchange = update);
+            master.onchange = (e) => {
+                boxes.forEach(b => b.checked = e.target.checked);
+                update();
+            }
+        }
 
+        async function bulkUpdate(action) {
+            const ids = Array.from(document.querySelectorAll('.q-checkbox:checked')).map(cb => parseInt(cb.dataset.id));
+            if (!ids.length || !confirm(`Perform ${action} on ${ids.length} questions?`)) return;
 
-
-        // Helpers
-        const toast = (m, t, title) => {
-            const el = document.getElementById('toastNotification');
-            document.getElementById('toastTitle').innerText = title;
-            document.getElementById('toastMessage').innerText = m;
-            document.getElementById('toastIcon').className = `w-8 h-8 rounded-full flex items-center justify-center ${t === 'success' ? 'bg-green-500' : 'bg-red-500'}`;
-            document.getElementById('toastIcon').innerHTML = `<i class="fas fa-${t === 'success' ? 'check' : 'times'}"></i>`;
-            el.classList.remove('hidden');
-            setTimeout(() => el.classList.add('hidden'), 3000);
-        };
-
-        let confirmRes;
-        const confirm = (m) => {
-            document.getElementById('confirmMessage').innerText = m;
-            document.getElementById('confirmDialog').classList.remove('hidden');
-            return new Promise(res => confirmRes = res);
-        };
-        document.getElementById('confirmOkBtn').onclick = () => { document.getElementById('confirmDialog').classList.add('hidden'); confirmRes(true); };
-        document.getElementById('confirmCancelBtn').onclick = () => { document.getElementById('confirmDialog').classList.add('hidden'); confirmRes(false); };
-
-
+            try {
+                const r = await fetch('/hos/bulk-verify', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ questionIds: ids, action })
+                });
+                const d = await r.json();
+                if (d.success) {
+                    alert(d.message);
+                    location.reload();
+                } else alert(d.error);
+            } catch (e) { alert('Network Error'); }
+        }
 
         render();
     </script>

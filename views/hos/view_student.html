@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Profile - CampusCode</title>
+    <link rel="icon" href="/campuscode-logo.jpeg" type="image/jpeg" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/shared.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ["Poppins", "sans-serif"] },
+                    colors: {
+                        primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" },
+                        dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                },
+            },
+        };
+    </script>
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200 text-gray-800 dark:text-gray-200">
+    <div class="flex h-screen overflow-hidden">
+        <%- include('../partials/hos_nav', { currentPage: 'student' }) %>
+
+        <div class="flex-1 overflow-y-auto">
+            <%- include('../partials/hos_header', { pageTitle: 'Student Profile', user: user }) %>
+
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                
+                <!-- Loading State -->
+                <div id="loadingState" class="py-32 text-center flex flex-col items-center justify-center animate-fade-in">
+                    <div class="relative w-20 h-20 mb-6">
+                        <div class="absolute inset-0 border-4 border-primary-100 dark:border-gray-700 rounded-full"></div>
+                        <div class="absolute inset-0 border-4 border-primary-600 dark:border-blue-500 rounded-full border-t-transparent animate-spin"></div>
+                    </div>
+                    <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-2" id="loadingTitle">Loading Profile Data</h2>
+                    <p class="text-gray-500 dark:text-gray-400" id="loadingText">Fetching student information from the database...</p>
+                </div>
+
+                <!-- Profile Content -->
+                <div id="profileContent" class="hidden animate-fade-in">
+                    <div class="mb-4">
+                        <a href="/hos/student" class="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors">
+                            <i class="fas fa-arrow-left"></i> Back to Student List
+                        </a>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mb-8">
+                        <div class="bg-gradient-to-br from-[#1E4A7A] to-[#153255] relative pt-16 pb-24 px-6 text-center">
+                            <span id="stu-status" class="absolute top-4 right-4 px-3 py-1 text-xs font-bold rounded-full bg-white/10 text-white backdrop-blur-md border border-white/20 uppercase tracking-wide">
+                                Loading
+                            </span>
+                            
+                            <div class="absolute left-1/2 bottom-[-56px] -translate-x-1/2">
+                                <div class="relative w-32 h-32 rounded-full p-2 bg-white dark:bg-gray-800 ring-4 ring-[#1E4A7A]/10 dark:ring-gray-700 shadow-xl">
+                                    <div id="stu-avatar" class="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-4xl font-bold shadow-inner">
+                                        --
+                                    </div>
+                                    <div class="absolute -bottom-2 -right-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-lg border-2 border-white dark:border-gray-800 shadow-sm" title="Student Level">
+                                        Lv. <span id="stu-level">1</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="pt-20 pb-10 px-6 text-center">
+                            <h1 id="stu-name" class="text-3xl font-bold text-gray-900 dark:text-white mb-1">--</h1>
+                            <p id="stu-college" class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">--</p>
+                            
+                            <div class="flex items-center justify-center gap-3 flex-wrap mb-8">
+                                <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-100 dark:border-blue-800 flex items-center gap-1.5">
+                                    <i class="fas fa-graduation-cap text-blue-500"></i> <span id="stu-program">--</span>
+                                </span>
+                                <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border border-purple-100 dark:border-purple-800 flex items-center gap-1.5">
+                                    <i class="fas fa-code-branch text-purple-500"></i> <span id="stu-branch">--</span>
+                                </span>
+                                <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800 flex items-center gap-1.5">
+                                    <i class="fas fa-calendar-alt text-indigo-500"></i> Year <span id="stu-year">--</span>
+                                </span>
+                                <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300 border border-green-100 dark:border-green-800 flex items-center gap-1.5">
+                                    <i class="fas fa-users text-green-500"></i> Sec <span id="stu-section">--</span>
+                                </span>
+                            </div>
+
+                            <div class="flex justify-center gap-4">
+                                <div class="px-5 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 flex items-center gap-2">
+                                    <i class="fas fa-id-card text-gray-400 dark:text-gray-500"></i>
+                                    <span class="text-sm font-bold text-gray-700 dark:text-gray-200">STU-<span id="stu-id-val">--</span></span>
+                                </div>
+                                <a id="stu-email" href="#" class="px-6 py-2.5 rounded-xl text-sm font-semibold bg-primary-600 hover:bg-primary-700 text-white transition-all hover:-translate-y-0.5 shadow-md hover:shadow-lg flex items-center gap-2">
+                                    <i class="fas fa-paper-plane"></i> Message
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-200">
+                            <div class="relative z-10 flex justify-between items-start">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Points</p>
+                                    <h3 id="stu-points" class="text-3xl font-bold text-gray-900 dark:text-white mt-2">0</h3>
+                                </div>
+                                <div class="p-3 bg-yellow-500/10 rounded-lg text-yellow-600 dark:text-yellow-400">
+                                    <i class="fas fa-star text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="absolute -bottom-4 -right-4 w-24 h-24 bg-yellow-500/10 rounded-full blur-2xl group-hover:bg-yellow-500/20 transition-colors"></div>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-200">
+                            <div class="relative z-10 flex justify-between items-start">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Global Rank</p>
+                                    <h3 id="stu-rank" class="text-3xl font-bold text-gray-900 dark:text-white mt-2">N/A</h3>
+                                </div>
+                                <div class="p-3 bg-purple-500/10 rounded-lg text-purple-500 dark:text-purple-400">
+                                    <i class="fas fa-trophy text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="absolute -bottom-4 -right-4 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-colors"></div>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-200 md:col-span-2 lg:col-span-1">
+                            <div class="relative z-10 flex justify-between items-start">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Problems Solved</p>
+                                    <h3 id="stu-solved" class="text-3xl font-bold text-gray-900 dark:text-white mt-2">0</h3>
+                                </div>
+                                <div class="p-3 bg-green-500/10 rounded-lg text-green-600 dark:text-green-400">
+                                    <i class="fas fa-code text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="absolute -bottom-4 -right-4 w-24 h-24 bg-green-500/10 rounded-full blur-2xl group-hover:bg-green-500/20 transition-colors"></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="space-y-6 lg:col-span-1">
+                            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+                                <h2 class="text-lg font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+                                    <i class="fas fa-user-graduate text-primary-500"></i> Academic Profile
+                                </h2>
+                                <ul class="space-y-4">
+                                    <li class="flex justify-between items-center border-b border-gray-50 dark:border-gray-700/50 pb-3">
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">Status</span>
+                                        <span id="stu-status-text" class="text-sm font-semibold text-gray-800 dark:text-gray-200 capitalize">--</span>
+                                    </li>
+                                    <li class="flex justify-between items-center border-b border-gray-50 dark:border-gray-700/50 pb-3">
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">Program</span>
+                                        <span id="stu-acad-program" class="text-sm font-semibold text-gray-800 dark:text-gray-200">--</span>
+                                    </li>
+                                    <li class="flex justify-between items-center border-b border-gray-50 dark:border-gray-700/50 pb-3">
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">Branch/Dept.</span>
+                                        <span id="stu-acad-branch" class="text-sm font-semibold text-gray-800 dark:text-gray-200">--</span>
+                                    </li>
+                                    <li class="flex justify-between items-center border-b border-gray-50 dark:border-gray-700/50 pb-3">
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">Academic Year</span>
+                                        <span class="text-sm font-semibold text-gray-800 dark:text-gray-200">Year <span id="stu-acad-year">--</span></span>
+                                    </li>
+                                    <li class="flex justify-between items-center border-b border-gray-50 dark:border-gray-700/50 pb-3">
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">Section</span>
+                                        <span class="text-sm font-semibold text-gray-800 dark:text-gray-200"><span id="stu-acad-section">--</span></span>
+                                    </li>
+                                    <li class="flex justify-between items-center pb-1">
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">Current Streak</span>
+                                        <span class="text-sm font-bold text-orange-500 flex items-center gap-1">
+                                            <span id="stu-streak">0</span> <i class="fas fa-fire"></i>
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 border border-gray-100 dark:border-gray-700 lg:col-span-2">
+                            <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+                                <i class="fas fa-chart-bar text-primary-500"></i> Coding Journey
+                            </h2>
+                            <div class="p-5 rounded-xl bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700 mb-8">
+                                <p id="stu-bio" class="text-gray-600 dark:text-gray-300 leading-relaxed text-[15px]">
+                                    Loading student bio...
+                                </p>
+                            </div>
+                            
+                            <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+                                <i class="fas fa-history text-primary-500"></i> Recent Submissions
+                            </h2>
+                            <div class="p-10 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl flex flex-col items-center justify-center text-center">
+                                <div class="w-16 h-16 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center mb-4 border border-gray-100 dark:border-gray-700">
+                                    <i class="fas fa-laptop-code text-3xl text-gray-300 dark:text-gray-600"></i>
+                                </div>
+                                <p class="text-gray-500 dark:text-gray-400 font-medium text-sm">No recent coding activity available to display.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const loadingState = document.getElementById('loadingState');
+        const profileContent = document.getElementById('profileContent');
+        const loadingTitle = document.getElementById('loadingTitle');
+        const loadingText = document.getElementById('loadingText');
+
+        const showError = (message) => {
+            document.querySelector('#loadingState .relative').innerHTML = '<i class="fas fa-user-slash text-6xl text-red-500 mb-6"></i>';
+            loadingTitle.textContent = "Oops! Could not load profile.";
+            loadingTitle.className = "text-2xl font-bold text-red-600 dark:text-red-400 mb-2";
+            loadingText.textContent = message;
+            loadingText.className = "text-gray-600 dark:text-gray-300 font-medium";
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const studentId = urlParams.get('id') || '<%= queryId %>';
+
+        if (!studentId || studentId === 'undefined') {
+            showError("No Student ID was provided in the link.");
+            return;
+        }
+
+        try {
+            // Fetch data from isolated Faculty API
+            const response = await fetch(`/college/faculty/api/student/public-profile/${studentId}`);
+            if (!response.ok) throw new Error(`Network response was not ok (Status: ${response.status})`);
+            const data = await response.json();
+            
+            if (data.success) {
+                const student = data.student;
+                document.getElementById('stu-name').textContent = student.fullName || "Unknown Name";
+                document.getElementById('stu-college').innerHTML = `<i class="fas fa-university text-gray-400 mr-1.5"></i> ${student.collegeName || "Unknown College"}`;
+                document.getElementById('stu-id-val').textContent = student.id;
+                document.getElementById('stu-program').textContent = student.program || "N/A";
+                document.getElementById('stu-branch').textContent = student.branch || student.department || "N/A";
+                document.getElementById('stu-year').textContent = student.year || "N/A";
+                document.getElementById('stu-section').textContent = student.section || "N/A";
+                document.getElementById('stu-status-text').textContent = student.status || "Pending";
+                document.getElementById('stu-acad-program').textContent = student.program || "N/A";
+                document.getElementById('stu-acad-branch').textContent = student.branch || student.department || "N/A";
+                document.getElementById('stu-acad-year').textContent = student.year || "N/A";
+                document.getElementById('stu-acad-section').textContent = student.section || "N/A";
+                document.getElementById('stu-streak').textContent = student.streak || 0;
+                document.getElementById('stu-level').textContent = student.level || 1;
+                const emailBtn = document.getElementById('stu-email');
+                if (student.email) emailBtn.href = `mailto:${student.email}`;
+                else emailBtn.style.display = 'none';
+                const nameStr = (student.fullName || "U N").trim();
+                const nameParts = nameStr.split(' ');
+                let initials = nameParts[0].charAt(0);
+                if (nameParts.length > 1) initials += nameParts[nameParts.length - 1].charAt(0);
+                document.getElementById('stu-avatar').textContent = initials.toUpperCase();
+                document.getElementById('stu-points').textContent = student.points || 0;
+                document.getElementById('stu-rank').textContent = student.rank || "Unranked";
+                document.getElementById('stu-solved').textContent = student.solvedCount || 0;
+                const statusBadge = document.getElementById('stu-status');
+                const statusText = (student.status || "Unknown").toLowerCase();
+                statusBadge.textContent = statusText;
+                if (statusText === 'active') statusBadge.className = "absolute top-4 right-4 px-3 py-1 text-xs font-bold rounded-full bg-green-500/20 text-green-100 backdrop-blur-md border border-green-500/30 uppercase tracking-wide";
+                else if (statusText === 'pending') statusBadge.className = "absolute top-4 right-4 px-3 py-1 text-xs font-bold rounded-full bg-yellow-500/20 text-yellow-100 backdrop-blur-md border border-yellow-500/30 uppercase tracking-wide";
+                else statusBadge.className = "absolute top-4 right-4 px-3 py-1 text-xs font-bold rounded-full bg-red-500/20 text-red-100 backdrop-blur-md border border-red-500/30 uppercase tracking-wide";
+                document.getElementById('stu-bio').textContent = `${student.fullName} is currently pursuing a degree in ${student.program || 'their program'} (${student.branch || student.department || 'unassigned'}) at ${student.collegeName}. They are currently in Year ${student.year || 'N/A'}.`;
+                loadingState.style.display = 'none';
+                profileContent.classList.remove('hidden');
+            } else {
+                showError(data.message || "Failed to find this student in the database.");
+            }
+        } catch (error) {
+            console.error("Connection Failed:", error);
+            showError("Connection Failed. Please check your network or ensure the server is running.");
+        }
+    });
+    </script>
+</body>
+</html>

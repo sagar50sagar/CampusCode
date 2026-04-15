@@ -425,7 +425,7 @@ module.exports = (db) => {
 
     // Bulk Verify Questions (approve / reject)
     router.post('/hos/bulk-verify', requireRole('hos'), async (req, res) => {
-        const { questionIds, action } = req.body;
+        const { questionIds, action, comments } = req.body;
         const hosId = req.session.user.id;
 
         if (!Array.isArray(questionIds) || questionIds.length === 0) {
@@ -456,11 +456,11 @@ module.exports = (db) => {
 
                         let updateSql, params;
                         if (action === 'approve') {
-                            updateSql = `UPDATE problems SET status = ?, hos_verified = 1, is_public = 1, visibility_scope = 'college', scope = 'college' WHERE id = ?`;
-                            params = [newStatus, problemId];
+                            updateSql = `UPDATE problems SET status = ?, hod_comments = ?, hos_verified = 1, is_public = 1, visibility_scope = 'college', scope = 'college' WHERE id = ?`;
+                            params = [newStatus, comments || '', problemId];
                         } else {
-                            updateSql = `UPDATE problems SET status = ? WHERE id = ?`;
-                            params = [newStatus, problemId];
+                            updateSql = `UPDATE problems SET status = ?, hod_comments = ? WHERE id = ?`;
+                            params = [newStatus, comments || '', problemId];
                         }
 
                         db.run(updateSql, params, function(runErr) {
@@ -1379,6 +1379,24 @@ module.exports = (db) => {
             console.error('Bulk Verify Exception:', e);
             res.status(500).json({ success: false, error: 'Internal server error.' });
         }
+    });
+
+    // ⭐ HOS: View Detailed Student Profile Page
+    router.get('/hos/view_student', requireRole('hos'), (req, res) => {
+        res.render('hos/view_student.html', { 
+            user: req.session.user, 
+            currentPage: 'student',
+            queryId: req.query.id
+        });
+    });
+
+    // ⭐ HOS: View Detailed Faculty Profile Page
+    router.get('/hos/view_faculty', requireRole('hos'), (req, res) => {
+        res.render('hos/view_faculty.html', { 
+            user: req.session.user, 
+            currentPage: 'faculty',
+            queryId: req.query.id
+        });
     });
 
     // Pending Contests - Full Dynamic Data

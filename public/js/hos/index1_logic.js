@@ -31,6 +31,12 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    // Default to "All Problems" tab on load
+    const defaultTab = document.querySelector('[data-tab="all-problems"]');
+    if (defaultTab) {
+        defaultTab.click();
+    }
+
     const btnCreateProblem = document.getElementById('btn-create-problem');
     const problemsListContainer = document.getElementById('problems-list-container');
     const problemFormView = document.getElementById('problem-form-view');

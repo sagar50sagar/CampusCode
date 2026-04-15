@@ -1000,10 +1000,10 @@ module.exports = (db) => {
 
     router.post('/settings/update', requireRole(['faculty', 'hos', 'hod']), (req, res) => {
         const userSession = buildUser(req);
-        const { name, email, gender, mobile, joiningDate, github_link, location } = req.body;
+        const { name, email, gender, mobile, joiningDate, location } = req.body;
         
-        db.run(`UPDATE account_users SET fullName = ?, email = ?, gender = ?, mobile = ?, joiningDate = ?, github_link = ?, location = ? WHERE id = ?`,
-            [name, email, gender, mobile, joiningDate, github_link, location, userSession.id],
+        db.run(`UPDATE account_users SET fullName = ?, email = ?, gender = ?, mobile = ?, joiningDate = ?, location = ? WHERE id = ?`,
+            [name, email, gender, mobile, joiningDate, location, userSession.id],
             function(err) {
                 if (err) {
                     console.error("Settings Update Error:", err);
@@ -1014,7 +1014,6 @@ module.exports = (db) => {
                 req.session.user.name = name;
                 req.session.user.email = email;
                 req.session.user.joiningDate = joiningDate;
-                req.session.user.github_link = github_link;
                 req.session.user.location = location;
                 
                 res.redirect('/faculty/settings?success=true');

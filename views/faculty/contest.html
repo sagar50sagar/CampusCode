@@ -17,6 +17,12 @@
     <link rel="stylesheet" href="/css/shared.css">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <!-- CodeMirror 5 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -656,11 +662,33 @@
                     </button>
                 </div>
 
-                <div class="mb-4 relative shrink-0">
-                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" id="problemSearch"
-                        placeholder="Search problems by title, subject, or difficulty..."
-                        class="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm dark:text-white outline-none focus:ring-2 focus:ring-primary-500 transition-all">
+                <div class="flex flex-wrap gap-4 mb-4 shrink-0">
+                    <div class="flex-1 min-w-[300px] relative">
+                        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="problemSearch" placeholder="Search by title..."
+                            class="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm dark:text-white outline-none focus:ring-2 focus:ring-primary-500 transition-all">
+                    </div>
+                    <select id="probFilterSubject" class="px-4 py-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm dark:text-white outline-none focus:ring-2 focus:ring-primary-500 transition-all cursor-pointer">
+                        <option value="">All Subjects</option>
+                    </select>
+                    <select id="probFilterDifficulty" class="px-4 py-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm dark:text-white outline-none focus:ring-2 focus:ring-primary-500 transition-all cursor-pointer">
+                        <option value="">All Difficulty</option>
+                        <option value="Easy">Easy</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Hard">Hard</option>
+                    </select>
+                </div>
+
+                <!-- Source Scoping Tabs -->
+                <div class="flex gap-1 overflow-x-auto no-scrollbar mb-6 border-b border-gray-100 dark:border-gray-700 shrink-0">
+                    <button data-scope="all" class="scope-tab px-5 py-3 text-[10px] font-black uppercase tracking-widest border-b-2 border-primary-500 text-primary-600 dark:text-blue-400 transition-all">All Problems</button>
+                    <button data-scope="platform" class="scope-tab px-5 py-3 text-[10px] font-black uppercase tracking-widest border-b-2 border-transparent text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-all">Platform Library</button>
+                    <button data-scope="college" class="scope-tab px-5 py-3 text-[10px] font-black uppercase tracking-widest border-b-2 border-transparent text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-all">College Hub</button>
+                    <button data-scope="mine" class="scope-tab px-5 py-3 text-[10px] font-black uppercase tracking-widest border-b-2 border-transparent text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-all">My Problems</button>
+                    <div class="flex-1"></div>
+                    <button id="btnToggleSelectedOnly" class="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-primary-600 dark:text-blue-400 hover:bg-primary-50 dark:hover:bg-primary-900/10 transition-all">
+                        <i class="fas fa-check-circle mr-1"></i> Show Selected
+                    </button>
                 </div>
 
                 <div
@@ -702,20 +730,91 @@
             </div>
         </div>
 
-        <!-- Problem Details Modal -->
-        <div id="problemDetailsModal"
-            class="fixed inset-0 z-[150] hidden flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
-            <div
-                class="bg-white dark:bg-gray-800 w-full max-w-2xl rounded-3xl shadow-2xl p-8 max-h-[85vh] overflow-y-auto animate-fadeIn relative custom-scrollbar">
-                <button onclick="document.getElementById('problemDetailsModal').classList.add('hidden')"
-                    class="absolute top-6 right-6 h-10 w-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center transition-colors">
-                    <i class="fas fa-times text-gray-500 dark:text-gray-300"></i>
-                </button>
-                <div id="problem-details-content">
-                    <!-- Content injected via JS -->
+    <!-- Problem Details Modal (IDE Style) -->
+    <div id="problemDetailsModal" class="fixed inset-0 z-[150] hidden flex items-center justify-center bg-black/70 backdrop-blur-md">
+        <div class="bg-gray-50 dark:bg-gray-900 w-full max-w-[95vw] h-[95vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-fadeIn relative">
+            <!-- Modal Header / Navbar -->
+            <div class="h-16 bg-[#0d1117] border-b border-gray-800 flex items-center justify-between px-8 shrink-0 z-50">
+                <div class="flex items-center gap-6">
+                    <button onclick="document.getElementById('problemDetailsModal').classList.add('hidden')" class="text-sm text-gray-400 hover:text-white flex items-center gap-2 transition-colors">
+                        <i class="fas fa-arrow-left text-xs"></i> 
+                        <span>Back to Manager</span>
+                    </button>
+                    <div class="h-4 w-px bg-gray-700"></div>
+                    <div class="flex items-center gap-3">
+                        <h3 id="ideProblemTitle" class="text-base font-bold text-white truncate">Problem Title</h3>
+                        <span id="ideProblemBadge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">Easy</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button id="ideRunBtn" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2">
+                        <i class="fas fa-play"></i> RUN
+                    </button>
+                    <button id="ideAddButton" class="px-5 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-bold shadow-lg shadow-primary-500/20 transition-all flex items-center gap-2">
+                        <i class="fas fa-plus"></i> <span id="ideAddButtonText">Add to Contest</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Content (Split View) -->
+            <div class="flex flex-1 overflow-hidden">
+                <!-- Left: Description -->
+                <div class="w-1/2 border-r border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 overflow-y-auto custom-scrollbar p-10">
+                    <div id="problem-details-content" class="prose dark:prose-invert max-w-none">
+                        <!-- Content injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Right: Code Preview -->
+                <div class="w-1/2 flex flex-col bg-gray-50 dark:bg-[#0b0e14] overflow-hidden">
+                    <div class="flex items-center justify-between px-6 py-3 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 shrink-0">
+                        <div class="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-widest">
+                            <i class="fas fa-code text-primary-500"></i> Code Preview
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <select id="ideLanguageSelect" class="text-[10px] px-2 py-1 rounded border border-gray-200 dark:border-gray-700 bg-transparent text-gray-500 dark:text-gray-400 outline-none">
+                                <option value="python">Python 3</option>
+                                <option value="cpp">C++ 17</option>
+                                <option value="java">Java 11</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex-1 relative overflow-hidden">
+                        <textarea id="ideCodeEditor"></textarea>
+                    </div>
+                    <!-- Bottom Panel (Tabs: Samples & Output) -->
+                    <div class="h-56 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-800 flex flex-col">
+                        <div class="flex items-center px-4 border-b border-gray-50 dark:border-gray-700/50 shrink-0">
+                            <button id="ide-tab-btn-samples" onclick="switchIdeTab('samples')" class="px-4 py-2.5 text-[10px] font-bold text-primary-500 border-b-2 border-primary-500 uppercase tracking-widest transition-all">
+                                <i class="fas fa-vial mr-1.5 opacity-70"></i> Samples
+                            </button>
+                            <button id="ide-tab-btn-output" onclick="switchIdeTab('output')" class="px-4 py-2.5 text-[10px] font-bold text-gray-400 border-b-2 border-transparent uppercase tracking-widest transition-all">
+                                <i class="fas fa-terminal mr-1.5 opacity-70"></i> Output
+                            </button>
+                        </div>
+                        
+                        <div id="ide-content-samples" class="flex-1 grid grid-cols-2 divide-x divide-gray-50 dark:divide-gray-700/50 overflow-hidden">
+                            <div class="p-4 overflow-y-auto custom-scrollbar">
+                                <p class="text-[9px] font-bold text-gray-400 uppercase mb-2">Sample Input</p>
+                                <pre id="ideSampleInput" class="text-xs font-mono text-gray-600 dark:text-gray-300"></pre>
+                            </div>
+                            <div class="p-4 overflow-y-auto custom-scrollbar">
+                                <p class="text-[9px] font-bold text-gray-400 uppercase mb-2">Sample Output</p>
+                                <pre id="ideSampleOutput" class="text-xs font-mono text-gray-600 dark:text-gray-300"></pre>
+                            </div>
+                        </div>
+
+                        <div id="ide-content-output" class="hidden flex-1 p-5 overflow-y-auto custom-scrollbar font-mono text-[11px]">
+                            <div id="ideOutputPanel" class="text-gray-500 italic">
+                                Run your code to see the execution results here...
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
         <div id="liveContestModal" class="fixed inset-0 z-[170] hidden flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
             <div class="bg-white dark:bg-gray-800 w-full max-w-2xl rounded-3xl shadow-2xl p-6 md:p-8 animate-fadeIn">
@@ -764,6 +863,7 @@
             document.addEventListener("DOMContentLoaded", function () {
                 // State from Server
                 const serverContests = <%- JSON.stringify(contests) %>;
+                const currentUser = <%- JSON.stringify(user) %>;
                 
                 // State
                 let allContests = serverContests || [];
@@ -857,8 +957,17 @@
                         const data = await res.json();
                         if (data.success) {
                             availableProblems = data.data || [];
+                            populateSubjectFilter();
                         }
                     } catch (err) { console.error("Error fetching problems:", err); }
+                }
+
+                function populateSubjectFilter() {
+                    const select = document.getElementById('probFilterSubject');
+                    if (!select) return;
+                    const subjects = [...new Set(availableProblems.map(p => p.subject).filter(Boolean))].sort();
+                    select.innerHTML = '<option value="">All Subjects</option>' + 
+                        subjects.map(s => `<option value="${s}">${s}</option>`).join('');
                 }
 
                 async function fetchStudentsForLive() {
@@ -1128,15 +1237,36 @@
                     });
                 }
 
+                                let showOnlySelected = false;
+                let currentScope = 'all';
+
                 function renderProblemTable() {
                     if (!problemsTableBody) return;
                     problemsTableBody.innerHTML = '';
 
                     const searchTerm = document.getElementById('problemSearch').value.toLowerCase();
-                    const filtered = availableProblems.filter(p =>
-                        p.title.toLowerCase().includes(searchTerm) ||
-                        (p.subject && p.subject.toLowerCase().includes(searchTerm))
-                    );
+                    const filterSubject = document.getElementById('probFilterSubject').value;
+                    const filterDifficulty = document.getElementById('probFilterDifficulty').value;
+
+                    const filtered = availableProblems.filter(p => {
+                        const matchesSearch = p.title.toLowerCase().includes(searchTerm);
+                        const matchesSubject = !filterSubject || p.subject === filterSubject;
+                        const matchesDifficulty = !filterDifficulty || p.difficulty === filterDifficulty;
+                        
+                        const isMine = (p.faculty_id === currentUser.id || p.created_by === currentUser.id);
+                        const isPlatform = (p.creatorRole === 'superadmin' || p.creatorRole === 'admin');
+                        const isCollege = !isPlatform && !isMine;
+                        
+                        const matchesScope = currentScope === 'all' || 
+                                           (currentScope === 'mine' && isMine) ||
+                                           (currentScope === 'platform' && isPlatform) ||
+                                           (currentScope === 'college' && isCollege);
+
+                        const isSelected = selectedProblems.some(sp => sp.id === p.id);
+                        const matchesSelectedOnly = !showOnlySelected || isSelected;
+
+                        return matchesSearch && matchesSubject && matchesDifficulty && matchesScope && matchesSelectedOnly;
+                    });
 
                     filtered.forEach(p => {
                         const isSelected = selectedProblems.some(sp => sp.id === p.id);
@@ -1160,7 +1290,7 @@
                             ${p.facultyName || '<%= user.role.toUpperCase() %>'}
                         </td>
                         <td class="px-6 py-4 text-center">
-                            <button onclick="viewProblemDetails(${p.id})" class="p-2 text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors" title="View Details">
+                            <button onclick="viewProblemDetails(${p.id})" class="p-2 text-primary-600 dark:text-blue-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-lg transition-colors" title="View Details">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </td>
@@ -1230,10 +1360,39 @@
                     updateSelectedProblemsPreview();
                 };
 
-                const problemSearchInput = document.getElementById('problemSearch');
+                                const problemSearchInput = document.getElementById('problemSearch');
+                const probFilterSubject = document.getElementById('probFilterSubject');
+                const probFilterDifficulty = document.getElementById('probFilterDifficulty');
+                const btnToggleSelectedOnly = document.getElementById('btnToggleSelectedOnly');
+
                 if (problemSearchInput) {
                     problemSearchInput.addEventListener('input', renderProblemTable);
                 }
+                if (probFilterSubject) probFilterSubject.addEventListener('change', renderProblemTable);
+                if (probFilterDifficulty) probFilterDifficulty.addEventListener('change', renderProblemTable);
+                
+                if (btnToggleSelectedOnly) {
+                    btnToggleSelectedOnly.addEventListener('click', () => {
+                        showOnlySelected = !showOnlySelected;
+                        btnToggleSelectedOnly.classList.toggle('bg-primary-600', showOnlySelected);
+                        btnToggleSelectedOnly.classList.toggle('text-white', showOnlySelected);
+                        btnToggleSelectedOnly.textContent = showOnlySelected ? 'Showing Selected' : 'Show Selected';
+                        renderProblemTable();
+                    });
+                }
+
+                document.querySelectorAll('.scope-tab').forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        document.querySelectorAll('.scope-tab').forEach(t => {
+                            t.classList.remove('border-primary-500', 'text-primary-600', 'dark:text-blue-400');
+                            t.classList.add('border-transparent', 'text-gray-400', 'dark:text-gray-500');
+                        });
+                        tab.classList.remove('border-transparent', 'text-gray-400', 'dark:text-gray-500');
+                        tab.classList.add('border-primary-500', 'text-primary-600', 'dark:text-blue-400');
+                        currentScope = tab.dataset.scope;
+                        renderProblemTable();
+                    });
+                });
 
                 // --- Form Submission ---
                 const contestForm = document.getElementById('create-contest-form');
@@ -1324,56 +1483,182 @@
                 }
 
                 // --- Edit & Delete ---
+                let ideEditor = null;
+                let currentViewedProblemId = null;
+
                 window.viewProblemDetails = function (id) {
                     const p = availableProblems.find(item => item.id === id);
                     if (!p) return;
-
-                    const content = document.getElementById('problem-details-content');
-                    content.innerHTML = `
+                    currentViewedProblemId = id;
+                    
+                    // Clear output and reset tabs
+                    switchIdeTab('samples');
+                    document.getElementById('ideOutputPanel').innerHTML = '<span class="text-gray-500 italic">Run your code to see the execution results here...</span>';
+                    
+                    document.getElementById('ideProblemTitle').textContent = p.title;
+                    const ideBadge = document.getElementById('ideProblemBadge');
+                    ideBadge.textContent = p.difficulty;
+                    ideBadge.className = `px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${getDifficultyClass(p.difficulty)}`;
+                    
+                    const ideContent = document.getElementById('problem-details-content');
+                    ideContent.innerHTML = `
                     <div class="space-y-6">
-                        <div class="border-b border-gray-100 dark:border-gray-700 pb-4">
-                            <div class="flex items-center gap-3 mb-2">
-                                <span class="px-3 py-1 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 text-[10px] font-bold uppercase tracking-widest rounded-full">${p.subject || 'General'}</span>
-                                <span class="px-3 py-1 ${getDifficultyClass(p.difficulty)} text-[10px] font-bold uppercase tracking-widest rounded-full">${p.difficulty}</span>
-                            </div>
-                            <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white">${p.title}</h2>
-                        </div>
-                        
                         <div class="prose dark:prose-invert max-w-none">
-                            <h4 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-2">Description</h4>
-                            <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">${p.description || 'No description provided.'}</p>
+                            <div class="flex items-center gap-4 mb-4">
+                                <span class="px-3 py-1 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 text-[10px] font-bold uppercase tracking-widest rounded-full">${p.subject || 'General'}</span>
+                            </div>
+                            <h4 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-2 opacity-50">Problem Statement</h4>
+                            <div class="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">${p.description || 'No description provided.'}</div>
                         </div>
-
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <h4 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-2">Input Format</h4>
-                                <div class="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-2xl text-xs text-gray-600 dark:text-gray-400 font-mono">${p.input_format || 'Standard Input'}</div>
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Input Format</h4>
+                                <div class="p-4 bg-gray-50/50 dark:bg-gray-900/40 rounded-2xl text-xs text-gray-600 dark:text-gray-400 font-mono border border-gray-100 dark:border-gray-800">${p.input_format || 'Standard Input'}</div>
                             </div>
                             <div>
-                                <h4 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-2">Output Format</h4>
-                                <div class="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-2xl text-xs text-gray-600 dark:text-gray-400 font-mono">${p.output_format || 'Standard Output'}</div>
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Output Format</h4>
+                                <div class="p-4 bg-gray-50/50 dark:bg-gray-900/40 rounded-2xl text-xs text-gray-600 dark:text-gray-400 font-mono border border-gray-100 dark:border-gray-800">${p.output_format || 'Standard Output'}</div>
                             </div>
                         </div>
-
                         <div>
-                            <h4 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-2">Constraints</h4>
-                            <div class="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-2xl text-xs text-gray-600 dark:text-gray-400 font-mono">${p.constraints || 'None'}</div>
+                            <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Constraints</h4>
+                            <div class="p-4 bg-gray-50/50 dark:bg-gray-900/40 rounded-2xl text-xs text-gray-600 dark:text-gray-400 font-mono border border-gray-100 dark:border-gray-800">${p.constraints || 'None'}</div>
                         </div>
+                    </div>`;
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <h4 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-2">Sample Input</h4>
-                                <pre class="p-4 bg-gray-900 text-gray-100 rounded-2xl text-xs font-mono overflow-x-auto">${p.sample_input || ''}</pre>
-                            </div>
-                            <div>
-                                <h4 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-2">Sample Output</h4>
-                                <pre class="p-4 bg-gray-900 text-gray-100 rounded-2xl text-xs font-mono overflow-x-auto">${p.sample_output || ''}</pre>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                    document.getElementById('ideSampleInput').textContent = p.sample_input || 'No sample input';
+                    document.getElementById('ideSampleOutput').textContent = p.sample_output || 'No sample output';
+
+                    if (!ideEditor) {
+                        ideEditor = CodeMirror.fromTextArea(document.getElementById('ideCodeEditor'), {
+                            mode: 'python',
+                            theme: document.documentElement.classList.contains('dark') ? 'dracula' : 'default',
+                            lineNumbers: true,
+                            indentUnit: 4,
+                            lineWrapping: true,
+                            matchBrackets: true,
+                            autoCloseBrackets: true
+                        });
+
+                        document.getElementById('ideLanguageSelect').addEventListener('change', function() {
+                            const newLang = this.value;
+                            const templates = {
+                                python: '# Write your code here\n',
+                                cpp: '#include<iostream>\nusing namespace std;\nint main() {\n  return 0;\n}',
+                                java: 'import java.util.*;\npublic class Main {\n  public static void main(String[] args) {\n  }\n}'
+                            };
+                            ideEditor.setOption('mode', newLang === 'python' ? 'python' : 'text/x-c++src');
+                            ideEditor.setValue(templates[newLang] || '');
+                        });
+                    }
+                    
+                    const currentLang = document.getElementById('ideLanguageSelect').value;
+                    const initialTemplates = {
+                        python: '# Write your code here\n',
+                        cpp: '#include<iostream>\nusing namespace std;\nint main() {\n  return 0;\n}',
+                        java: 'import java.util.*;\npublic class Main {\n  public static void main(String[] args) {\n  }\n}'
+                    };
+                    ideEditor.setOption('theme', document.documentElement.classList.contains('dark') ? 'dracula' : 'default');
+                    ideEditor.setValue(initialTemplates[currentLang] || '');
+                    setTimeout(() => ideEditor.refresh(), 200);
+
+                    const updateIdeAddBtn = () => {
+                        const isSelected = selectedProblems.some(sp => sp.id === p.id);
+                        const btn = document.getElementById('ideAddButton');
+                        if (isSelected) {
+                            btn.className = "px-6 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-red-500/20 transition-all flex items-center gap-2";
+                            btn.innerHTML = '<i class="fas fa-times-circle"></i> Remove Problem';
+                        } else {
+                            btn.className = "px-6 py-2 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-primary-500/20 transition-all flex items-center gap-2";
+                            btn.innerHTML = '<i class="fas fa-plus-circle"></i> Add to Contest';
+                        }
+                    };
+                    updateIdeAddBtn();
+
+                    document.getElementById('ideAddButton').onclick = (e) => {
+                        e.preventDefault();
+                        const isNowSelected = selectedProblems.some(sp => sp.id === p.id);
+                        if (isNowSelected) {
+                            selectedProblems = selectedProblems.filter(sp => sp.id !== p.id);
+                        } else {
+                            selectedProblems.push(p);
+                        }
+                        updateSelectedProblemsPreview();
+                        renderProblemTable();
+                        updateIdeAddBtn();
+                    };
+
                     document.getElementById('problemDetailsModal').classList.remove('hidden');
                 };
+
+                // IDE View Helpers
+                window.switchIdeTab = function(tab) {
+                    const btnSamples = document.getElementById('ide-tab-btn-samples');
+                    const btnOutput = document.getElementById('ide-tab-btn-output');
+                    const contentSamples = document.getElementById('ide-content-samples');
+                    const contentOutput = document.getElementById('ide-content-output');
+
+                    if (tab === 'samples') {
+                        btnSamples.className = "px-4 py-2.5 text-[10px] font-bold text-primary-500 border-b-2 border-primary-500 uppercase tracking-widest transition-all";
+                        btnOutput.className = "px-4 py-2.5 text-[10px] font-bold text-gray-400 border-b-2 border-transparent uppercase tracking-widest transition-all";
+                        contentSamples.classList.remove('hidden');
+                        contentOutput.classList.add('hidden');
+                    } else {
+                        btnOutput.className = "px-4 py-2.5 text-[10px] font-bold text-primary-500 border-b-2 border-primary-500 uppercase tracking-widest transition-all";
+                        btnSamples.className = "px-4 py-2.5 text-[10px] font-bold text-gray-400 border-b-2 border-transparent uppercase tracking-widest transition-all";
+                        contentOutput.classList.remove('hidden');
+                        contentSamples.classList.add('hidden');
+                    }
+                };
+
+                const ideRunBtn = document.getElementById('ideRunBtn');
+                if (ideRunBtn) {
+                    ideRunBtn.addEventListener('click', async () => {
+                        const activeProblemId = currentViewedProblemId;
+                        if (!activeProblemId || !ideEditor) return;
+
+                        const code = ideEditor.getValue();
+                        const lang = document.getElementById('ideLanguageSelect').value;
+                        const outputPanel = document.getElementById('ideOutputPanel');
+                        
+                        switchIdeTab('output');
+                        ideRunBtn.disabled = true;
+                        ideRunBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Running...';
+                        outputPanel.innerHTML = '<div class="flex items-center gap-2 text-blue-500"><i class="fas fa-cog fa-spin"></i> Executing code against sample input...</div>';
+
+                        try {
+                            const r = await fetch(`/api/problems/${activeProblemId}/run`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ code, language: lang })
+                            });
+                            const d = await r.json();
+                            
+                            if (d.success) {
+                                let html = `<div class="space-y-4">
+                                    <div class="bg-gray-50 dark:bg-black/40 p-3 rounded-lg border border-gray-100 dark:border-gray-800">
+                                        <p class="text-[9px] font-black text-gray-400 uppercase mb-2 tracking-widest">Standard Output</p>
+                                        <pre class="text-green-500 whitespace-pre-wrap">${d.output || '(No output)'}</pre>
+                                    </div>`;
+                                if (d.stderr) {
+                                    html += `<div class="bg-red-50 dark:bg-red-900/10 p-3 rounded-lg border border-red-100 dark:border-red-900/30">
+                                        <p class="text-[9px] font-black text-red-400 uppercase mb-2 tracking-widest">Execution Errors</p>
+                                        <pre class="text-red-500 whitespace-pre-wrap">${d.stderr}</pre>
+                                    </div>`;
+                                }
+                                html += '</div>';
+                                outputPanel.innerHTML = html;
+                            } else {
+                                outputPanel.innerHTML = `<div class="text-red-500 font-bold"><i class="fas fa-exclamation-triangle mr-2"></i> Error: ${d.message}</div>`;
+                            }
+                        } catch (err) {
+                            outputPanel.innerHTML = `<div class="text-red-500"><i class="fas fa-wifi-slash mr-2"></i> Network Error: ${err.message}</div>`;
+                        } finally {
+                            ideRunBtn.disabled = false;
+                            ideRunBtn.innerHTML = '<i class="fas fa-play"></i> RUN';
+                        }
+                    });
+                }
 
                 window.viewContestDetails = function (id) {
                     const contest = allContests.find(c => c.id === id);

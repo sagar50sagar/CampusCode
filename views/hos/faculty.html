@@ -91,7 +91,17 @@
                                     placeholder="Search by name, email, or dept...">
                             </div>
 
-                            <div class="w-full md:w-auto">
+                            <div class="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+                                <select id="facultyDeptFilter"
+                                    class="w-full md:w-auto rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 transition-shadow outline-none cursor-pointer">
+                                    <option value="All Departments">All Departments</option>
+                                    <% if (typeof departments !== 'undefined') { %>
+                                        <% departments.forEach(dept => { %>
+                                            <option value="<%= dept %>"><%= dept %></option>
+                                        <% }) %>
+                                    <% } %>
+                                </select>
+
                                 <select id="facultySubjectFilter"
                                     class="w-full md:w-auto rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 transition-shadow outline-none cursor-pointer">
                                     <option value="All Subjects">All Subjects</option>
@@ -127,7 +137,11 @@
                                 <tbody id="facultyTableBody">
                                     <% if (typeof faculty !== 'undefined' && (faculty || []).length > 0) { %>
                                         <% (faculty || []).forEach(fac => { %>
-                                            <tr class="group hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer faculty-row" data-id="<%= fac.id %>" data-subjects="<%= (fac.teaching_subjects || '').toLowerCase() %>" data-search="<%= `${fac.fullName || ''} ${fac.email || ''} ${fac.department || ''}`.toLowerCase() %>">
+                                            <tr class="group hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer faculty-row" 
+                                                data-id="<%= fac.id %>" 
+                                                data-subjects="<%= (fac.teaching_subjects || '').toLowerCase() %>" 
+                                                data-dept="<%= (fac.department || fac.branch || '').toLowerCase() %>"
+                                                data-search="<%= `${fac.fullName || ''} ${fac.email || ''} ${fac.department || ''}`.toLowerCase() %>">
                                                 <td class="px-6 py-4">
                                                     <div class="flex items-center gap-4">
                                                         <div
@@ -422,20 +436,33 @@
                 activeContestCountEl.textContent = String((summaryData.activeContestCountBySubject || {})[selectedSubject] || 0);
             }
 
+            const deptFilter = document.getElementById('facultyDeptFilter');
+
             function applyFacultyFilters() {
                 const selectedSubject = subjectFilter ? subjectFilter.value : 'All Subjects';
+                const selectedDept = deptFilter ? deptFilter.value : 'All Departments';
                 const query = (searchInput ? searchInput.value : '').trim().toLowerCase();
+
                 for (const row of facultyRows) {
                     const rowSubjects = row.dataset.subjects || '';
+                    const rowDept = row.dataset.dept || '';
                     const rowSearch = row.dataset.search || '';
-                    const subjectMatch = selectedSubject === 'All Subjects' || rowSubjects.split(',').map((s) => s.trim()).includes(selectedSubject.toLowerCase());
+
+                    const subjectMatch = selectedSubject === 'All Subjects' || 
+                                       rowSubjects.split(',').map((s) => s.trim()).includes(selectedSubject.toLowerCase());
+                    
+                    const deptMatch = selectedDept === 'All Departments' || 
+                                    rowDept === selectedDept.toLowerCase();
+
                     const queryMatch = !query || rowSearch.includes(query);
-                    row.style.display = subjectMatch && queryMatch ? '' : 'none';
+
+                    row.style.display = subjectMatch && deptMatch && queryMatch ? '' : 'none';
                 }
                 updateSummaryCards(selectedSubject);
             }
 
             if (subjectFilter) subjectFilter.addEventListener('change', applyFacultyFilters);
+            if (deptFilter) deptFilter.addEventListener('change', applyFacultyFilters);
             if (searchInput) searchInput.addEventListener('input', applyFacultyFilters);
             applyFacultyFilters();
 

@@ -125,6 +125,11 @@ function renderTable() {
         const hasConflicts = conflicts.length > 0;
         const contestName = c.title || c.name || 'Untitled';
         
+        // Dynamic time extraction
+        const startDate = c.start_date ? new Date(c.start_date) : null;
+        const startDay = startDate && !isNaN(startDate) ? startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'TBD';
+        const startTimeStr = startDate && !isNaN(startDate) ? startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (c.start_time || 'No Time');
+
         return `
             <tr class="group hover:bg-slate-50 dark:hover:bg-dark-lighter/30 transition-all duration-200 border-b border-slate-50 dark:border-dark-border last:border-0" data-id="${c.id}">
                 <td class="px-8 py-5 text-center">
@@ -141,7 +146,7 @@ function renderTable() {
                                 ${hasConflicts ? '<span class="px-1.5 py-0.5 text-[8px] font-black rounded-lg bg-rose-500 text-white uppercase animate-pulse">Conflict</span>' : ''}
                             </div>
                             <div class="flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-                                <span>Sec ${c.section || 'All'}</span>
+                                <span>${c.department || 'All Departments'}</span>
                                 <span class="w-1 h-1 rounded-full bg-slate-200 dark:bg-slate-700"></span>
                                 <span class="text-blue-500">${c.subject || 'General'}</span>
                             </div>
@@ -150,12 +155,32 @@ function renderTable() {
                 </td>
                 <td class="px-6 py-5">
                     <div class="flex flex-col">
-                        <span class="text-sm font-bold text-slate-700 dark:text-slate-200">${c.start_date ? new Date(c.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'TBD'}</span>
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${c.start_time || 'No Time'}</span>
+                        <span class="text-sm font-bold text-slate-700 dark:text-slate-200">${startDay}</span>
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${startTimeStr}</span>
                     </div>
                 </td>
                 <td class="px-6 py-5">
-                    <span class="text-sm font-medium text-slate-600 dark:text-slate-400">${c.faculty || c.creatorName || 'Faculty'}</span>
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 rounded-full bg-slate-100 dark:bg-dark-lighter flex items-center justify-center text-[10px] font-bold text-slate-500">
+                            ${(c.faculty || 'F')[0]}
+                        </div>
+                        <span class="text-sm font-medium text-slate-600 dark:text-slate-400">${c.faculty || c.creatorName || 'Faculty'}</span>
+                    </div>
+                </td>
+                <td class="px-6 py-5">
+                    <div class="flex flex-col">
+                        <span class="text-sm font-bold text-slate-700 dark:text-slate-200">
+                            ${(() => {
+                                try {
+                                    const probs = JSON.parse(c.problems || '[]');
+                                    return Array.isArray(probs) ? probs.length : 0;
+                                } catch(e) { return 0; }
+                            })()} Problems
+                        </span>
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            Reg ends: ${c.registrationEndDate || c.deadline || 'No Deadline'}
+                        </span>
+                    </div>
                 </td>
                 <td class="px-6 py-5">
                     ${getStatusBadge(c)}
@@ -288,21 +313,41 @@ function showContestDetails(id) {
                         <i class="fas fa-clock text-blue-500"></i> temporal window
                     </h5>
                     <div class="p-6 rounded-3xl border border-slate-100 dark:border-dark-border bg-slate-50/50 dark:bg-dark-sub/50 space-y-4 text-sm">
-                        <div class="flex justify-between items-center"><span class="text-slate-500">Date</span><span class="font-black">${contest.start_date || 'TBD'}</span></div>
-                        <div class="flex justify-between items-center"><span class="text-slate-500">Start</span><span class="font-black">${contest.start_time || 'No Time'}</span></div>
-                        <div class="flex justify-between items-center"><span class="text-slate-500">Duration</span><span class="font-black text-blue-600 font-black">${contest.duration || '60'} Mins</span></div>
+                        <div class="flex justify-between items-center"><span class="text-slate-500">Start Date</span><span class="font-black">${contest.start_date || 'TBD'}</span></div>
+                        <div class="flex justify-between items-center"><span class="text-slate-500">Reg. Deadline</span><span class="font-black text-rose-500">${contest.registrationEndDate || contest.deadline || 'None'}</span></div>
+                        <div class="flex justify-between items-center"><span class="text-slate-500">Duration</span><span class="font-black text-blue-600">${contest.duration || '60'} Mins</span></div>
                     </div>
                 </div>
                 <div class="space-y-4">
                     <h5 class="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                        <i class="fas fa-award text-amber-500"></i> Scoping & Credits
+                        <i class="fas fa-microchip text-indigo-500"></i> Included Content
                     </h5>
                     <div class="p-6 rounded-3xl border border-slate-100 dark:border-dark-border bg-slate-50/50 dark:bg-dark-sub/50 space-y-4 text-sm">
-                        <div class="flex justify-between items-center"><span class="text-slate-500">Visibility</span><span class="font-black uppercase">${contest.visibility_scope || 'College'}</span></div>
-                        <div class="flex justify-between items-center"><span class="text-slate-500">Prize</span><span class="font-black text-amber-600 font-black">${contest.prize || 'Standard XP'}</span></div>
+                        <div class="flex justify-between items-center"><span class="text-slate-500">Problem Count</span><span class="font-black">${(() => {
+                            try { return JSON.parse(contest.problems || '[]').length; } catch(e) { return 0; }
+                        })()} Questions</span></div>
+                        <div class="flex justify-between items-center"><span class="text-slate-500">Scope</span><span class="font-black uppercase">${contest.scope || contest.visibility_scope || 'Global'}</span></div>
+                        <div class="flex justify-between items-center"><span class="text-slate-500">Prize Pool</span><span class="font-black text-amber-600">${contest.prize || 'Standard'}</span></div>
                     </div>
                 </div>
             </div>
+
+            ${(() => {
+                try {
+                    const probs = JSON.parse(contest.problems || '[]');
+                    if (probs.length > 0) {
+                        return `
+                            <div class="space-y-4">
+                                <h5 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Problem IDs Reference</h5>
+                                <div class="flex flex-wrap gap-2">
+                                    ${probs.map(id => `<span class="px-3 py-1 bg-slate-100 dark:bg-dark-lighter rounded-lg text-xs font-mono font-bold text-slate-600 dark:text-slate-300">ID: ${id}</span>`).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+                } catch(e) {}
+                return '';
+            })()}
 
             <div class="pt-10 border-t border-slate-100 dark:border-dark-border space-y-4">
                 <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Feedback Comment (Mandatory on rejection)</label>
@@ -311,11 +356,11 @@ function showContestDetails(id) {
 
             <div class="flex gap-4 pt-6">
                 ${contest.status === 'pending' ? `
-                    <button onclick="handleAction(${id}, 'approve')" class="flex-[2] py-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-sm font-black transition-all shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-3">
-                        <i class="fas fa-check-circle"></i> APPROVE & PUBLISH
+                    <button onclick="handleAction(${id}, 'approve')" class="flex-[2] py-5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-[1.5rem] text-sm font-black transition-all shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-3 transform hover:scale-[1.02] active:scale-[0.98]">
+                        <i class="fas fa-check-double text-lg"></i> APPROVE & PUBLISH
                     </button>
-                    <button onclick="handleAction(${id}, 'reject')" class="flex-1 py-5 bg-rose-600/10 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-600/20 rounded-2xl text-sm font-black transition-all flex items-center justify-center gap-3">
-                        <i class="fas fa-times-circle"></i> REJECT
+                    <button onclick="handleAction(${id}, 'reject')" class="flex-1 py-5 bg-rose-600/10 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-600/20 rounded-[1.5rem] text-sm font-black transition-all flex items-center justify-center gap-3 transform hover:scale-[1.02] active:scale-[0.98]">
+                        <i class="fas fa-ban text-lg"></i> REJECT
                     </button>
                 ` : `
                     <div class="flex-1 py-5 bg-slate-100 dark:bg-dark-sub rounded-2xl text-center text-xs font-black text-slate-500 uppercase tracking-widest">

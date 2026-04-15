@@ -464,17 +464,17 @@
             if (filterTier) filterTier.addEventListener('change', applyStudentFilters);
             if (filterLanguage) filterLanguage.addEventListener('change', applyStudentFilters);
             if (sortBy) sortBy.addEventListener('change', applyStudentFilters);
-
+            
             // --- EXPORT & ACTIONS ---
-            const btnExport = document.getElementById('btn-export-students');
+            const btnExport = document.getElementById('btn-export-students-v2');
             if (btnExport) {
                 btnExport.addEventListener('click', () => {
-                    alert("Exporting Student Data... (Mock Action)\nDownloaded: student_list.csv");
+                    const modal = document.getElementById('exportStudentModal');
+                    if (modal) modal.classList.remove('hidden');
                 });
             }
 
             // Edit/Delete Actions (Event delegation)
-            const table = document.getElementById('studentsTable');
             if (table) {
                 table.addEventListener('click', (e) => {
                     const editBtn = e.target.closest('button[title="Edit"]');

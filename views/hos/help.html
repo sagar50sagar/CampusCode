@@ -11,6 +11,13 @@
     <link rel="stylesheet" href="/css/shared.css">
     <script>
         tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ["Poppins", "sans-serif"] }, colors: { primary: { 50: "#E7F0FA", 100: "#D0E1F5", 200: "#7BA4D0", 300: "#4D84C0", 400: "#2E5E99", 500: "#1E4A7A", 600: "#0D2440" }, dark: { bg: "#111827", card: "#1F2937", text: "#F9FAFB", border: "#374151" } } } } };
+        
+        function toggleFAQ(btn) {
+            const item = btn.closest('.faq-item');
+            const allItems = document.querySelectorAll('.faq-item');
+            allItems.forEach(i => { if (i !== item) i.classList.remove('active'); });
+            item.classList.toggle('active');
+        }
     </script>
     <style>
         .faq-content { 
@@ -50,7 +57,7 @@
                             
                             <!-- FAQ Item 1 -->
                             <div class="faq-item bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm transition-all hover:border-primary-300">
-                                <button type="button" class="faq-toggle-btn w-full flex items-center justify-between p-5 text-left focus:outline-none">
+                                <button type="button" onclick="toggleFAQ(this); event.stopPropagation();" class="faq-toggle-btn w-full flex items-center justify-between p-5 text-left focus:outline-none">
                                     <span class="font-semibold text-gray-800 dark:text-gray-200">How do I perform bulk verification of questions?</span>
                                     <i class="fas fa-chevron-down faq-icon text-gray-400 transition-transform"></i>
                                 </button>
@@ -61,7 +68,7 @@
 
                             <!-- FAQ Item 2 -->
                             <div class="faq-item bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm transition-all hover:border-primary-300">
-                                <button type="button" class="faq-toggle-btn w-full flex items-center justify-between p-5 text-left focus:outline-none">
+                                <button type="button" onclick="toggleFAQ(this); event.stopPropagation();" class="faq-toggle-btn w-full flex items-center justify-between p-5 text-left focus:outline-none">
                                     <span class="font-semibold text-gray-800 dark:text-gray-200">What is the difference between HOD and HOS oversight?</span>
                                     <i class="fas fa-chevron-down faq-icon text-gray-400 transition-transform"></i>
                                 </button>
@@ -72,7 +79,7 @@
 
                             <!-- FAQ Item 3 -->
                             <div class="faq-item bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm transition-all hover:border-primary-300">
-                                <button type="button" class="faq-toggle-btn w-full flex items-center justify-between p-5 text-left focus:outline-none">
+                                <button type="button" onclick="toggleFAQ(this); event.stopPropagation();" class="faq-toggle-btn w-full flex items-center justify-between p-5 text-left focus:outline-none">
                                     <span class="font-semibold text-gray-800 dark:text-gray-200">How do I approve system-wide coding contests?</span>
                                     <i class="fas fa-chevron-down faq-icon text-gray-400 transition-transform"></i>
                                 </button>
@@ -83,7 +90,7 @@
 
                             <!-- FAQ Item 4 -->
                             <div class="faq-item bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm transition-all hover:border-primary-300">
-                                <button type="button" class="faq-toggle-btn w-full flex items-center justify-between p-5 text-left focus:outline-none">
+                                <button type="button" onclick="toggleFAQ(this); event.stopPropagation();" class="faq-toggle-btn w-full flex items-center justify-between p-5 text-left focus:outline-none">
                                     <span class="font-semibold text-gray-800 dark:text-gray-200">How do I access audit logs for problem changes?</span>
                                     <i class="fas fa-chevron-down faq-icon text-gray-400 transition-transform"></i>
                                 </button>
@@ -151,22 +158,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // FAQ Toggle Logic
-            const faqButtons = document.querySelectorAll('.faq-toggle-btn');
-            faqButtons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const item = this.closest('.faq-item');
-                    const allItems = document.querySelectorAll('.faq-item');
-                    
-                    // Close others
-                    allItems.forEach(i => {
-                        if (i !== item) i.classList.remove('active');
-                    });
-                    
-                    // Toggle current
-                    item.classList.toggle('active');
-                });
-            });
 
             // Support Form Logic
             const form = document.getElementById('supportForm');

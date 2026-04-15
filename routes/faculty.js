@@ -582,6 +582,13 @@ module.exports = (db) => {
         if (user.role === 'hod') {
             query += ` AND u.department = ?`;
             params.push(user.department);
+        } else if (user.role === 'faculty' || user.role === 'hos') {
+            query += ` AND EXISTS (
+                SELECT 1 FROM student_assignments sa 
+                JOIN faculty_assignments fa ON sa.subject = fa.subject AND sa.year = fa.year AND sa.section = fa.section
+                WHERE sa.user_id = u.id AND fa.user_id = ?
+            )`;
+            params.push(user.id);
         }
 
         query += ` ORDER BY fullName ASC`;

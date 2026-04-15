@@ -447,11 +447,9 @@ module.exports = (db) => {
                             const incCol = numericVote === 1 ? 'upvotes' : 'downvotes';
                             const decCol = existingVote === 1 ? 'upvotes' : 'downvotes';
 
-                            db.run(`UPDATE forum_replies SET ${incCol} = ${incCol} + 1, ${decCol} = Math.max(${decCol} - 1, 0) WHERE id = ?`, [reply_id], (err) => {
-                                // SQLite Math is not directly available, do it simply:
-                                db.run(`UPDATE forum_replies SET ${decCol} = ${decCol} - 1 WHERE id = ?`, [reply_id], () => {
-                                    res.json({ success: true, action: 'changed' });
-                                });
+                            db.run(`UPDATE forum_replies SET ${incCol} = ${incCol} + 1, ${decCol} = CASE WHEN ${decCol} > 0 THEN ${decCol} - 1 ELSE 0 END WHERE id = ?`, [reply_id], (err) => {
+                                if (err) return res.status(500).json({ success: false });
+                                res.json({ success: true, action: 'changed' });
                             });
                         });
                     }

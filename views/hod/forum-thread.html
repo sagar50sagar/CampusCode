@@ -36,11 +36,11 @@
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200 text-gray-800 dark:text-gray-200">
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
-        <%- include('../partials/hod_nav') %>
+        <%- include('partials/sidebar.html', { currentPage: 'community' }) %>
 
         <div class="flex-1 overflow-y-auto relative">
             <!-- Header -->
-            <%- include('../partials/hod_header') %>
+            <%- include('partials/header.html', { pageTitle: 'View Discussion', user: typeof user !== 'undefined' ? user : null }) %>
 
             <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div id="loadingState" class="py-20 flex flex-col items-center justify-center">

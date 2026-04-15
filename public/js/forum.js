@@ -748,11 +748,14 @@ function initThreadDetail() {
     }
 
     const threadOp = document.getElementById('threadOp');
-    const replyCountUi = document.getElementById('replyCount');
+    const replyCountUi = document.getElementById('replyCount') || document.getElementById('replyCountTitle');
     const repliesContainer = document.getElementById('repliesContainer');
 
     function renderReplies(replies) {
-        replyCountUi.innerText = replies.length;
+        if(replyCountUi) {
+            replyCountUi.innerText = replies.length + (replies.length === 1 ? ' Reply' : ' Replies');
+        }
+        if(!repliesContainer) return;
         repliesContainer.innerHTML = '';
 
         if(replies.length === 0) {
@@ -856,6 +859,24 @@ function initThreadDetail() {
                     opAvatar.innerText = initials;
                 }
 
+                // --- Thread Voting Listeners & Active States ---
+                const upBtn = document.getElementById('upvoteBtn');
+                const downBtn = document.getElementById('downvoteBtn');
+
+                if (upBtn && downBtn) {
+                    // Update active colors based on user_vote
+                    // user_vote: 1 (up), -1 (down), 0 or null (none)
+                    const upActive = t.user_vote === 1;
+                    const downActive = t.user_vote === -1;
+
+                    upBtn.className = `flex items-center gap-2 transition-colors font-semibold text-sm px-3 py-1.5 rounded-lg border ${upActive ? 'text-primary-600 bg-primary-100 border-primary-300 dark:bg-primary-900/50 dark:text-primary-400' : 'text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 bg-gray-50 dark:bg-gray-700/50 hover:bg-primary-50 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-600'}`;
+                    downBtn.className = `flex items-center gap-2 transition-colors font-semibold text-sm px-3 py-1.5 rounded-lg border ${downActive ? 'text-red-600 bg-red-100 border-red-300 dark:bg-red-900/50 dark:text-red-400' : 'text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 bg-gray-50 dark:bg-gray-700/50 hover:bg-primary-50 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-600'}`;
+
+                    // Bind events
+                    upBtn.onclick = () => toggleThreadVote(1);
+                    downBtn.onclick = () => toggleThreadVote(-1);
+                }
+
             } else if (threadOp) {
                 // Legacy Global Logic
                 threadOp.innerHTML = `
@@ -875,6 +896,30 @@ function initThreadDetail() {
         } catch (error) {
             console.error(error);
             if(threadOp) threadOp.innerHTML = `<div class="text-red-500">Error loading thread.</div>`;
+        }
+    }
+
+    // Helper to toggle thread-level votes
+    async function toggleThreadVote(type) {
+        const action = type === 1 ? 'upvote' : 'downvote';
+        try {
+            const res = await fetch(`/api/forum/threads/${threadId}/${action}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+            if(data.success) {
+                // Update UI counts immediately for responsiveness, then refresh
+                const upCount = document.getElementById('upvoteCount');
+                const downCount = document.getElementById('downvoteCount');
+                if (upCount) upCount.innerText = data.upvotes;
+                if (downCount) downCount.innerText = data.downvotes;
+                fetchThread();
+            } else {
+                alert('Error processing thread vote');
+            }
+        } catch(err) {
+            console.error("Thread vote error:", err);
         }
     }
 

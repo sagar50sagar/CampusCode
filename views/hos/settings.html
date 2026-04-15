@@ -24,6 +24,13 @@
             },
         };
     </script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        .dark ::-webkit-scrollbar-track { background: #111827; }
+        ::-webkit-scrollbar-thumb { background: #7ba4d0; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #2e5e99; }
+    </style>
 </head>
 
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200">
@@ -107,6 +114,18 @@
                                                 <input type="text" name="mobile" value="<%= user.mobile || '' %>"
                                                     class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all">
                                             </div>
+                                            <div>
+                                                <label
+                                                    class="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Date of Join</label>
+                                                <input type="date" name="joiningDate" value="<%= user.joiningDate || '' %>"
+                                                    class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all">
+                                            </div>
+                                            <div>
+                                                <label
+                                                    class="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Location</label>
+                                                <input type="text" name="location" value="<%= user.location || '' %>" placeholder="City, Country"
+                                                    class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all">
+                                            </div>
                                         </div>
                                         <div class="flex justify-end mt-6">
                                             <button type="submit"
@@ -163,46 +182,66 @@
                                         </div>
                                     </div>
 
-                                    <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-6 mb-3">Academic
-                                        Assignments</h4>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                        <div>
-                                            <p
-                                                class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-2">
-                                                Assigned Years</p>
-                                            <div class="flex flex-wrap gap-2">
-                                                <% let parsedYears=[]; try { parsedYears=user.assignedYears ?
-                                                    user.assignedYears.split(',') : []; } catch(e) {} if
-                                                    (parsedYears.length===0) { %>
-                                                    <span
-                                                        class="bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 px-3 py-1 rounded-full text-xs font-medium border border-gray-200 dark:border-gray-700">None</span>
-                                                    <% } else { parsedYears.forEach(year=> { if(year.trim()){ %>
-                                                        <span
-                                                            class="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-3 py-1 rounded-full text-xs font-medium border border-blue-100 dark:border-blue-800 flex items-center gap-1.5">
-                                                            <i class="fas fa-lock text-[10px] opacity-70"></i>
-                                                            <%= year.trim() %>
-                                                        </span>
-                                                        <% }}); } %>
-                                            </div>
+                                    <div class="bg-gray-50/50 dark:bg-gray-900/30 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 mt-6">
+                                        <div class="flex items-center justify-between mb-4 pb-4 border-b border-gray-200/50 dark:border-gray-700/50">
+                                            <h4 class="text-sm font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                                                <i class="fas fa-graduation-cap text-primary-500"></i> Academic Assignments Scope
+                                            </h4>
+                                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Read-Only</span>
                                         </div>
-                                        <div>
-                                            <p
-                                                class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-2">
-                                                Assigned Sections</p>
-                                            <div class="flex flex-wrap gap-2">
-                                                <% let parsedSections=[]; try { parsedSections=user.assignedSections ?
-                                                    user.assignedSections.split(',') : []; } catch(e) {} if
-                                                    (parsedSections.length===0) { %>
-                                                    <span
-                                                        class="bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 px-3 py-1 rounded-full text-xs font-medium border border-gray-200 dark:border-gray-700">None</span>
-                                                    <% } else { parsedSections.forEach(section=> { if(section.trim()){
-                                                        %>
-                                                        <span
-                                                            class="bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 px-3 py-1 rounded-full text-xs font-medium border border-purple-100 dark:border-purple-800 flex items-center gap-1.5">
-                                                            <i class="fas fa-lock text-[10px] opacity-70"></i>
-                                                            <%= section.trim() %>
-                                                        </span>
-                                                        <% }}); } %>
+
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                            <!-- Subjects -->
+                                            <div class="space-y-3">
+                                                <div class="flex items-center justify-between">
+                                                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Subjects</p>
+                                                    <span class="bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-[10px] font-black px-1.5 py-0.5 rounded-md"><%= user.assignedSubjects ? user.assignedSubjects.length : 0 %></span>
+                                                </div>
+                                                <div class="flex flex-wrap gap-2 max-h-[160px] overflow-y-auto pr-1">
+                                                    <% if (!user.assignedSubjects || user.assignedSubjects.length === 0) { %>
+                                                        <span class="text-xs text-gray-400 italic">None assigned</span>
+                                                    <% } else { user.assignedSubjects.forEach(subject => { %>
+                                                        <span class="bg-white dark:bg-gray-800 text-indigo-700 dark:text-indigo-300 px-3 py-1.5 rounded-xl text-xs font-semibold border border-indigo-100 dark:border-indigo-900/50 shadow-sm flex items-center gap-2"><div class="w-1 h-1 rounded-full bg-indigo-400"></div> <%= subject %></span>
+                                                    <% }); } %>
+                                                </div>
+                                            </div>
+
+                                            <!-- Years -->
+                                            <div class="space-y-3">
+                                                <div class="flex items-center justify-between">
+                                                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Years</p>
+                                                    <% 
+                                                     let parsedYears = [];
+                                                     try { parsedYears = user.assignedYears ? user.assignedYears.split(',').filter(y => y.trim()) : []; } catch(e) {}
+                                                    %>
+                                                    <span class="bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-[10px] font-black px-1.5 py-0.5 rounded-md"><%= parsedYears.length %></span>
+                                                </div>
+                                                <div class="flex flex-wrap gap-2 max-h-[160px] overflow-y-auto pr-1">
+                                                    <% if (parsedYears.length === 0) { %>
+                                                        <span class="text-xs text-gray-400 italic">None assigned</span>
+                                                    <% } else { parsedYears.forEach(year => { %>
+                                                        <span class="bg-white dark:bg-gray-800 text-blue-700 dark:text-blue-300 px-3 py-1.5 rounded-xl text-xs font-semibold border border-blue-100 dark:border-blue-900/50 shadow-sm flex items-center gap-2"><div class="w-1 h-1 rounded-full bg-blue-400"></div> <%= year.trim() %></span>
+                                                    <% }); } %>
+                                                </div>
+                                            </div>
+
+                                            <!-- Sections -->
+                                            <div class="space-y-3">
+                                                <div class="flex items-center justify-between">
+                                                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Sections</p>
+                                                    <% 
+                                                     let parsedSections = [];
+                                                     try { parsedSections = user.assignedSections ? user.assignedSections.split(',').filter(s => s.trim()) : []; } catch(e) {}
+                                                    %>
+                                                    <span class="bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 text-[10px] font-black px-1.5 py-0.5 rounded-md"><%= parsedSections.length %></span>
+                                                </div>
+                                                <div class="flex flex-wrap gap-2 max-h-[160px] overflow-y-auto pr-1">
+                                                    <% if (parsedSections.length === 0) { %>
+                                                        <span class="text-xs text-gray-400 italic">None assigned</span>
+                                                    <% } else { parsedSections.forEach(section => { %>
+                                                        <span class="bg-white dark:bg-gray-800 text-purple-700 dark:text-purple-300 px-3 py-1.5 rounded-xl text-xs font-semibold border border-purple-100 dark:border-purple-900/50 shadow-sm flex items-center gap-2"><div class="w-1 h-1 rounded-full bg-purple-400"></div> <%= section.trim() %></span>
+                                                    <% }); } %>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -236,17 +275,32 @@
                                     </h3>
                                     <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">End your session securely.
                                     </p>
-
+                                    <a href="/auth/logout" class="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors">
+                                        <i class="fas fa-sign-out-alt"></i> Sign Out
+                                    </a>
                                 </div>
                     </main>
             </div>
     </div>
 
-
-
-
+    <script>
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+                localStorage.theme = 'dark';
+            } else if (theme === 'light') {
+                document.documentElement.classList.remove('dark');
+                localStorage.theme = 'light';
+            } else {
+                localStorage.removeItem('theme');
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+        }
+    </script>
 </body>
-
-</html>
 
 </html>

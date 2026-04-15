@@ -927,27 +927,36 @@ module.exports = (db) => {
             for (const subject of subjects) activeContestCountBySubject[subject] = 0;
             for (const row of activeContestRows) activeContestCountBySubject[row.subject] = Number(row.count || 0);
 
-            const sectionsCountRow = await dbGet(
-                `SELECT COUNT(DISTINCT section) as count
-                 FROM faculty_assignments
-                 WHERE subject IN (${placeholders})`,
-                subjects
-            );
-            const activeContestCountRow = await dbGet(
-                `SELECT COUNT(*) as count
-                 FROM contests
-                 WHERE subject IN (${placeholders})
-                   AND (
-                     LOWER(COALESCE(status, '')) IN ('active','ongoing','live')
-                     OR (startDate IS NOT NULL AND endDate IS NOT NULL AND datetime('now') BETWEEN datetime(startDate) AND datetime(endDate))
-                   )`,
-                subjects
-            );
+            const [sectionsCountRow, activeContestCountRow, departments] = await Promise.all([
+                dbGet(
+                    `SELECT COUNT(DISTINCT section) as count
+                     FROM faculty_assignments
+                     WHERE subject IN (${placeholders})`,
+                    subjects
+                ),
+                dbGet(
+                    `SELECT COUNT(*) as count
+                     FROM contests
+                     WHERE subject IN (${placeholders})
+                       AND (
+                         LOWER(COALESCE(status, '')) IN ('active','ongoing','live')
+                         OR (startDate IS NOT NULL AND endDate IS NOT NULL AND datetime('now') BETWEEN datetime(startDate) AND datetime(endDate))
+                       )`,
+                    subjects
+                ),
+                dbAll(
+                    `SELECT DISTINCT b.name FROM branches b
+                     JOIN programs p ON b.program_id = p.id
+                     WHERE p.name = ? AND b.collegeName = ?`,
+                    [req.session.user.course || '', req.session.user.collegeName]
+                ).then(rows => rows.map(r => r.name).filter(Boolean))
+            ]);
 
             res.render('hos/faculty.html', {
                 user: req.session.user,
                 faculty: facultyRows || [],
                 subjects,
+                departments,
                 facultySummary: {
                     totalFaculty: facultyRows.length,
                     sectionsCount: Number(sectionsCountRow.count || 0),
@@ -974,12 +983,8 @@ module.exports = (db) => {
                     });
             });
 
-            const years = await new Promise((resolve) => {
-                db.all(`SELECT DISTINCT section as year_name FROM faculty_assignments WHERE 1=0`, [], (e, r) => resolve([]));
-            });
-            const sections = await new Promise((resolve) => {
-                db.all(`SELECT DISTINCT section as section_name FROM faculty_assignments WHERE 1=0`, [], (e, r) => resolve([]));
-            });
+            const years = [...new Set(students.map(s => s.year).filter(Boolean))].map(y => ({ year_name: y }));
+            const sections = [...new Set(students.map(s => s.section).filter(Boolean))].map(s => ({ section_name: s }));
 
             res.render('hos/student.html', {
                 user: req.session.user,
@@ -1248,14 +1253,31 @@ module.exports = (db) => {
         }
     });
     router.get('/hos/help', requireRole('hos'), checkScope, (req, res) => res.render('hos/help.html', { user: req.session.user, currentPage: 'help' }));
-    router.get('/hos/settings', requireRole('hos'), checkScope, (req, res) => res.render('hos/settings.html', { user: req.session.user, currentPage: 'settings' }));
+    router.get('/hos/settings', requireRole('hos'), checkScope, async (req, res) => {
+        try {
+            const user = req.session.user;
+            const assignments = await new Promise((resolve) => {
+                db.all(`SELECT subject, year, section FROM faculty_assignments WHERE user_id = ?`, [user.id], (err, rows) => {
+                    resolve(rows || []);
+                });
+            });
+            user.assignedSubjects = [...new Set(assignments.map(a => a.subject))].filter(Boolean);
+            user.assignedYears = [...new Set(assignments.map(a => a.year))].filter(Boolean).join(',');
+            user.assignedSections = [...new Set(assignments.map(a => a.section))].filter(Boolean).join(',');
+            
+            res.render('hos/settings.html', { user, currentPage: 'settings' });
+        } catch (e) {
+            console.error('HOS Settings GET Error:', e);
+            res.render('hos/settings.html', { user: req.session.user, currentPage: 'settings' });
+        }
+    });
 
     router.post('/hos/settings/update', requireRole('hos'), checkScope, (req, res) => {
-        const { fullName, email, gender, mobile } = req.body;
+        const { fullName, email, gender, mobile, joiningDate, location } = req.body;
         const userId = req.session.user.id;
         db.run(
-            `UPDATE account_users SET fullName = ?, email = ?, gender = ?, mobile = ? WHERE id = ?`,
-            [fullName, email, gender, mobile, userId],
+            `UPDATE account_users SET fullName = ?, email = ?, gender = ?, mobile = ?, joiningDate = ?, location = ? WHERE id = ?`,
+            [fullName, email, gender, mobile, joiningDate, location, userId],
             (err) => {
                 if (err) {
                     console.error('HOS Settings Update Error:', err);
@@ -1266,6 +1288,8 @@ module.exports = (db) => {
                 req.session.user.email = email;
                 req.session.user.gender = gender;
                 req.session.user.mobile = mobile;
+                req.session.user.joiningDate = joiningDate;
+                req.session.user.location = location;
                 res.render('hos/settings.html', { user: req.session.user, currentPage: 'settings', success: true });
             }
         );
@@ -1417,11 +1441,7 @@ module.exports = (db) => {
             const facultyPh = facultyIds.map(() => '?').join(',');
 
             const contests = await new Promise((resolve, reject) => {
-                db.all(`SELECT c.id, c.title, c.subject, c.status, c.startDate as start_date, c.endDate as end_date, 
-                               c.createdAt, c.department, c.hos_verified, c.hod_verified, 
-                               c.duration, c.deadline, c.registrationEndDate, c.eligibility, 
-                               c.description, c.rulesAndDescription, c.guidelines, c.contest_class,
-                               c.prize, c.visibility_scope,
+                db.all(`SELECT c.*, c.startDate as start_date, c.endDate as end_date,
                                u.fullName as faculty, u.role as creatorRole
                     FROM contests c JOIN account_users u ON c.createdBy = u.id
                     WHERE c.status = 'pending'
@@ -1801,17 +1821,96 @@ module.exports = (db) => {
         const studentId = req.params.id;
         const user = req.session.user;
 
+        // Note: Using LOWER for collegeName to be case-insensitive, but keeping status as provided (usually 'Active' or 'Inactive')
         db.run(
             `UPDATE users 
              SET fullName = ?, email = ?, year = ?, section = ?, status = ? 
-             WHERE id = ? AND collegeName = ? AND role = 'student'`,
-            [fullName, email, year, section, String(status || 'active').toLowerCase(), studentId, user.collegeName],
+             WHERE id = ? AND LOWER(collegeName) = LOWER(?) AND role = 'student' AND department = ?`,
+            [fullName, email, year, section, status || 'Active', studentId, user.collegeName, user.department],
             function(err) {
-                if (err) return res.status(500).json({ success: false, message: err.message });
-                if (this.changes === 0) return res.status(404).json({ success: false, message: 'Student not found or unauthorized' });
+                if (err) {
+                    console.error("HOS Student Update Error:", err.message);
+                    return res.status(500).json({ success: false, message: err.message });
+                }
+                if (this.changes === 0) {
+                    return res.status(404).json({ success: false, message: 'Student not found or unauthorized' });
+                }
                 res.json({ success: true, message: 'Student updated successfully!' });
             }
         );
+    });
+
+    // ⭐ HOS: View Detailed Student Profile Page
+    router.get('/hos/view_student', requireRole('hos'), (req, res) => {
+        res.render('hos/view_student.html', { 
+            user: req.session.user, 
+            currentPage: 'student',
+            queryId: req.query.id
+        });
+    });
+
+    // ⭐ HOS: View Detailed Faculty Profile Page
+    router.get('/hos/view_faculty', requireRole('hos'), (req, res) => {
+        res.render('hos/view_faculty.html', { 
+            user: req.session.user, 
+            currentPage: 'faculty',
+            queryId: req.query.id
+        });
+    });
+
+    // ⭐ HOS: Detailed Student Profile API
+    router.get('/hos/api/student/public-profile/:id', requireRole('hos'), (req, res) => {
+        const studentId = req.params.id;
+        const collegeName = req.session.user.collegeName;
+
+        db.get(`
+            SELECT id, fullName, email, department, branch, program, year, section, collegeName, role, status
+            FROM account_users 
+            WHERE id = ? AND collegeName = ? AND role = 'student'
+        `, [studentId, collegeName], (err, user) => {
+            if (err) return res.status(500).json({ success: false, message: "Database error" });
+            if (!user) return res.status(404).json({ success: false, message: "Student not found" });
+
+            res.json({
+                success: true,
+                student: {
+                    ...user,
+                    points: user.points || 0,
+                    rank: user.rank || 'Unranked',
+                    solvedCount: user.solvedCount || 0
+                }
+            });
+        });
+    });
+
+    // ⭐ HOS: Detailed Faculty Profile API
+    router.get('/hos/api/faculty/public-profile/:id', requireRole('hos'), (req, res) => {
+        const facultyId = req.params.id;
+        const collegeName = req.session.user.collegeName;
+
+        db.get(`SELECT id, fullName, email, department, branch, program, collegeName, role, status, is_hod 
+                FROM account_users WHERE id = ? AND collegeName = ?`, 
+        [facultyId, collegeName], (err, user) => {
+            if (err) return res.status(500).json({ success: false, message: "Database error" });
+            if (!user) return res.status(404).json({ success: false, message: "Faculty not found" });
+
+            const statsQuery = `
+                SELECT 
+                    (SELECT COUNT(*) FROM contests WHERE createdBy = ?) as totalContests,
+                    (SELECT COUNT(*) FROM problems WHERE faculty_id = ?) as totalProblems
+            `;
+
+            db.get(statsQuery, [facultyId, facultyId], (err, stats) => {
+                res.json({
+                    success: true,
+                    faculty: user,
+                    stats: {
+                        problemsCreated: stats ? stats.totalProblems : 0,
+                        activeContests: stats ? stats.totalContests : 0
+                    }
+                });
+            });
+        });
     });
 
     return router;

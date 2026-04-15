@@ -1617,11 +1617,11 @@ module.exports = (db, transporter) => {
 
     // Settings Update
     router.post('/hod/settings/update', requireRole('hod'), (req, res) => {
-        const { fullName, email, gender, mobile, joiningDate, github_link, location } = req.body;
+        const { fullName, email, gender, mobile, joiningDate, location } = req.body;
         const id = req.session.user.id;
         db.run(
-            `UPDATE account_users SET fullName = ?, email = ?, gender = ?, mobile = ?, joiningDate = ?, github_link = ?, location = ? WHERE id = ?`,
-            [fullName, email, gender, mobile, joiningDate, github_link, location, id],
+            `UPDATE account_users SET fullName = ?, email = ?, gender = ?, mobile = ?, joiningDate = ?, location = ? WHERE id = ?`,
+            [fullName, email, gender, mobile, joiningDate, location, id],
             function(err) {
                 if (err) return res.status(500).send(err.message);
                 // Refresh session
@@ -1630,7 +1630,6 @@ module.exports = (db, transporter) => {
                 req.session.user.gender = gender;
                 req.session.user.mobile = mobile;
                 req.session.user.joiningDate = joiningDate;
-                req.session.user.github_link = github_link;
                 req.session.user.location = location;
                 res.redirect('/college/hod/settings?saved=1');
             }

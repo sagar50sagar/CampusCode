@@ -91,7 +91,17 @@
                                     placeholder="Search by name, email, or dept...">
                             </div>
 
-                            <div class="w-full md:w-auto">
+                            <div class="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+                                <select id="facultyDeptFilter"
+                                    class="w-full md:w-auto rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 transition-shadow outline-none cursor-pointer">
+                                    <option value="All Departments">All Departments</option>
+                                    <% if (typeof departments !== 'undefined') { %>
+                                        <% departments.forEach(dept => { %>
+                                            <option value="<%= dept %>"><%= dept %></option>
+                                        <% }) %>
+                                    <% } %>
+                                </select>
+
                                 <select id="facultySubjectFilter"
                                     class="w-full md:w-auto rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm p-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 transition-shadow outline-none cursor-pointer">
                                     <option value="All Subjects">All Subjects</option>
@@ -127,7 +137,11 @@
                                 <tbody id="facultyTableBody">
                                     <% if (typeof faculty !== 'undefined' && (faculty || []).length > 0) { %>
                                         <% (faculty || []).forEach(fac => { %>
-                                            <tr class="group hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors" data-subjects="<%= (fac.teaching_subjects || '').toLowerCase() %>" data-search="<%= `${fac.fullName || ''} ${fac.email || ''} ${fac.department || ''}`.toLowerCase() %>">
+                                            <tr class="group hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer faculty-row" 
+                                                data-id="<%= fac.id %>" 
+                                                data-subjects="<%= (fac.teaching_subjects || '').toLowerCase() %>" 
+                                                data-dept="<%= (fac.department || fac.branch || '').toLowerCase() %>"
+                                                data-search="<%= `${fac.fullName || ''} ${fac.email || ''} ${fac.department || ''}`.toLowerCase() %>">
                                                 <td class="px-6 py-4">
                                                     <div class="flex items-center gap-4">
                                                         <div
@@ -135,11 +149,7 @@
                                                             <%= fac.fullName ? fac.fullName.split(' ').map(n => n?.[0]).join('').substring(0,2).toUpperCase() : 'F' %>
                                                         </div>
                                                         <div>
-                                                            <span
-                                                                class="faculty-name-trigger block text-sm font-semibold text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 cursor-pointer transition-colors"
-                                                                data-faculty-id="<%= fac.id %>" data-name="<%= fac.fullName %>"
-                                                                data-email="<%= fac.email %>" data-dept="<%= fac.department %>"
-                                                                data-role="<%= fac.post %>" data-joined="<%= fac.joiningDate || 'N/A' %>">
+                                                            <span class="block text-sm font-semibold text-gray-900 dark:text-white transition-colors">
                                                                 <%= fac.fullName %>
                                                             </span>
                                                             <span class="text-xs text-gray-500 dark:text-gray-400"><%= fac.email %></span>
@@ -157,7 +167,9 @@
                                                 </td>
                                                 <td class="px-6 py-4">
                                                     <div class="flex items-center justify-end gap-2">
-                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium <%= fac.status === 'active' || fac.status === 'Active' ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 border border-green-100 dark:border-green-800' : 'bg-gray-50 text-gray-700 dark:bg-gray-700/20 dark:text-gray-400 border border-gray-100 dark:border-gray-800' %>">
+                                                        <span 
+                                                            class="faculty-name-trigger inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer hover:ring-2 hover:ring-primary-400/50 transition-all <%= fac.status === 'active' || fac.status === 'Active' ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 border border-green-100 dark:border-green-800' : 'bg-gray-50 text-gray-700 dark:bg-gray-700/20 dark:text-gray-400 border border-gray-100 dark:border-gray-800' %>"
+                                                            data-faculty-id="<%= fac.id %>" data-name="<%= fac.fullName %>">
                                                             <span class="flex h-1.5 w-1.5 rounded-full <%= fac.status === 'active' || fac.status === 'Active' ? 'bg-green-500' : 'bg-gray-500' %>"></span>
                                                             <%= fac.status ? fac.status.charAt(0).toUpperCase() + fac.status.slice(1) : 'Inactive' %>
                                                         </span>
@@ -331,55 +343,7 @@
     </div>
 
 
-    <!-- FACULTY HOVER TOOLTIP -->
-    <div id="facultyProfileTooltip"
-        class="absolute z-[60] bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 w-80 p-4 hidden pointer-events-none transition-opacity duration-200 opacity-0 transform scale-95 origin-top-left">
-        <div class="flex items-start gap-4">
-            <div
-                class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold shadow-md flex-shrink-0">
-                <span id="tooltipInitials">JG</span>
-            </div>
-            <div>
-                <h3 id="tooltipName" class="font-bold text-gray-900 dark:text-white text-lg leading-tight">Name</h3>
-                <p id="tooltipDesignation" class="text-xs text-primary-600 dark:text-primary-400 font-semibold mb-1">
-                    Professor</p>
-                <div class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-0.5">
-                    <i class="fas fa-building w-3"></i>
-                    <span id="tooltipDept">Department</span>
-                </div>
-                <div class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-                    <i class="fas fa-envelope w-3"></i>
-                    <span id="tooltipEmail">email@example.com</span>
-                </div>
-            </div>
-        </div>
-        <div class="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center">
-            <div class="text-center px-2">
-                <p class="text-[10px] uppercase text-gray-400 font-bold">Joined</p>
-                <p id="tooltipJoinDate" class="text-xs font-semibold text-gray-700 dark:text-gray-300">2020</p>
-            </div>
-            <div class="w-px h-6 bg-gray-100 dark:bg-gray-700"></div>
-            <div class="text-center px-2">
-                <p class="text-[10px] uppercase text-gray-400 font-bold">ID</p>
-                <p id="tooltipId" class="text-xs font-semibold text-gray-700 dark:text-gray-300">FAC-001</p>
-            </div>
-            <div class="w-px h-6 bg-gray-100 dark:bg-gray-700"></div>
-            <div class="text-center px-2">
-                <p class="text-[10px] uppercase text-gray-400 font-bold">Status</p>
-                <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span>
-            </div>
-        </div>
-    </div>
-
-    <!-- SUBJECT LIST TOOLTIP -->
-    <div id="subjectListTooltip"
-        class="absolute z-[60] bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-3 hidden pointer-events-none transition-opacity duration-200 opacity-0 transform scale-95">
-        <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Assigned Subjects
-        </h4>
-        <ul id="tooltipSubjectList" class="space-y-1.5">
-            <!-- Items injected via JS -->
-        </ul>
-    </div>
+    <!-- Faculty Edit Modal (Fixed Structure) -->
 
 
     <!-- Faculty Edit Modal (Fixed Structure) -->
@@ -440,7 +404,24 @@
             const totalFacultyCountEl = document.getElementById('totalFacultyCount');
             const totalSectionsCountEl = document.getElementById('totalSectionsCount');
             const activeContestCountEl = document.getElementById('activeContestCount');
-            const facultyRows = Array.from(document.querySelectorAll('#facultyTableBody tr[data-subjects]'));
+            const facultyRows = Array.from(document.querySelectorAll('#facultyTableBody tr.faculty-row'));
+
+            // Row redirection using event delegation
+            const facultyTableBody = document.getElementById('facultyTableBody');
+            if (facultyTableBody) {
+                facultyTableBody.addEventListener('click', (e) => {
+                    // Ignore clicks on buttons or elements that handle their own clicks
+                    if (e.target.closest('button') || e.target.closest('.faculty-name-trigger')) {
+                        return;
+                    }
+                    
+                    const row = e.target.closest('.faculty-row');
+                    if (row) {
+                        const id = row.dataset.id;
+                        if (id) window.location.href = `/hos/view_faculty?id=${id}`;
+                    }
+                });
+            }
 
             function updateSummaryCards(selectedSubject) {
                 if (!totalFacultyCountEl || !totalSectionsCountEl || !activeContestCountEl) return;
@@ -455,20 +436,33 @@
                 activeContestCountEl.textContent = String((summaryData.activeContestCountBySubject || {})[selectedSubject] || 0);
             }
 
+            const deptFilter = document.getElementById('facultyDeptFilter');
+
             function applyFacultyFilters() {
                 const selectedSubject = subjectFilter ? subjectFilter.value : 'All Subjects';
+                const selectedDept = deptFilter ? deptFilter.value : 'All Departments';
                 const query = (searchInput ? searchInput.value : '').trim().toLowerCase();
+
                 for (const row of facultyRows) {
                     const rowSubjects = row.dataset.subjects || '';
+                    const rowDept = row.dataset.dept || '';
                     const rowSearch = row.dataset.search || '';
-                    const subjectMatch = selectedSubject === 'All Subjects' || rowSubjects.split(',').map((s) => s.trim()).includes(selectedSubject.toLowerCase());
+
+                    const subjectMatch = selectedSubject === 'All Subjects' || 
+                                       rowSubjects.split(',').map((s) => s.trim()).includes(selectedSubject.toLowerCase());
+                    
+                    const deptMatch = selectedDept === 'All Departments' || 
+                                    rowDept === selectedDept.toLowerCase();
+
                     const queryMatch = !query || rowSearch.includes(query);
-                    row.style.display = subjectMatch && queryMatch ? '' : 'none';
+
+                    row.style.display = subjectMatch && deptMatch && queryMatch ? '' : 'none';
                 }
                 updateSummaryCards(selectedSubject);
             }
 
             if (subjectFilter) subjectFilter.addEventListener('change', applyFacultyFilters);
+            if (deptFilter) deptFilter.addEventListener('change', applyFacultyFilters);
             if (searchInput) searchInput.addEventListener('input', applyFacultyFilters);
             applyFacultyFilters();
 
@@ -481,6 +475,7 @@
 
             document.querySelectorAll('.faculty-name-trigger').forEach(trigger => {
                 trigger.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent row click
                     const id = trigger.dataset.facultyId;
                     const name = trigger.dataset.name;
                     // Populate and show

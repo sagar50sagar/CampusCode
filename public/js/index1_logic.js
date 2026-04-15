@@ -965,23 +965,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // --- Support Section Logic ---
-    // FAQ Toggle
-    const faqContainer = document.getElementById('faqContainer');
-    if (faqContainer) {
-        faqContainer.addEventListener('click', (e) => {
-            const btn = e.target.closest('.faq-toggle-btn');
-            if (btn) {
-                const item = btn.parentElement;
-                const isActive = item.classList.contains('active');
-
-                // Close all others
-                faqContainer.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
-
-                // Toggle current
-                if (!isActive) item.classList.add('active');
-            }
-        });
-    }
+            // FAQ logic moved to inline handlers for reliability
 
     // FAQ Search
     const faqSearch = document.getElementById('faqSearch');

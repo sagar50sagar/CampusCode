@@ -41,6 +41,50 @@ module.exports = (db, transporter) => {
         });
     });
 
+    const calculateConsecutiveDayStreak = (dateValues = []) => {
+        const normalizedDates = [...new Set(
+            dateValues
+                .map((value) => String(value || '').trim().slice(0, 10))
+                .filter(Boolean)
+        )].sort((a, b) => b.localeCompare(a));
+
+        if (!normalizedDates.length) return 0;
+
+        let streak = 1;
+        for (let index = 1; index < normalizedDates.length; index += 1) {
+            const previous = new Date(`${normalizedDates[index - 1]}T00:00:00Z`);
+            const current = new Date(`${normalizedDates[index]}T00:00:00Z`);
+            const diffDays = Math.round((previous.getTime() - current.getTime()) / 86400000);
+            if (diffDays !== 1) break;
+            streak += 1;
+        }
+
+        return streak;
+    };
+
+    const buildRankMap = (entries = []) => {
+        const sorted = [...entries].sort((a, b) => {
+            const pointDiff = Number(b.points || 0) - Number(a.points || 0);
+            if (pointDiff !== 0) return pointDiff;
+            return Number(a.id || 0) - Number(b.id || 0);
+        });
+
+        const rankMap = new Map();
+        let lastPoints = null;
+        let currentRank = 0;
+
+        sorted.forEach((entry, index) => {
+            const points = Number(entry.points || 0);
+            if (lastPoints === null || points !== lastPoints) {
+                currentRank = index + 1;
+                lastPoints = points;
+            }
+            rankMap.set(Number(entry.id), `#${currentRank}`);
+        });
+
+        return rankMap;
+    };
+
     const normalizeEntityCode = (value) => String(value || '').trim().toUpperCase();
 
     const ensureUniqueAcademicCode = async ({ table, code, collegeName, excludeId = null }) => {
@@ -312,16 +356,29 @@ module.exports = (db, transporter) => {
     router.get('/stats', requireRole('admin'), (req, res) => {
         const collegeName = req.session.user.collegeName;
 
-        // Query active users for this specific college
-        db.get(`SELECT COUNT(*) as activeCount FROM users WHERE collegeName = ? AND status = 'active'`, [collegeName], (err, row) => {
+        db.all(`
+            SELECT
+                LOWER(TRIM(COALESCE(collegeName, ''))) AS normalizedCollege,
+                COUNT(*) AS activeCount,
+                COALESCE(SUM(CASE WHEN LOWER(COALESCE(role, '')) = 'student' THEN COALESCE(points, 0) ELSE 0 END), 0) AS totalPoints
+            FROM users
+            WHERE status = 'active'
+              AND TRIM(COALESCE(collegeName, '')) != ''
+            GROUP BY LOWER(TRIM(COALESCE(collegeName, '')))
+            ORDER BY totalPoints DESC, activeCount DESC
+        `, [], (err, rows) => {
             if (err) return res.status(500).json({ success: false, message: err.message });
-            
-            // NOTE: Replace the static '1' and '150' with actual database logic if you have dedicated rank tables.
+
+            const normalizedCollege = String(collegeName || '').trim().toLowerCase();
+            const ordered = rows || [];
+            const currentIndex = ordered.findIndex((row) => row.normalizedCollege === normalizedCollege);
+            const currentCollege = currentIndex >= 0 ? ordered[currentIndex] : null;
+
             res.json({
                 success: true,
-                activeUsers: row ? row.activeCount : 0,
-                collegeRank: 1,   // Placeholder for real-time college rank
-                globalRank: 150   // Placeholder for real-time global rank
+                activeUsers: Number(currentCollege?.activeCount || 0),
+                collegeRank: currentIndex >= 0 ? `#${currentIndex + 1}` : '-',
+                globalRank: currentIndex >= 0 ? `#${currentIndex + 1}` : '-'
             });
         });
     });
@@ -647,19 +704,23 @@ router.post('/update-profile', requireRole('admin'), (req, res) => {
         });
     });
 
-    router.post('/api/approve-faculty/:id', requireRole('admin'), (req, res) => {
-        const { course, branch, role } = req.body; 
-        const collegeName = req.session.user.collegeName;
+    const approvePendingUser = async ({ userId, collegeName, course = null, branch = null, role = null }) => {
+        const userRow = await dbGetAsync(
+            `SELECT id, role, status, collegeName, pending_college_name, college_request_status, program, course, branch
+             FROM users WHERE id = ?`,
+            [userId]
+        );
 
-        db.get(`SELECT id, role, status, collegeName, pending_college_name, college_request_status FROM users WHERE id = ?`, [req.params.id], (userErr, userRow) => {
-            if (userErr) return res.status(500).json({ success: false, error: userErr.message });
-            if (!userRow) return res.status(404).json({ success: false, error: 'User not found.' });
+        if (!userRow) {
+            return { success: false, status: 404, error: 'User not found.' };
+        }
 
-            const isStudentCollegeRequest = String(userRow.role || '').toLowerCase() === 'student'
-                && String(userRow.college_request_status || '').toLowerCase() === 'pending'
-                && String(userRow.pending_college_name || '') === String(collegeName || '');
+        const isStudentCollegeRequest = String(userRow.role || '').toLowerCase() === 'student'
+            && String(userRow.college_request_status || '').toLowerCase() === 'pending'
+            && String(userRow.pending_college_name || '') === String(collegeName || '');
 
-            if (isStudentCollegeRequest) {
+        if (isStudentCollegeRequest) {
+            await new Promise((resolve, reject) => {
                 db.run(`
                     UPDATE users
                     SET collegeName = pending_college_name,
@@ -669,48 +730,239 @@ router.post('/update-profile', requireRole('admin'), (req, res) => {
                         is_verified = 1,
                         isVerified = 1
                     WHERE id = ?
-                `, [req.params.id], function (approveErr) {
-                    if (approveErr) return res.status(500).json({ success: false, error: approveErr.message });
-                    return res.json({ success: true, message: 'Student college verification approved successfully.' });
+                `, [userId], function (approveErr) {
+                    if (approveErr) return reject(approveErr);
+                    resolve(this);
                 });
+            });
+
+            return { success: true, message: 'Student college verification approved successfully.' };
+        }
+
+        const resolvedCourse = course || userRow.program || userRow.course || '';
+        const resolvedBranch = branch || userRow.branch || '';
+        const assignedRole = role || null;
+
+        await new Promise((resolve, reject) => {
+            db.run(
+                `UPDATE users
+                 SET status = 'active',
+                     is_verified = 1,
+                     isVerified = 1,
+                     course = COALESCE(NULLIF(?, ''), course),
+                     program = COALESCE(NULLIF(?, ''), program),
+                     branch = COALESCE(NULLIF(?, ''), branch),
+                     department = COALESCE(NULLIF(?, ''), department),
+                     role = COALESCE(?, role)
+                 WHERE id = ? AND collegeName = ?`,
+                [resolvedCourse, resolvedCourse, resolvedBranch, resolvedBranch, assignedRole, userId, collegeName],
+                function (err) {
+                    if (err) return reject(err);
+                    resolve(this);
+                }
+            );
+        });
+
+        return { success: true, message: 'User verified and assigned successfully' };
+    };
+
+    router.post('/api/approve-faculty/:id', requireRole('admin'), async (req, res) => {
+        try {
+            const result = await approvePendingUser({
+                userId: req.params.id,
+                collegeName: req.session.user.collegeName,
+                course: req.body?.course || null,
+                branch: req.body?.branch || null,
+                role: req.body?.role || null
+            });
+
+            if (!result.success) {
+                return res.status(result.status || 400).json({ success: false, error: result.error || 'Approval failed.' });
+            }
+
+            res.json({ success: true, message: result.message });
+        } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
+    router.post('/api/pending-faculty/:id/approve', requireRole('admin'), async (req, res) => {
+        try {
+            const result = await approvePendingUser({
+                userId: req.params.id,
+                collegeName: req.session.user.collegeName
+            });
+
+            if (!result.success) {
+                return res.status(result.status || 400).json({ success: false, message: result.error || 'Approval failed.' });
+            }
+
+            res.json({ success: true, message: result.message });
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
+        }
+    });
+
+    router.post('/api/pending-faculty/:id/reject', requireRole('admin'), async (req, res) => {
+        const userId = Number(req.params.id);
+        const collegeName = req.session.user.collegeName;
+
+        try {
+            const userRow = await dbGetAsync(
+                `SELECT id, role, pending_college_name, college_request_status, collegeName
+                 FROM users WHERE id = ?`,
+                [userId]
+            );
+
+            if (!userRow) {
+                return res.status(404).json({ success: false, message: 'User not found.' });
+            }
+
+            const isStudentCollegeRequest = String(userRow.role || '').toLowerCase() === 'student'
+                && String(userRow.college_request_status || '').toLowerCase() === 'pending'
+                && String(userRow.pending_college_name || '') === String(collegeName || '');
+
+            if (isStudentCollegeRequest) {
+                db.run(
+                    `UPDATE users
+                     SET pending_college_name = '',
+                         college_request_status = 'rejected'
+                     WHERE id = ?`,
+                    [userId],
+                    function (err) {
+                        if (err) return res.status(500).json({ success: false, message: err.message });
+                        res.json({ success: true, message: 'College change request rejected.' });
+                    }
+                );
                 return;
             }
 
-            if (!course || !branch) {
-                return res.status(400).json({ success: false, error: "Course and Branch are required." });
-            }
-
-            const assignedRole = role || null;
-            db.run(`UPDATE users SET status = 'active', is_verified = 1, isVerified = 1, course = ?, branch = ?, department = ?, role = COALESCE(?, role) WHERE id = ? AND collegeName = ?`, 
-            [course, branch, branch, assignedRole, req.params.id, collegeName], function(err) {
-                if (err) return res.status(500).json({ success: false, error: err.message });
-                if (this.changes === 0) return res.status(404).json({ success: false, error: "User not found or not in pending state." });
-                res.json({ success: true, message: 'User verified and assigned successfully' });
-            });
-        });
+            db.run(
+                `UPDATE users
+                 SET status = 'rejected'
+                 WHERE id = ? AND collegeName = ?`,
+                [userId, collegeName],
+                function (err) {
+                    if (err) return res.status(500).json({ success: false, message: err.message });
+                    if (this.changes === 0) return res.status(404).json({ success: false, message: 'User not found in pending requests.' });
+                    res.json({ success: true, message: 'User request rejected.' });
+                }
+            );
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
+        }
     });
 
-    router.get('/api/users', requireRole('admin'), (req, res) => {
+    router.post('/api/pending-faculty/bulk-approve', requireRole('admin'), async (req, res) => {
+        const userIds = Array.isArray(req.body?.userIds) ? req.body.userIds : [];
+        if (!userIds.length) {
+            return res.status(400).json({ success: false, message: 'No users selected.' });
+        }
+
+        try {
+            let approvedCount = 0;
+            for (const userId of userIds) {
+                const result = await approvePendingUser({
+                    userId,
+                    collegeName: req.session.user.collegeName
+                });
+                if (result.success) approvedCount += 1;
+            }
+
+            res.json({ success: true, message: `Approved ${approvedCount} request(s).` });
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
+        }
+    });
+
+    router.get('/api/users', requireRole('admin'), async (req, res) => {
         const collegeName = req.session.user.collegeName;
 
-        const query = `
-            SELECT u.*,
-                (SELECT COUNT(*) FROM contests WHERE createdBy = u.id AND status = 'accepted') AS contests_created,
-                (SELECT COUNT(*) FROM problems WHERE faculty_id = u.id AND status = 'accepted') AS problems_created,
-                (SELECT COUNT(DISTINCT problem_id) FROM submissions WHERE user_id = u.id AND status = 'accepted') AS problems_solved,
-                (SELECT COUNT(DISTINCT contest_id) FROM contest_participants WHERE user_id = u.id) AS contests_participated
-            FROM users u
-            WHERE u.collegeName = ? AND u.role IN ('student', 'faculty', 'hod', 'hos') AND u.status = 'active'
-            ORDER BY u.id DESC
-        `;
+        try {
+            const users = await dbAllAsync(`
+                SELECT u.*,
+                    (SELECT COUNT(*) FROM contests WHERE createdBy = u.id AND status = 'accepted') AS contests_created,
+                    (SELECT COUNT(*) FROM problems WHERE faculty_id = u.id AND status = 'accepted') AS problems_created,
+                    (SELECT COUNT(DISTINCT problem_id) FROM submissions WHERE user_id = u.id AND status = 'accepted') AS problems_solved,
+                    (SELECT COUNT(DISTINCT contest_id) FROM contest_participants WHERE user_id = u.id) AS contests_participated
+                FROM users u
+                WHERE u.collegeName = ? AND u.role IN ('student', 'faculty', 'hod', 'hos') AND u.status = 'active'
+                ORDER BY u.id DESC
+            `, [collegeName]);
 
-        db.all(query, [collegeName], (err, rows) => {
-            if (err) {
-                console.error("Error fetching users:", err && err.message ? err.message : err);
-                return res.status(500).json({ success: false, error: err.message || 'Database error' });
+            const studentIds = users
+                .filter((user) => String(user.role || '').toLowerCase() === 'student')
+                .map((user) => Number(user.id))
+                .filter((id) => Number.isInteger(id));
+
+            let streakMap = new Map();
+            if (studentIds.length) {
+                const placeholders = studentIds.map(() => '?').join(',');
+                const submissionDays = await dbAllAsync(`
+                    SELECT user_id, DATE(COALESCE(createdAt, CURRENT_TIMESTAMP)) AS submitted_on
+                    FROM submissions
+                    WHERE user_id IN (${placeholders})
+                      AND LOWER(COALESCE(status, '')) IN ('accepted', 'ac', 'pass')
+                    GROUP BY user_id, DATE(COALESCE(createdAt, CURRENT_TIMESTAMP))
+                    ORDER BY user_id ASC, submitted_on DESC
+                `, studentIds);
+
+                const datesByUser = new Map();
+                submissionDays.forEach((row) => {
+                    const key = Number(row.user_id);
+                    if (!datesByUser.has(key)) datesByUser.set(key, []);
+                    datesByUser.get(key).push(row.submitted_on);
+                });
+
+                streakMap = new Map(
+                    Array.from(datesByUser.entries()).map(([userId, dates]) => [userId, calculateConsecutiveDayStreak(dates)])
+                );
             }
-            res.json({ success: true, users: rows || [] });
-        });
+
+            const collegeRankMap = buildRankMap(
+                users
+                    .filter((user) => String(user.role || '').toLowerCase() === 'student')
+                    .map((user) => ({ id: user.id, points: Number(user.points || 0) }))
+            );
+
+            const globalRankMap = buildRankMap(
+                await dbAllAsync(`
+                    SELECT id, COALESCE(points, 0) AS points
+                    FROM users
+                    WHERE LOWER(COALESCE(role, '')) = 'student'
+                      AND status = 'active'
+                `)
+            );
+
+            const normalizedUsers = users.map((user) => {
+                const isStudent = String(user.role || '').toLowerCase() === 'student';
+                const points = Number(user.points || 0);
+                const problemsCreated = Number(user.problems_created || 0);
+                const contestsCreated = Number(user.contests_created || 0);
+                const solvedCount = Number(user.problems_solved || user.solvedCount || 0);
+                const streak = isStudent ? Number(streakMap.get(Number(user.id)) || 0) : 0;
+                const level = isStudent ? Math.max(1, Math.floor(points / 150) + 1) : Math.max(1, problemsCreated + contestsCreated);
+                const platformRating = Math.min(
+                    5,
+                    ((problemsCreated * 0.35) + (contestsCreated * 0.65) + (Number(user.contests_participated || 0) * 0.05)).toFixed(1)
+                );
+
+                return {
+                    ...user,
+                    streak,
+                    college_rank: isStudent ? (collegeRankMap.get(Number(user.id)) || '-') : '-',
+                    global_rank: isStudent ? (globalRankMap.get(Number(user.id)) || '-') : '-',
+                    level,
+                    problems_solved: solvedCount,
+                    rating: String(platformRating)
+                };
+            });
+
+            res.json({ success: true, users: normalizedUsers });
+        } catch (err) {
+            console.error('Error fetching users:', err && err.message ? err.message : err);
+            res.status(500).json({ success: false, error: err.message || 'Database error' });
+        }
     });
 
     router.post('/api/users/bulk', requireRole('admin'), async (req, res) => {
@@ -1440,8 +1692,7 @@ router.post('/update-profile', requireRole('admin'), (req, res) => {
         const {
             title, scope, level, date, deadline, duration, eligibility, description, discription,
             rulesAndDescription, guidelines, colleges, problem_ids, prize, class: contestClassInput, contest_class,
-            startDate, endDate,
-            reward, target_programs, allowed_roles 
+            startDate, endDate
         } = req.body;
         const collegesStr = colleges ? JSON.stringify(colleges) : '[]';
         const createdBy = req.session.user.id;
@@ -1457,20 +1708,15 @@ router.post('/update-profile', requireRole('admin'), (req, res) => {
         let finalScope = scope || 'college';
         if (role === 'superadmin') finalScope = 'global';
 
-        const targetProgramsStr = target_programs ? JSON.stringify(target_programs) : null;
-        const finalAllowedRoles = allowed_roles || null;
-
         db.run(`INSERT INTO contests (
                     title, scope, level, date, deadline, duration, eligibility, description, rulesAndDescription,
                     guidelines, contest_class, prize, startDate, endDate,
-                    status, colleges, createdBy, collegeName, hos_verified, hod_verified,
-                    reward, target_programs, allowed_roles
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'accepted', ?, ?, ?, 1, 1, ?, ?, ?)`,
+                    status, colleges, createdBy, collegeName, hos_verified, hod_verified
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'accepted', ?, ?, ?, 1, 1)`,
             [
                 title, finalScope, level, date, deadline, duration, eligibility, finalDescription, finalGuidelines,
                 finalGuidelines, normalizedClass, prize || '', finalStartDate, finalEndDate,
-                collegesStr, createdBy, collegeName,
-                reward || '', targetProgramsStr, finalAllowedRoles
+                collegesStr, createdBy, collegeName
             ],
             function(err) {
                 if (err) return res.status(500).json({ success: false, message: err.message });
@@ -1530,8 +1776,7 @@ router.put('/api/contests/:id', requireRole('admin'), (req, res) => {
         const {
             title, scope, level, date, deadline, duration, eligibility, description, discription,
             rulesAndDescription, guidelines, status, colleges, class: contestClassInput, contest_class, prize,
-            startDate, endDate,
-            reward, target_programs, allowed_roles 
+            startDate, endDate
         } = req.body;
 
         const collegesStr = colleges ? JSON.stringify(colleges) : '[]';
@@ -1549,13 +1794,12 @@ router.put('/api/contests/:id', requireRole('admin'), (req, res) => {
 
         db.run(`UPDATE contests
                 SET title=?, scope=?, level=?, date=?, deadline=?, duration=?, eligibility=?, description=?, rulesAndDescription=?,
-                    guidelines=?, contest_class=?, prize=?, startDate=?, endDate=?, status=?, colleges=?,
-                    reward=?, target_programs=?, allowed_roles=?
+                    guidelines=?, contest_class=?, prize=?, startDate=?, endDate=?, status=?, colleges=?
                 WHERE id=?`,
             [
                 title, finalScope, level, date, deadline, duration, eligibility, finalDescription, finalGuidelines,
                 finalGuidelines, normalizedClass, prize || '', finalStartDate, finalEndDate, status || 'upcoming', collegesStr,
-                reward || '', targetProgramsStr, finalAllowedRoles, req.params.id
+                req.params.id
             ],
             function(err) {
                 if (err) {
@@ -1647,8 +1891,14 @@ router.put('/api/contests/:id', requireRole('admin'), (req, res) => {
             const stats = await dbGetAsync(
                 `SELECT
                     (SELECT COUNT(*) FROM contests WHERE createdBy = ?) as totalContests,
-                    (SELECT COUNT(*) FROM problems WHERE faculty_id = ?) as totalProblems`,
-                [facultyId, facultyId]
+                    (SELECT COUNT(*) FROM problems WHERE faculty_id = ?) as totalProblems,
+                    (SELECT COUNT(*) FROM submissions s
+                     JOIN problems p ON p.id = s.problem_id
+                     WHERE p.faculty_id = ? AND LOWER(COALESCE(s.status, '')) IN ('accepted', 'ac', 'pass')) as acceptedSubmissions,
+                    (SELECT COUNT(DISTINCT s.user_id) FROM submissions s
+                     JOIN problems p ON p.id = s.problem_id
+                     WHERE p.faculty_id = ?) as learnerReach`,
+                [facultyId, facultyId, facultyId, facultyId]
             );
 
             const recentActivity = await dbAllAsync(
@@ -1684,7 +1934,14 @@ router.put('/api/contests/:id', requireRole('admin'), (req, res) => {
                 faculty: user,
                 stats: {
                     problemsCreated: stats ? stats.totalProblems : 0,
-                    activeContests: stats ? stats.totalContests : 0
+                    activeContests: stats ? stats.totalContests : 0,
+                    platformRating: Number(Math.min(
+                        5,
+                        ((Number(stats?.totalProblems || 0) * 0.35)
+                            + (Number(stats?.totalContests || 0) * 0.65)
+                            + (Number(stats?.acceptedSubmissions || 0) * 0.02)
+                            + (Number(stats?.learnerReach || 0) * 0.05))
+                    ).toFixed(1))
                 },
                 recentActivity
             });
@@ -1749,6 +2006,16 @@ router.put('/api/contests/:id', requireRole('admin'), (req, res) => {
                 [studentId]
             );
 
+            const acceptedDays = await dbAllAsync(
+                `SELECT DATE(COALESCE(createdAt, CURRENT_TIMESTAMP)) AS submitted_on
+                 FROM submissions
+                 WHERE user_id = ?
+                   AND LOWER(COALESCE(status, '')) IN ('accepted', 'ac', 'pass')
+                 GROUP BY DATE(COALESCE(createdAt, CURRENT_TIMESTAMP))
+                 ORDER BY submitted_on DESC`,
+                [studentId]
+            );
+
             const finalPoints = Number(user.points || submissionStats?.earnedPoints || 0);
             const finalSolvedCount = Number(user.solvedCount || submissionStats?.solvedProblems || 0);
             const rankNumber = Number(submissionStats?.computedRank || 0);
@@ -1760,7 +2027,9 @@ router.put('/api/contests/:id', requireRole('admin'), (req, res) => {
                     ...user,
                     points: finalPoints,
                     rank: finalRank,
-                    solvedCount: finalSolvedCount
+                    solvedCount: finalSolvedCount,
+                    streak: calculateConsecutiveDayStreak(acceptedDays.map((row) => row.submitted_on)),
+                    level: Math.max(1, Math.floor(finalPoints / 150) + 1)
                 },
                 recentSubmissions
             });

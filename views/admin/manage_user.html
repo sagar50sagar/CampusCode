@@ -1326,11 +1326,10 @@ async function bulkVerify() {
     if (!confirm(`Are you sure you want to verify ${userIds.length} selected users?`)) return;
 
     try {
-        // Fix: Use the correct bulk-status API endpoint
-        const res = await fetch('/college/api/users/bulk-status', {
-            method: 'PUT',
+        const res = await fetch('/college/api/pending-faculty/bulk-approve', {
+            method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ userIds: userIds, status: 'active' })
+            body: JSON.stringify({ userIds })
         });
         
         const data = await res.json();
@@ -1363,10 +1362,7 @@ async function handleRequest(id, action) {
 async function verifyRequest(id) {
     if(!confirm(`Are you sure you want to verify this user?`)) return;
     try {
-        const res = await fetch(`/college/api/pending-faculty/${id}/approve`, {
-            method: 'POST', headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({})
-        });
+        const res = await fetch(`/college/api/pending-faculty/${id}/approve`, { method: 'POST' });
         const data = await res.json();
         if(data.success) fetchData(); else alert(data.message || "Failed to approve.");
     } catch(err) { console.error(err); }

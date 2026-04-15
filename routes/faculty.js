@@ -675,11 +675,40 @@ module.exports = (db) => {
                 LIMIT 5
             `, [studentId]);
 
+            const acceptedDays = await runQuery(`
+                SELECT DATE(COALESCE(createdAt, CURRENT_TIMESTAMP)) as submitted_on
+                FROM submissions
+                WHERE user_id = ?
+                  AND LOWER(COALESCE(status, '')) IN ('accepted', 'ac', 'pass')
+                GROUP BY DATE(COALESCE(createdAt, CURRENT_TIMESTAMP))
+                ORDER BY submitted_on DESC
+            `, [studentId]);
+
+            const calculateConsecutiveDayStreak = (dateValues = []) => {
+                const normalizedDates = [...new Set(
+                    dateValues.map((value) => String(value || '').trim().slice(0, 10)).filter(Boolean)
+                )].sort((a, b) => b.localeCompare(a));
+                if (!normalizedDates.length) return 0;
+
+                let streak = 1;
+                for (let index = 1; index < normalizedDates.length; index += 1) {
+                    const previous = new Date(`${normalizedDates[index - 1]}T00:00:00Z`);
+                    const current = new Date(`${normalizedDates[index]}T00:00:00Z`);
+                    const diffDays = Math.round((previous.getTime() - current.getTime()) / 86400000);
+                    if (diffDays !== 1) break;
+                    streak += 1;
+                }
+
+                return streak;
+            };
+
             res.json({
                 success: true,
                 student: {
                     ...user,
-                    rank: user.rank || `#${Number(rankRow?.cnt || 0) + 1}`
+                    rank: user.rank || `#${Number(rankRow?.cnt || 0) + 1}`,
+                    streak: calculateConsecutiveDayStreak(acceptedDays.map((row) => row.submitted_on)),
+                    level: Math.max(1, Math.floor(Number(user.points || 0) / 150) + 1)
                 },
                 recentSubmissions
             });
@@ -705,8 +734,14 @@ module.exports = (db) => {
             const stats = await getSingle(
                 `SELECT
                     (SELECT COUNT(*) FROM contests WHERE createdBy = ?) as totalContests,
-                    (SELECT COUNT(*) FROM problems WHERE faculty_id = ?) as totalProblems`,
-                [facultyId, facultyId]
+                    (SELECT COUNT(*) FROM problems WHERE faculty_id = ?) as totalProblems,
+                    (SELECT COUNT(*) FROM submissions s
+                     JOIN problems p ON p.id = s.problem_id
+                     WHERE p.faculty_id = ? AND LOWER(COALESCE(s.status, '')) IN ('accepted', 'ac', 'pass')) as acceptedSubmissions,
+                    (SELECT COUNT(DISTINCT s.user_id) FROM submissions s
+                     JOIN problems p ON p.id = s.problem_id
+                     WHERE p.faculty_id = ?) as learnerReach`,
+                [facultyId, facultyId, facultyId, facultyId]
             );
 
             const recentActivity = await runQuery(`
@@ -741,7 +776,14 @@ module.exports = (db) => {
                 faculty: user,
                 stats: {
                     problemsCreated: stats ? stats.totalProblems : 0,
-                    activeContests: stats ? stats.totalContests : 0
+                    activeContests: stats ? stats.totalContests : 0,
+                    platformRating: Number(Math.min(
+                        5,
+                        ((Number(stats?.totalProblems || 0) * 0.35)
+                            + (Number(stats?.totalContests || 0) * 0.65)
+                            + (Number(stats?.acceptedSubmissions || 0) * 0.02)
+                            + (Number(stats?.learnerReach || 0) * 0.05))
+                    ).toFixed(1))
                 },
                 recentActivity
             });

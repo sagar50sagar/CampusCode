@@ -260,12 +260,12 @@
                                 <i class="fas fa-chevron-right text-[10px] text-gray-400 group-hover:translate-x-1 transition-transform"></i>
                             </button>
                         </a>
-                    <button id="logoutBtn" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
+                    <a id="logoutBtn" href="/auth/logout" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group mt-2 transition-all">
                         <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center">
                             <i class="fas fa-sign-out-alt"></i>
                         </div>
                         <span class="text-sm font-medium text-red-600 dark:text-red-400">Log out</span>
-                    </button>
+                    </a>
                 </div>
                 <button onclick="toggleProfile()" class="mt-4 text-[10px] font-bold text-gray-400 uppercase hover:text-gray-600 transition-colors">Close</button>
             </div>
@@ -321,7 +321,7 @@
                         <input type="text" id="contestTime" placeholder="e.g. 120 mins" class="p-3 rounded-xl border dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white outline-none dark:placeholder-gray-400">
                     </div>
                     <div class="flex flex-col">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase mb-1">Reward (Optional)</label>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase mb-1">Prize (Optional)</label>
                         <input type="text" id="contestReward" placeholder="e.g. $100 Amazon Card" class="p-3 rounded-xl border dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white outline-none dark:placeholder-gray-400">
                     </div>
                 </div>
@@ -788,7 +788,7 @@
                             <div class="flex flex-wrap gap-x-6 gap-y-2 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
                                 <div class="flex items-center gap-2 text-sm">
                                     <div class="w-8 h-8 rounded-full bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-orange-500"><i class="fas fa-gift"></i></div>
-                                    <span class="font-medium text-gray-700 dark:text-gray-300">Reward: <span class="font-bold">${c.reward || 'None'}</span></span>
+                                    <span class="font-medium text-gray-700 dark:text-gray-300">Prize: <span class="font-bold">${c.prize || 'None'}</span></span>
                                 </div>
                                 <div class="flex items-center gap-2 text-sm">
                                     <div class="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500"><i class="fas fa-user-graduate"></i></div>
@@ -849,7 +849,7 @@
             document.getElementById('contestDate').value = c.date || "";
             document.getElementById('contestDeadline').value = c.deadline || "";
             document.getElementById('contestTime').value = c.duration || "";
-            document.getElementById('contestReward').value = c.reward || "";
+            document.getElementById('contestReward').value = c.prize || "";
             document.getElementById('contestDesc').value = c.description || "";
             quillEditor.root.innerHTML = c.rulesAndDescription || "";
             
@@ -890,7 +890,7 @@
             const date = document.getElementById('contestDate').value;
             const deadline = document.getElementById('contestDeadline').value;
             const duration = document.getElementById('contestTime').value;
-            const reward = document.getElementById('contestReward').value;
+            const prize = document.getElementById('contestReward').value;
             const description = document.getElementById('contestDesc').value;
             const rules = quillEditor.root.innerHTML;
 
@@ -922,7 +922,7 @@
             const payload = {
                 title, scope, level: scope, date, deadline, duration, description, 
                 rulesAndDescription: rules, colleges: selectedColleges, 
-                reward, target_programs, 
+                prize, target_programs, 
                 allowed_roles: "admin,superadmin,faculty,student,hos,hod"
             };
 

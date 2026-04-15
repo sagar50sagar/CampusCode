@@ -1,847 +1,610 @@
+<!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Reports - HOD Dashboard</title>
-
+    <title>Departmental Analytics - HOD Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="/css/shared.css">
-    <!-- SheetJS for Excel Export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- jsPDF for PDF Export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ["Poppins", "sans-serif"],
-                    },
+                    fontFamily: { sans: ["Poppins", "sans-serif"] },
                     colors: {
-                        primary: {
-                            50: "#E7F0FA",
-                            100: "#D0E1F5",
-                            200: "#7BA4D0",
-                            300: "#4D84C0",
-                            400: "#2E5E99",
-                            500: "#1E4A7A",
-                            600: "#0D2440",
-                        },
-                        dark: {
-                            bg: "#111827",
-                            card: "#1F2937",
-                            text: "#F9FAFB",
-                            border: "#374151"
-                        }
-                    },
-                },
-            },
+                        primary: { 50:"#E7F0FA",100:"#D0E1F5",200:"#7BA4D0",300:"#4D84C0",400:"#2E5E99",500:"#1E4A7A",600:"#0D2440" },
+                        dark: { bg:"#0F172A", card:"#1E293B", text:"#F8FAFC", border:"#334155" }
+                    }
+                }
+            }
         };
     </script>
+    <style>
+        .kpi-gradient-blue { background: linear-gradient(135deg, #1E4A7A 0%, #2563eb 100%); }
+        .kpi-gradient-purple { background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); }
+        .kpi-gradient-emerald { background: linear-gradient(135deg, #059669 0%, #34d399 100%); }
+        .kpi-gradient-orange { background: linear-gradient(135deg, #ea580c 0%, #fb923c 100%); }
+        .kpi-gradient-rose { background: linear-gradient(135deg, #be123c 0%, #fb7185 100%); }
+        .kpi-card { transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), box-shadow 0.3s ease; }
+        .kpi-card:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+        .chart-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .chart-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
+        .difficulty-bar { transition: width 1.2s cubic-bezier(.34,1.56,.64,1); }
+        @keyframes fadeSlideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        .animate-in { animation: fadeSlideUp 0.5s ease both; }
+        .glow-blue { box-shadow: 0 0 30px rgba(37,99,235,0.25); }
+        .glow-purple { box-shadow: 0 0 30px rgba(168,85,247,0.25); }
+        .rank-badge { min-width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; font-weight:700; font-size:12px; }
+    </style>
 </head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200 text-gray-800 dark:text-gray-200">
+<div class="flex h-screen overflow-hidden">
+    <!-- SIDEBAR -->
+    <%- include('partials/sidebar.html', { currentPage: 'report' }) %>
+    
+    <div class="flex-1 overflow-y-auto">
+        <!-- HEADER -->
+        <%- include('partials/header.html', { pageTitle: 'Analytics Report', user: user }) %>
 
-<body
-    class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200 text-gray-800 dark:text-gray-200">
-    <div class="flex h-screen overflow-hidden">
-        <!-- SIDEBAR -->
-        <%- include('partials/sidebar.html', { currentPage: currentPage }) %>
-        <aside class="hidden">
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
-            <div class="p-6 flex-shrink-0 flex items-center justify-between h-[88px]">
-                <h1
-                    class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2 overflow-hidden whitespace-nowrap">
-                    <i class="fas fa-code text-primary-500 text-2xl flex-shrink-0"></i>
-                    <span id="sidebarLogoText" class="transition-all duration-300 opacity-100">CampusCode</span>
-                </h1>
-                <button id="sidebarToggleBtn"
-                    class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary-500 transition-colors focus:outline-none">
-                    <i class="fas fa-chevron-left transition-transform duration-300"></i>
-                </button>
-            </div>
-
-            <nav class="flex-1 space-y-1 overflow-y-auto mt-2 font-sans">
-
-                <a href="/college/hod/dashboard"
-                    class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all <%= currentPage === 'dashboard' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-r-4 border-primary-600 dark:border-primary-400' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border-r-4 border-transparent' %>">
-                    <i class="fas fa-home w-5 text-center text-lg"></i>
-                    <span class="whitespace-nowrap">Dashboard</span>
-                </a>
-
-                <a href="/college/hod/problem"
-                    class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all <%= currentPage === 'problem' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-r-4 border-primary-600 dark:border-primary-400' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border-r-4 border-transparent' %>">
-                    <i class="fas fa-tasks w-5 text-center text-lg"></i>
-                    <span class="whitespace-nowrap">Problems</span>
-                </a>
-
-                <a href="/college/hod/contest"
-                    class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all <%= currentPage === 'contest' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-r-4 border-primary-600 dark:border-primary-400' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border-r-4 border-transparent' %>">
-                    <i class="fas fa-trophy w-5 text-center text-lg"></i>
-                    <span class="whitespace-nowrap">Contests</span>
-                </a>
-
-                <a href="/college/hod/faculty"
-                    class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all <%= currentPage === 'faculty' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-r-4 border-primary-600 dark:border-primary-400' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border-r-4 border-transparent' %>">
-                    <i class="fas fa-users w-5 text-center text-lg"></i>
-                    <span class="whitespace-nowrap">Faculty</span>
-                </a>
-
-                <a href="/college/hod/student"
-                    class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all <%= currentPage === 'student' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-r-4 border-primary-600 dark:border-primary-400' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border-r-4 border-transparent' %>">
-                    <i class="fas fa-user-graduate w-5 text-center text-lg"></i>
-                    <span class="whitespace-nowrap">Students</span>
-                </a>
-
-                <a href="/forum/forum.html"
-                    class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all <%= currentPage === 'community' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-r-4 border-primary-600 dark:border-primary-400' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border-r-4 border-transparent' %>">
-                    <i class="fas fa-comments w-5 text-center text-lg"></i>
-                    <span class="whitespace-nowrap">Community</span>
-                </a>
-
-                <a href="/college/hod/report"
-                    class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all <%= currentPage === 'report' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-r-4 border-primary-600 dark:border-primary-400' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border-r-4 border-transparent' %>">
-                    <i class="fas fa-chart-pie w-5 text-center text-lg"></i>
-                    <span class="whitespace-nowrap">Reports</span>
-                </a>
-
-                <a href="/college/hod/profile"
-                    class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all <%= currentPage === 'profile' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-r-4 border-primary-600 dark:border-primary-400' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border-r-4 border-transparent' %>">
-                    <i class="fas fa-user w-5 text-center text-lg"></i>
-                    <span class="whitespace-nowrap">Profile</span>
-                </a>
-
-            </nav>
-
-            <div
-                class="p-4 space-y-1 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
-
-                <a href="/college/hod/help"
-                    class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all rounded-lg <%= currentPage === 'help' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' %>">
-                    <i class="far fa-question-circle w-5 text-center text-lg group-hover:scale-110 transition-transform"></i>
-                    <span class="whitespace-nowrap">Help & Support</span>
-                </a>
-
-                <a href="/college/hod/settings"
-                    class="group flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-all rounded-lg <%= currentPage === 'settings' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700' %>">
-                    <i class="fas fa-cog w-5 text-center text-lg group-hover:rotate-90 transition-transform duration-500"></i>
-                    <span class="whitespace-nowrap">Settings</span>
-                </a>
-
-            </div>
-        </aside>
-
-        <!-- MAIN CONTENT AREA -->
-        <div class="flex-1 overflow-y-auto">
-            <%- include('partials/header.html', { pageTitle: 'Reports', user: user }) %>
-            <!-- HEADER -->
-            <header class="hidden bg-white dark:bg-gray-800 shadow-sm transition-colors duration-200 sticky top-0 z-40">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
-
-                    <div class="flex-1 max-w-2xl ml-4 flex items-center gap-4">
-                        <h1 id="headerLogoText"
-                            class="text-xl font-bold text-gray-800 dark:text-white hidden transition-all duration-300 opacity-0 transform -translate-x-2 whitespace-nowrap">
-                            CampusCode
-                        </h1>
-
-                        <div class="relative flex items-center w-full">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-search text-gray-400"></i>
-                            </div>
-                            <input type="text"
-                                class="block w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
-                                placeholder="Search students, problems, or contests..." />
-                        </div>
-                    </div>
-
-                    <div class="ml-4 flex items-center gap-3">
-                        <button id="themeToggleBtn"
-                            class="p-2 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none transition-transform active:scale-95">
-                            <i class="fas fa-moon text-xl"></i>
-                        </button>
-                        <div class="relative">
-                            <button id="notificationBtn"
-                                class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none">
-                                <i class="fas fa-bell text-xl"></i>
-                                <span
-                                    class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-800"></span>
-                            </button>
-                        </div>
-                        <button id="headerProfileBtn"
-                            class="ml-2 flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                            <div
-                                class="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm">
-                                <%= user.fullName.split(' ').map(n => n[0]).join('') %></div>
-                            <span class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block"><%= user.fullName %></span>
-                        </button>
-                    </div>
-                </div>
-            </header>
-
-            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 relative">
-                <!-- SECTION: REPORTS -->
-                <div id="section-reports" class="content-section">
-                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                        <div class="lg:col-span-1">
-                            <div
-                                class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 sticky top-24">
-                                <label class="text-xs font-bold text-gray-400 uppercase block mb-2">Report Type</label>
-                                <select id="reportType" onchange="initReportUI()"
-                                    class="w-full border border-gray-200 dark:border-gray-600 rounded-xl p-3 text-sm mb-6 outline-none bg-gray-50 dark:bg-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-primary-200">
-                                    <option value="Contests" selected>Contest Analytics</option>
-                                    <option value="Problems">Problem Bank</option>
-                                    <option value="Progress">Progress</option>
-                                    <option value="Faculty">Faculty Performance</option>
-                                    <option value="Students">Student Attendance</option>
-                                </select>
-
-                                <div id="filterContainer" class="space-y-2 mb-8">
-                                </div>
-
-                                <button id="actionBtn" onclick="handleReportDownload()"
-                                    class="w-full py-4 rounded-xl font-bold text-white bg-primary-600 hover:bg-primary-700 shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2">
-                                    <i class="fas fa-download"></i> Download
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="lg:col-span-3">
-                            <div class="flex justify-between items-center mb-4">
-                                <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">A4 Live
-                                    Preview</span>
-                                <span id="formatBadge"
-                                    class="px-3 py-1 bg-primary-50 text-primary-600 rounded-full text-[10px] font-bold uppercase"></span>
-                            </div>
-
-                            <div id="report-content" class="report-preview-container rounded-xl">
-                                <div class="watermark">CampusCode</div>
-                                <div class="flex justify-between border-b-2 border-primary-500 pb-6 mb-8">
-                                    <div>
-                                        <h1 id="previewTitle" class="text-2xl font-bold text-gray-900 uppercase"></h1>
-                                        <p class="text-primary-500 text-sm font-medium">Platform Activity Report</p>
-                                    </div>
-                                    <div class="text-right text-[10px] text-gray-400">
-                                        <p class="font-bold text-gray-700">DATE: <span id="currentDate"></span></p>
-                                        <p>REF: <span id="reportRef">-</span></p>
-                                    </div>
-                                </div>
-
-                                <div id="previewTableContainer"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </main>
-        </div>
-    </div>
-
-    <!-- STUDENT EXPORT MODAL (Copied from student.html for Report usage) -->
-    <div id="studentExportPreviewModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
-        <div
-            class="bg-white dark:bg-gray-800 w-[95%] h-[90%] max-w-7xl rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-[fadeIn_0.2s_ease-out]">
-            <!-- Modal Header -->
-            <div
-                class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-700/30">
+            <!-- ─── PAGE HEADER ─── -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 animate-in" style="animation-delay:0s">
                 <div>
-                    <h2 class="text-xl font-bold text-gray-800 dark:text-white">Export Student Report</h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Customize your report before downloading</p>
-                </div>
-                <button id="closeStudentExportModal"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                    <i class="fas fa-times text-2xl"></i>
-                </button>
-            </div>
-
-            <!-- Modal Body -->
-            <div class="flex-1 flex overflow-hidden">
-                <!-- Left Sidebar: Column Selection -->
-                <aside
-                    class="w-64 bg-gray-50 dark:bg-gray-800/50 border-r border-gray-200 dark:border-gray-700 p-5 overflow-y-auto">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Columns
-                        </h3>
-                        <button id="selectAllStudentColumns"
-                            class="text-xs text-primary-600 hover:underline font-medium">Select All</button>
-                    </div>
-
-                    <div class="space-y-3" id="studentColumnSelectionList">
-                        <!-- Checkboxes will be injected by JS -->
-                    </div>
-                </aside>
-
-                <!-- Main Preview Area -->
-                <main class="flex-1 flex flex-col min-w-0 bg-white dark:bg-gray-800">
-                    <!-- Filters Toolbar -->
-                    <div
-                        class="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-
-                        <!-- Search -->
-                        <div class="w-full sm:w-auto flex-1 min-w-[200px] max-w-xs">
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-search text-gray-400"></i>
-                                </div>
-                                <input type="text" id="studentExportSearchInput"
-                                    class="block w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 placeholder-gray-500"
-                                    placeholder="Search Name/ID...">
-                            </div>
-                        </div>
-
-                        <!-- Filters & Sort -->
-                        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-
-                            <!-- Year Filter -->
-                            <select id="studentExportFilterYear"
-                                class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-2 pl-3 pr-8 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
-                                <option value="all">Year: All</option>
-                            </select>
-
-                            <!-- Section Filter -->
-                            <select id="studentExportFilterSection"
-                                class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-2 pl-3 pr-8 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
-                                <option value="all">Sec: All</option>
-                            </select>
-
-                            <!-- Department Filter (New) -->
-                            <select id="studentExportFilterDept"
-                                class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-2 pl-3 pr-8 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
-                                <option value="all">Dept: All</option>
-                            </select>
-
-
-                            <div class="h-6 w-px bg-gray-300 dark:bg-gray-700 mx-1 hidden sm:block"></div>
-
-                            <!-- Sort -->
-                            <select id="studentExportSortSelect"
-                                class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-2 pl-3 pr-8 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
-                                <option value="name_asc">Name (A-Z)</option>
-                                <option value="name_desc">Name (Z-A)</option>
-                                <option value="rank_high">Global Rank (High-Low)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Table Preview -->
-                    <div class="flex-1 overflow-auto p-4 bg-gray-50/50 dark:bg-gray-900/10">
-                        <div
-                            class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 inline-block min-w-full align-middle">
-                            <table class="min-w-full text-left text-sm" id="studentExportPreviewTable">
-                                <thead
-                                    class="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-semibold uppercase tracking-wider text-xs sticky top-0 z-10">
-                                    <tr id="studentExportTableHeadRow">
-                                        <!-- Headers injected by JS -->
-                                    </tr>
-                                </thead>
-                                <tbody id="studentExportTableBody"
-                                    class="divide-y divide-gray-200 dark:divide-gray-700">
-                                    <!-- Rows injected by JS -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Preview Status Bar -->
-                    <div
-                        class="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-500 flex justify-between">
-                        <span id="studentPreviewCount">Showing 0 records</span>
-                        <span>Previewing first 50 rows only</span>
-                    </div>
-                </main>
-            </div>
-
-            <!-- Modal Footer -->
-            <div
-                class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex justify-between items-center">
-                <div class="text-sm text-gray-500 italic">
-                    <i class="fas fa-info-circle mr-1"></i> Data selected here will be included in the report.
-                </div>
-                <div class="flex gap-3">
-                    <button id="btnStudentDownloadPDF"
-                        class="flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors shadow-sm">
-                        <i class="fas fa-print mr-2"></i> Print Report
-                    </button>
-                    <button id="btnStudentDownloadExcel"
-                        class="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors shadow-sm">
-                        <i class="fas fa-file-excel mr-2"></i> Download Excel
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- FACULTY EXPORT MODAL (Copied from faculty.html for Report usage) -->
-    <div id="exportPreviewModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
-        <div
-            class="bg-white dark:bg-gray-800 w-[95%] h-[90%] max-w-7xl rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-[fadeIn_0.2s_ease-out]">
-            <!-- Modal Header -->
-            <div
-                class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-700/30">
-                <div>
-                    <h2 class="text-xl font-bold text-gray-800 dark:text-white">Export Faculty Report</h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Customize your report before downloading</p>
-                </div>
-                <button id="closeExportModal"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                    <i class="fas fa-times text-2xl"></i>
-                </button>
-            </div>
-
-            <!-- Modal Body -->
-            <div class="flex-1 flex overflow-hidden">
-                <!-- Left Sidebar: Column Selection -->
-                <aside
-                    class="w-64 bg-gray-50 dark:bg-gray-800/50 border-r border-gray-200 dark:border-gray-700 p-5 overflow-y-auto">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Columns
-                        </h3>
-                        <button id="selectAllColumns"
-                            class="text-xs text-primary-600 hover:underline font-medium">Select All</button>
-                    </div>
-
-                    <div class="space-y-3" id="columnSelectionList">
-                        <!-- Checkboxes will be injected by JS -->
-                    </div>
-                </aside>
-
-                <!-- Main Preview Area -->
-                <main class="flex-1 flex flex-col min-w-0 bg-white dark:bg-gray-800">
-                    <!-- Filters Toolbar -->
-                    <div
-                        class="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-
-                        <!-- Search -->
-                        <div class="w-full sm:w-auto flex-1 min-w-[200px] max-w-xs">
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-search text-gray-400"></i>
-                                </div>
-                                <input type="text" id="exportSearchInput"
-                                    class="block w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 placeholder-gray-500"
-                                    placeholder="Search Name/ID...">
-                            </div>
-                        </div>
-
-                        <!-- Filters & Sort -->
-                        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-
-                            <!-- Year Filter -->
-                            <select id="exportFilterYear"
-                                class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-2 pl-3 pr-8 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
-                                <option value="all">Year: All</option>
-                                <!-- Populated by JS -->
-                            </select>
-
-                            <!-- Section Filter -->
-                            <select id="exportFilterSection"
-                                class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-2 pl-3 pr-8 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
-                                <option value="all">Sec: All</option>
-                                <!-- Populated by JS -->
-                            </select>
-
-                            <!-- Subject Filter -->
-                            <select id="exportFilterSubject"
-                                class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-2 pl-3 pr-8 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 max-w-[150px]">
-                                <option value="all">Sub: All</option>
-                                <!-- Populated by JS -->
-                            </select>
-
-                            <div class="h-6 w-px bg-gray-300 dark:bg-gray-700 mx-1 hidden sm:block"></div>
-
-                            <!-- Sort -->
-                            <select id="exportSortSelect"
-                                class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-2 pl-3 pr-8 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
-                                <option value="name_asc">Name (A-Z)</option>
-                                <option value="name_desc">Name (Z-A)</option>
-                                <option value="date_new">Join Date (Newest)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Table Preview -->
-                    <div class="flex-1 overflow-auto p-4 bg-gray-50/50 dark:bg-gray-900/10">
-                        <div
-                            class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 inline-block min-w-full align-middle">
-                            <table class="min-w-full text-left text-sm" id="exportPreviewTable">
-                                <thead
-                                    class="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-semibold uppercase tracking-wider text-xs sticky top-0 z-10">
-                                    <tr id="exportTableHeadRow">
-                                        <!-- Headers injected by JS -->
-                                    </tr>
-                                </thead>
-                                <tbody id="exportTableBody" class="divide-y divide-gray-200 dark:divide-gray-700">
-                                    <!-- Rows injected by JS -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Preview Status Bar -->
-                    <div
-                        class="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-500 flex justify-between">
-                        <span id="previewCount">Showing 0 records</span>
-                        <span>Previewing first 50 rows only</span>
-                    </div>
-                </main>
-            </div>
-
-            <!-- Modal Footer -->
-            <div
-                class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex justify-between items-center">
-                <div class="text-sm text-gray-500 italic">
-                    <i class="fas fa-info-circle mr-1"></i> Data selected here will be included in the report.
-                </div>
-                <div class="flex gap-3">
-                    <button id="btnFinalDownloadPDF"
-                        class="flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors shadow-sm">
-                        <i class="fas fa-print mr-2"></i> Print Report
-                    </button>
-                    <button id="btnFinalDownloadExcel"
-                        class="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors shadow-sm">
-                        <i class="fas fa-file-excel mr-2"></i> Download Excel
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- EXPORT PROBLEMS PREVIEW MODAL -->
-    <div id="exportProblemsModal" class="hidden fixed inset-0 z-[60] overflow-y-auto" aria-modal="true">
-        <!-- Backdrop -->
-        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity"></div>
-
-        <!-- Modal Panel -->
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div
-                class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-7xl h-[90vh] flex flex-col overflow-hidden animate-[scaleIn_0.2s_ease-out]">
-
-                <!-- Modal Header -->
-                <div
-                    class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800 z-10">
-                    <div>
-                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Export Problems Preview</h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Customize your report before downloading</p>
-                    </div>
-                    <button id="closeProblemsModal"
-                        class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                        <i class="fas fa-times text-xl"></i>
-                    </button>
-                </div>
-
-                <!-- Modal Body -->
-                <div class="flex-1 flex overflow-hidden">
-
-                    <!-- Left Sidebar: Columns -->
-                    <div
-                        class="w-64 bg-gray-50 dark:bg-gray-900/50 border-r border-gray-200 dark:border-gray-700 p-4 flex flex-col overflow-y-auto">
-                        <div class="flex justify-between items-center mb-4">
-                            <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                Select Columns</h4>
-                            <button id="selectAllProbColumns"
-                                class="text-xs text-primary-600 hover:text-primary-700 font-medium">Select All</button>
-                        </div>
-                        <div class="space-y-2" id="probColumnSelectionList">
-                            <!-- Injected by JS -->
-                        </div>
-                    </div>
-
-                    <!-- Main Preview Area -->
-                    <main class="flex-1 flex flex-col min-w-0 bg-white dark:bg-gray-800">
-                        <!-- Filters Toolbar -->
-                        <div
-                            class="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-
-                            <!-- Search -->
-                            <div class="w-full sm:w-auto flex-1 min-w-[200px] max-w-xs">
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <i class="fas fa-search text-gray-400"></i>
-                                    </div>
-                                    <input type="text" id="probSearchInput"
-                                        class="block w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 placeholder-gray-500"
-                                        placeholder="Search Description/Tags...">
-                                </div>
-                            </div>
-
-                            <!-- Filters -->
-                            <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                                <select id="probFilterSubject"
-                                    class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-2 pl-3 pr-8 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
-                                    <option value="all">Subject: All</option>
-                                    <!-- JS -->
-                                </select>
-
-                                <select id="probFilterDifficulty"
-                                    class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-2 pl-3 pr-8 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
-                                    <option value="all">Difficulty: All</option>
-                                    <option value="Easy">Easy</option>
-                                    <option value="Medium">Medium</option>
-                                    <option value="Hard">Hard</option>
-                                </select>
-
-                                <div class="flex items-center gap-1">
-                                    <input type="date" id="probStartDate"
-                                        class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-1.5 px-2 text-gray-900 dark:text-white">
-                                    <span class="text-gray-400">-</span>
-                                    <input type="date" id="probEndDate"
-                                        class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-1.5 px-2 text-gray-900 dark:text-white">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Table Preview -->
-                        <div class="flex-1 overflow-auto p-4 bg-gray-50/50 dark:bg-gray-900/10">
-                            <div
-                                class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 inline-block min-w-full align-middle">
-                                <table class="min-w-full text-left text-sm" id="probPreviewTable">
-                                    <thead
-                                        class="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-semibold uppercase tracking-wider text-xs sticky top-0 z-10">
-                                        <tr id="probTableHeadRow">
-                                            <!-- Headers injected by JS -->
-                                        </tr>
-                                    </thead>
-                                    <tbody id="probTableBody" class="divide-y divide-gray-200 dark:divide-gray-700">
-                                        <!-- Rows injected by JS -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </main>
-                </div>
-
-                <!-- Modal Footer -->
-                <div
-                    class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex justify-between items-center">
-                    <div class="text-sm text-gray-500 dark:text-gray-400">
-                        Showing <span id="probPreviewCount" class="font-medium text-gray-900 dark:text-white">0</span>
-                        records
-                    </div>
-                    <div class="flex gap-3">
-                        <button id="btnDownloadProblemsPDF"
-                            class="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md hover:shadow-lg flex items-center">
-                            <i class="fas fa-print mr-2"></i> Print Report
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- EXPORT CONTEST PREVIEW MODAL -->
-    <div id="exportContestModal" class="hidden fixed inset-0 z-[60] overflow-y-auto" aria-modal="true">
-        <!-- Backdrop -->
-        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity"></div>
-
-        <!-- Modal Panel -->
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div
-                class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-7xl h-[90vh] flex flex-col overflow-hidden animate-[scaleIn_0.2s_ease-out]">
-
-                <!-- Modal Header -->
-                <div
-                    class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800 z-10">
-                    <div>
-                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Export Contest Report</h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Generate reports with advanced filters</p>
-                    </div>
-                    <button id="closeContestModal"
-                        class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                        <i class="fas fa-times text-xl"></i>
-                    </button>
-                </div>
-
-                <!-- Modal Body -->
-                <div class="flex-1 flex overflow-hidden">
-
-                    <!-- Left Sidebar: Columns -->
-                    <div
-                        class="w-64 bg-gray-50 dark:bg-gray-900/50 border-r border-gray-200 dark:border-gray-700 p-4 flex flex-col overflow-y-auto">
-                        <div class="flex justify-between items-center mb-4">
-                            <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                Select Columns</h4>
-                            <button id="selectAllContestColumns"
-                                class="text-xs text-primary-600 hover:text-primary-700 font-medium">Select All</button>
-                        </div>
-                        <div class="space-y-2" id="contestColumnSelectionList">
-                            <!-- Injected by JS -->
-                        </div>
-                    </div>
-
-                    <!-- Main Preview Area -->
-                    <main class="flex-1 flex flex-col min-w-0 bg-white dark:bg-gray-800">
-                        <!-- Filters Toolbar -->
-                        <div
-                            class="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-
-                            <!-- Search -->
-                            <div class="w-full sm:w-auto flex-1 min-w-[200px] max-w-xs">
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <i class="fas fa-search text-gray-400"></i>
-                                    </div>
-                                    <input type="text" id="contestSearchInput"
-                                        class="block w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 placeholder-gray-500"
-                                        placeholder="Search Title...">
-                                </div>
-                            </div>
-
-                            <!-- Filters -->
-                            <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                                <select id="contestFilterSubject"
-                                    class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-2 pl-3 pr-8 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
-                                    <option value="all">Subject: All</option>
-                                    <!-- JS -->
-                                </select>
-
-                                <div class="flex items-center gap-1">
-                                    <input type="date" id="contestStartDate"
-                                        class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-1.5 px-2 text-gray-900 dark:text-white">
-                                    <span class="text-gray-400">-</span>
-                                    <input type="date" id="contestEndDate"
-                                        class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-1.5 px-2 text-gray-900 dark:text-white">
-                                </div>
-
-                                <select id="contestSortSelect"
-                                    class="rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm py-2 pl-3 pr-8 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500">
-                                    <option value="date_new">Date (Newest)</option>
-                                    <option value="date_old">Date (Oldest)</option>
-                                    <option value="title_asc">Title (A-Z)</option>
-                                    <option value="participation_desc">Participation (High-Low)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Table Preview -->
-                        <div class="flex-1 overflow-auto p-4 bg-gray-50/50 dark:bg-gray-900/10">
-                            <div
-                                class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 inline-block min-w-full align-middle">
-                                <table class="min-w-full text-left text-sm" id="contestPreviewTable">
-                                    <thead
-                                        class="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-semibold uppercase tracking-wider text-xs sticky top-0 z-10">
-                                        <tr id="contestTableHeadRow">
-                                            <!-- Headers injected by JS -->
-                                        </tr>
-                                    </thead>
-                                    <tbody id="contestTableBody" class="divide-y divide-gray-200 dark:divide-gray-700">
-                                        <!-- Rows injected by JS -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </main>
-                </div>
-
-                <!-- Modal Footer -->
-                <div
-                    class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex justify-between items-center">
-                    <div class="text-sm text-gray-500 dark:text-gray-400">
-                        Showing <span id="contestPreviewCount"
-                            class="font-medium text-gray-900 dark:text-white">0</span>
-                        records
-                    </div>
-                    <div class="flex gap-3">
-                        <button id="btnDownloadContestPDF"
-                            class="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md hover:shadow-lg flex items-center">
-                            <i class="fas fa-print mr-2"></i> Print Report
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- PROFILE OVERLAY -->
-        <div id="profileOverlay" class="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
-        <div class="w-[380px] bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden animate-[fadeIn_0.2s_ease-out]">
-            <div class="bg-gradient-to-br from-[#1E4A7A] to-[#153255] relative pt-12 pb-20 px-6 text-center">
-                <button id="closeProfileOverlay" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white/90 transition-all flex items-center justify-center backdrop-blur-sm">
-                    <i class="fas fa-times text-sm"></i>
-                </button>
-
-                <div class="absolute left-1/2 bottom-[-48px] -translate-x-1/2">
-                    <div class="relative w-24 h-24 rounded-full p-1.5 bg-white dark:bg-gray-800 ring-4 ring-[#1E4A7A]/10 dark:ring-[#1E4A7A]/30">
-                        <div class="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold shadow-inner">
-                            <%= user.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2) %>
-                        </div>
-                        <div class="absolute bottom-0 right-0 w-6 h-6 bg-green-500 border-4 border-white dark:border-gray-800 rounded-full"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="pt-16 pb-8 px-6">
-                <div class="text-center mb-6">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-1"><%= user.fullName %></h2>
-                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2"><%= user.collegeName || 'CampusCode College' %></p>
-
-                    <div class="flex items-center justify-center gap-2 flex-wrap">
-                        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-100 dark:border-blue-800">
-                            <%= user.department || 'General' %> Dept
+                    <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-xl bg-primary-500 flex items-center justify-center text-white shadow-lg">
+                            <i class="fas fa-chart-line text-sm"></i>
                         </span>
-                        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border border-purple-100 dark:border-purple-800">
-                            <%= user.role ? user.role.toUpperCase() : 'FACULTY' %>
+                        Analytics Report
+                    </h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 flex flex-wrap items-center gap-2">
+                        <span>Departmental overview for</span>
+                        <span class="font-semibold text-gray-700 dark:text-gray-200"><%= user.department %></span>
+                        <span class="text-gray-300 dark:text-gray-600">|</span>
+                        <span class="bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 px-2 py-0.5 rounded text-xs font-bold uppercase"><%= user.post || 'HOD' %></span>
+                        <span class="text-gray-300 dark:text-gray-600">|</span>
+                        <span class="text-primary-500"><%= user.course || 'Analytics' %></span>
+                    </p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="/college/hod/report/pdf" target="_blank" id="btn-export-pdf" class="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white rounded-xl text-sm font-semibold shadow-md transition-all">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </a>
+                    <button id="btn-export-excel" class="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl text-sm font-semibold shadow-md transition-all">
+                        <i class="fas fa-file-excel"></i> Export Excel
+                    </button>
+                </div>
+            </div>
+
+            <!-- ─── KPI CARDS ─── -->
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+                <!-- Problems Count -->
+                <div class="kpi-card kpi-gradient-blue text-white rounded-2xl p-5 relative overflow-hidden animate-in" style="animation-delay:0.05s">
+                    <div class="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/10"></div>
+                    <div class="absolute -bottom-6 -left-4 w-20 h-20 rounded-full bg-white/5"></div>
+                    <div class="relative">
+                        <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center mb-3">
+                            <i class="fas fa-code text-sm"></i>
+                        </div>
+                        <p class="text-3xl font-black leading-none mb-1"><%= reportData.problems %></p>
+                        <p class="text-xs font-medium opacity-80 uppercase tracking-wide">Problems</p>
+                    </div>
+                </div>
+
+                <!-- Contests Count -->
+                <div class="kpi-card kpi-gradient-purple text-white rounded-2xl p-5 relative overflow-hidden animate-in" style="animation-delay:0.1s">
+                    <div class="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/10"></div>
+                    <div class="absolute -bottom-6 -left-4 w-20 h-20 rounded-full bg-white/5"></div>
+                    <div class="relative">
+                        <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center mb-3">
+                            <i class="fas fa-trophy text-sm"></i>
+                        </div>
+                        <p class="text-3xl font-black leading-none mb-1"><%= reportData.contests %></p>
+                        <p class="text-xs font-medium opacity-80 uppercase tracking-wide">Contests</p>
+                    </div>
+                </div>
+
+                <!-- Students Count -->
+                <div class="kpi-card kpi-gradient-emerald text-white rounded-2xl p-5 relative overflow-hidden animate-in" style="animation-delay:0.15s">
+                    <div class="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/10"></div>
+                    <div class="absolute -bottom-6 -left-4 w-20 h-20 rounded-full bg-white/5"></div>
+                    <div class="relative">
+                        <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center mb-3">
+                            <i class="fas fa-user-graduate text-sm"></i>
+                        </div>
+                        <p class="text-3xl font-black leading-none mb-1"><%= reportData.activeStudents %></p>
+                        <p class="text-xs font-medium opacity-80 uppercase tracking-wide">Students</p>
+                    </div>
+                </div>
+
+                <!-- Total Submissions -->
+                <div class="kpi-card kpi-gradient-orange text-white rounded-2xl p-5 relative overflow-hidden animate-in" style="animation-delay:0.2s">
+                    <div class="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/10"></div>
+                    <div class="absolute -bottom-6 -left-4 w-20 h-20 rounded-full bg-white/5"></div>
+                    <div class="relative">
+                        <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center mb-3">
+                            <i class="fas fa-paper-plane text-sm"></i>
+                        </div>
+                        <p class="text-3xl font-black leading-none mb-1"><%= reportData.totalSubmissions %></p>
+                        <p class="text-xs font-medium opacity-80 uppercase tracking-wide">Submissions</p>
+                    </div>
+                </div>
+
+                <!-- Acceptance Rate -->
+                <div class="kpi-card kpi-gradient-rose text-white rounded-2xl p-5 relative overflow-hidden animate-in" style="animation-delay:0.25s">
+                    <div class="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/10"></div>
+                    <div class="absolute -bottom-6 -left-4 w-20 h-20 rounded-full bg-white/5"></div>
+                    <div class="relative">
+                        <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center mb-3">
+                            <i class="fas fa-check-circle text-sm"></i>
+                        </div>
+                        <p class="text-3xl font-black leading-none mb-1"><%= reportData.acceptanceRate %><span class="text-lg">%</span></p>
+                        <p class="text-xs font-medium opacity-80 uppercase tracking-wide">Dept Accuracy</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── MAIN CHARTS ROW ─── -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+
+                <!-- Monthly Activity Chart -->
+                <div class="lg:col-span-2 chart-card bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 animate-in" style="animation-delay:0.3s">
+                    <div class="flex items-center justify-between mb-5">
+                        <div>
+                            <h2 class="text-base font-bold text-gray-800 dark:text-white">Monthly Submission Activity</h2>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Participation trend over last 6 months</p>
+                        </div>
+                        <span class="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-semibold rounded-full">
+                            <i class="fas fa-arrow-trend-up mr-1"></i>Live
                         </span>
                     </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div class="p-3 rounded-2xl bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700 text-center">
-                        <p class="text-xs text-gray-500 uppercase font-semibold">Faculty ID</p>
-                        <p class="text-sm font-bold text-gray-800 dark:text-gray-200">FAC-<%= user.id %></p>
-                    </div>
-                    <div class="p-3 rounded-2xl bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700 text-center">
-                        <p class="text-xs text-gray-500 uppercase font-semibold">Joined</p>
-                        <p class="text-sm font-bold text-gray-800 dark:text-gray-200"><%= user.joiningDate || 'Unknown' %></p>
+                    <div class="h-64">
+                        <canvas id="monthlyTrendChart"></canvas>
                     </div>
                 </div>
 
-                <div class="space-y-3">
-                    <button id="logoutBtn" class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 group transition-all duration-200 border border-transparent hover:border-red-100 dark:hover:border-red-800">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center justify-center">
-                                <i class="fas fa-sign-out-alt text-sm"></i>
-                            </div>
-                            <span class="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-red-600 dark:group-hover:text-red-400">Logout</span>
+                <!-- Difficulty Distribution Donut -->
+                <div class="chart-card bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 animate-in" style="animation-delay:0.35s">
+                    <div class="mb-5">
+                        <h2 class="text-base font-bold text-gray-800 dark:text-white">Problem Landscape</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Difficulty split in department</p>
+                    </div>
+                    <div class="h-44 flex justify-center relative">
+                        <canvas id="difficultyChart"></canvas>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <p class="text-2xl font-black text-gray-800 dark:text-white"><%= reportData.problems %></p>
+                            <p class="text-xs text-gray-400">Total</p>
                         </div>
-                        <i class="fas fa-chevron-right text-xs text-gray-400 group-hover:text-red-500 dark:group-hover:text-red-400"></i>
-                    </button>
+                    </div>
+                    <div class="flex flex-col gap-2 mt-4 text-xs">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                                <span class="text-gray-600 dark:text-gray-400">Easy Level</span>
+                            </div>
+                            <span class="font-bold text-emerald-600"><%= reportData.difficulty[0] %></span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                                <span class="text-gray-600 dark:text-gray-400">Medium Level</span>
+                            </div>
+                            <span class="font-bold text-amber-600"><%= reportData.difficulty[1] %></span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                                <span class="text-gray-600 dark:text-gray-400">Hard Level</span>
+                            </div>
+                            <span class="font-bold text-rose-600"><%= reportData.difficulty[2] %></span>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- NOTIFICATION DROPDOWN -->
-    <div id="notificationDropdown"
-        class="fixed top-16 right-6 z-50 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 hidden animate-[fadeIn_0.1s_ease-out]">
-        <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
-            <h3 class="font-semibold text-gray-800 dark:text-white">Recent Activity</h3>
-            <span class="text-xs text-primary-500 cursor-pointer hover:underline">Mark all read</span>
-        </div>
-        <div class="p-2">
-            <div class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer">
-                <p id="notifTitle1" class="text-sm text-gray-800 dark:text-gray-200 font-medium">Report Summary</p>
-                <p id="notifBody1" class="text-xs text-gray-500 dark:text-gray-400">Loading latest report activity...</p>
-            </div>
-            <div class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer">
-                <p id="notifTitle2" class="text-sm text-gray-800 dark:text-gray-200 font-medium">Department Scope</p>
-                <p id="notifBody2" class="text-xs text-gray-500 dark:text-gray-400">Loading scope details...</p>
-            </div>
-        </div>
-    </div>
+            <!-- ─── SECONDARY CHARTS ROW ─── -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Weekly Activity Bar -->
+                <div class="chart-card bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 animate-in" style="animation-delay:0.4s">
+                    <div class="flex items-center justify-between mb-5">
+                        <div>
+                            <h2 class="text-base font-bold text-gray-800 dark:text-white">Weekly Performance</h2>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Volume comparison last 7 weeks</p>
+                        </div>
+                        <i class="fas fa-calendar-alt text-gray-300"></i>
+                    </div>
+                    <div class="h-52">
+                        <canvas id="weeklyActivityChart"></canvas>
+                    </div>
+                </div>
 
-    <script>
-        window.__HOD_REPORT_DATA = <%- JSON.stringify(reportData || {}) %>;
-    </script>
-    <script src="/js/Hod/report_logic.js"></script>
+                <!-- Subject-Wise Progress -->
+                <div class="chart-card bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 animate-in" style="animation-delay:0.45s">
+                    <div class="flex items-center justify-between mb-5">
+                        <div>
+                            <h2 class="text-base font-bold text-gray-800 dark:text-white">Focus Areas</h2>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Problem bank distribution by subject</p>
+                        </div>
+                        <i class="fas fa-layer-group text-gray-300"></i>
+                    </div>
+                    <div class="space-y-4">
+                        <% const maxProb = Math.max(...(reportData.subjectBreakdown.map(s => s.count)), 1); %>
+                        <% const subjectColors = ['bg-blue-500','bg-indigo-500','bg-emerald-500','bg-amber-500','bg-rose-500','bg-cyan-500']; %>
+                        <% (reportData.subjectBreakdown.length > 0 ? reportData.subjectBreakdown : [{subject:'General', count:0}]).forEach((s, i) => { %>
+                        <div>
+                            <div class="flex items-center justify-between text-xs mb-1.5">
+                                <span class="font-medium text-gray-700 dark:text-gray-300"><%= s.subject %></span>
+                                <span class="font-bold text-gray-800 dark:text-white"><%= s.count %></span>
+                            </div>
+                            <div class="w-full h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                                <div class="difficulty-bar h-full rounded-full <%= subjectColors[i % subjectColors.length] %>" style="width: <%= Math.round((s.count / maxProb) * 100) %>%"></div>
+                            </div>
+                        </div>
+                        <% }); %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── ADVANCED ANALYTICS ROW ─── -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Section Performance Bar -->
+                <div class="chart-card bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 animate-in" style="animation-delay:0.48s">
+                    <div class="flex items-center justify-between mb-5">
+                        <div>
+                            <h2 class="text-base font-bold text-gray-800 dark:text-white">Class-wise Standing</h2>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Avg Solve Points por Sec & Year</p>
+                        </div>
+                        <i class="fas fa-users-viewfinder text-gray-300"></i>
+                    </div>
+                    <div class="h-52">
+                        <canvas id="sectionPerformanceChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Skill Distribution Doughnut -->
+                <div class="chart-card bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 animate-in" style="animation-delay:0.5s">
+                    <div class="flex items-center justify-between mb-5">
+                        <div>
+                            <h2 class="text-base font-bold text-gray-800 dark:text-white">Technical Domain Coverage</h2>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Top tags in department problems</p>
+                        </div>
+                        <i class="fas fa-tags text-gray-300"></i>
+                    </div>
+                    <div class="h-44 flex justify-center relative">
+                        <canvas id="skillsChart"></canvas>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mt-4">
+                        <% reportData.skillsDistribution.forEach((skill, i) => { %>
+                            <span class="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-[10px] font-semibold rounded-md border border-gray-200 dark:border-gray-600">
+                                <%= skill.name %> (<%= skill.count %>)
+                            </span>
+                        <% }); %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── FACULTY INSIGHTS ─── -->
+            <div class="chart-card bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden mb-6 animate-in" style="animation-delay:0.52s">
+                <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-indigo-50/30 dark:bg-indigo-900/10">
+                    <h2 class="text-base font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                        <i class="fas fa-user-tie text-indigo-500"></i> Faculty Contribution Leaderboard
+                    </h2>
+                    <span class="text-[10px] font-bold text-indigo-600 bg-indigo-100 dark:bg-indigo-900/40 px-2 py-0.5 rounded-full uppercase tracking-widest">Active contributors</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="text-xs text-gray-400 border-b border-gray-50 dark:border-gray-700 uppercase tracking-widest font-bold">
+                                <th class="px-6 py-3 text-left">Faculty Name</th>
+                                <th class="px-6 py-3 text-right">Verified Problems Contributed</th>
+                                <th class="px-6 py-3 text-right">Contribution Weight</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50 dark:divide-gray-700/50">
+                            <% const maxContrib = Math.max(...(reportData.facultyLeaderboard.map(f => f.contributions)), 1); %>
+                            <% reportData.facultyLeaderboard.forEach((f, i) => { %>
+                            <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-600 font-bold text-xs"><%= i+1 %></div>
+                                        <span class="font-semibold text-gray-800 dark:text-white"><%= f.fullName %></span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <span class="font-black text-gray-900 dark:text-white"><%= f.contributions %></span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="w-24 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full inline-block overflow-hidden align-middle">
+                                        <div class="h-full bg-indigo-500 rounded-full" style="width: <%= Math.round((f.contributions / maxContrib) * 100) %>%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <% }); %>
+                            <% if (reportData.facultyLeaderboard.length === 0) { %>
+                                <tr><td colspan="3" class="px-6 py-8 text-center text-gray-400 italic">No faculty contributions recorded yet.</td></tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ─── TOP PROBLEMS & STUDENTS ─── -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- Top Problems Table -->
+                <div class="chart-card bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden animate-in" style="animation-delay:0.5s">
+                    <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-700/20">
+                        <h2 class="text-base font-bold text-gray-800 dark:text-white">Top Active Problems</h2>
+                        <a href="/college/hod/problem" class="text-xs text-primary-500 font-bold hover:underline">View All</a>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="text-xs text-gray-400 border-b border-gray-50 dark:border-gray-700 uppercase tracking-widest font-bold">
+                                    <th class="px-6 py-3 text-left">Problem</th>
+                                    <th class="px-6 py-3 text-center">Difficulty</th>
+                                    <th class="px-6 py-3 text-right">Activity</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50 dark:divide-gray-700/50">
+                                <% reportData.topProblems.forEach((p, i) => { %>
+                                <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors">
+                                    <td class="px-6 py-4">
+                                        <p class="font-semibold text-gray-800 dark:text-white truncate max-w-[200px]"><%= p.title %></p>
+                                        <p class="text-[10px] text-gray-400"><%= p.accepted %> AcceptedSolutions</p>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <% const dColors = { Easy:'bg-green-100 text-green-700', Medium:'bg-yellow-100 text-yellow-700', Hard:'bg-red-100 text-red-700' }; %>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold <%= dColors[p.difficulty] || 'bg-gray-100' %>"><%= p.difficulty %></span>
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <span class="font-bold text-primary-600 dark:text-blue-400"><%= p.submissions %></span>
+                                        <i class="fas fa-fire text-orange-500 ml-1 ml-0.5 animate-pulse"></i>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Top Students Leaderboard -->
+                <div class="chart-card bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden animate-in" style="animation-delay:0.55s">
+                    <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-700/20">
+                        <h2 class="text-base font-bold text-gray-800 dark:text-white">Department Leaderboard</h2>
+                        <a href="/college/hod/student" class="text-xs text-primary-500 font-bold hover:underline">Full List</a>
+                    </div>
+                    <ul class="divide-y divide-gray-50 dark:divide-gray-700/50">
+                        <% reportData.topStudents.forEach((s, i) => { 
+                           const initials = s.fullName.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+                           const colors = ['bg-amber-400','bg-blue-400','bg-purple-400','bg-emerald-400','bg-rose-400'];
+                        %>
+                        <li class="flex items-center gap-4 px-6 py-4 hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors">
+                            <span class="rank-badge <%= i < 3 ? 'bg-primary-500 text-white shadow-md' : 'bg-gray-100 dark:bg-gray-700 text-gray-500' %>">
+                                <%= i+1 %>
+                            </span>
+                            <div class="w-9 h-9 rounded-full <%= colors[i % colors.length] %> flex items-center justify-center text-white text-[10px] font-black"><%= initials %></div>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-gray-800 dark:text-white"><%= s.fullName %></p>
+                                <p class="text-[10px] text-gray-500 uppercase"><%= s.year %> Year · SEC <%= s.section %></p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-black text-emerald-600 dark:text-emerald-400"><%= s.solved %></p>
+                                <p class="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">Problems</p>
+                            </div>
+                        </li>
+                        <% }); %>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- ─── RECENT CONTESTS ─── -->
+            <div class="chart-card bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden animate-in" style="animation-delay:0.6s">
+                <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-700/20">
+                    <h2 class="text-base font-bold text-gray-800 dark:text-white">Live & Recent Contests</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-100/50 dark:bg-gray-700/40 text-xs text-gray-500">
+                            <tr>
+                                <th class="px-6 py-3 text-left font-bold uppercase tracking-wider">Title</th>
+                                <th class="px-6 py-3 text-center font-bold uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-right font-bold uppercase tracking-wider">Timeframe</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50 dark:divide-gray-700/50">
+                            <% reportData.recentContests.forEach(c => { %>
+                            <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-700/30">
+                                <td class="px-6 py-4 font-semibold text-gray-800 dark:text-white"><%= c.title %></td>
+                                <td class="px-6 py-4 text-center">
+                                    <span class="px-2 py-1 rounded-full text-[10px] font-black uppercase <%= c.status === 'live' ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-blue-100 text-blue-700' %>">
+                                        <%= c.status %>
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-right text-xs text-gray-400 italic">
+                                    <%= c.startDate ? new Date(c.startDate).toLocaleDateString() : 'TBD' %> — <%= c.endDate ? new Date(c.endDate).toLocaleDateString() : 'TBD' %>
+                                </td>
+                            </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const isDark = document.documentElement.classList.contains('dark');
+    Chart.defaults.font.family = "'Poppins', sans-serif";
+    Chart.defaults.color = isDark ? '#94a3b8' : '#64748b';
+
+    // Monthly Trend Chart
+    const trendCtx = document.getElementById('monthlyTrendChart')?.getContext('2d');
+    if (trendCtx) {
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: <%- JSON.stringify(reportData.labels) %>,
+                datasets: [{
+                    label: 'Submissions',
+                    data: <%- JSON.stringify(reportData.participationTrend) %>,
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#2563eb'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: isDark ? '#1e293b' : '#f1f5f9' }, beginAtZero: true },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // Difficulty Donut
+    const diffCtx = document.getElementById('difficultyChart')?.getContext('2d');
+    if (diffCtx) {
+        new Chart(diffCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Easy', 'Medium', 'Hard'],
+                datasets: [{
+                    data: <%- JSON.stringify(reportData.difficulty) %>,
+                    backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '80%',
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // Weekly Bar Chart
+    const weekCtx = document.getElementById('weeklyActivityChart')?.getContext('2d');
+    if (weekCtx) {
+        new Chart(weekCtx, {
+            type: 'bar',
+            data: {
+                labels: <%- JSON.stringify(reportData.weekLabels) %>,
+                datasets: [{
+                    label: 'Participation',
+                    data: <%- JSON.stringify(reportData.weeklyData) %>,
+                    backgroundColor: '#7c3aed',
+                    borderRadius: 12,
+                    barThickness: 24
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: isDark ? '#1e293b' : '#f1f5f9' }, beginAtZero: true },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // Section Performance Chart
+    const secCtx = document.getElementById('sectionPerformanceChart')?.getContext('2d');
+    if (secCtx) {
+        new Chart(secCtx, {
+            type: 'bar',
+            data: {
+                labels: <%- JSON.stringify(reportData.sectionPerformance.map(s => `${s.year}Y SEC ${s.section}`)) %>,
+                datasets: [{
+                    label: 'Avg Solve Points',
+                    data: <%- JSON.stringify(reportData.sectionPerformance.map(s => Math.round(s.avgPoints || 0))) %>,
+                    backgroundColor: '#2563eb',
+                    borderRadius: 8,
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { color: isDark ? '#1e293b' : '#f1f5f9' }, beginAtZero: true },
+                    y: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // Skills Distribution Chart
+    const skillCtx = document.getElementById('skillsChart')?.getContext('2d');
+    if (skillCtx) {
+        new Chart(skillCtx, {
+            type: 'doughnut',
+            data: {
+                labels: <%- JSON.stringify(reportData.skillsDistribution.map(s => s.name)) %>,
+                datasets: [{
+                    data: <%- JSON.stringify(reportData.skillsDistribution.map(s => s.count)) %>,
+                    backgroundColor: ['#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e', '#ef4444', '#f59e0b', '#10b981', '#06b6d4'],
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: { 
+                    legend: { display: false },
+                }
+            }
+        });
+    }
+
+    // Export Logic
+    document.getElementById('btn-export-excel')?.addEventListener('click', function() {
+        const rows = [
+            ['Department Performance Report'],
+            ['Generated At', new Date().toLocaleString()],
+            ['Department', '<%= user.department %>'],
+            ['College', '<%= user.collegeName %>'],
+            [],
+            ['KPI Summary'],
+            ['Problems', '<%= reportData.problems %>'],
+            ['Contests', '<%= reportData.contests %>'],
+            ['Students', '<%= reportData.activeStudents %>'],
+            ['Submissions', '<%= reportData.totalSubmissions %>'],
+            ['Acceptance Rate', '<%= reportData.acceptanceRate %>%'],
+            [],
+            ['Top Performance - Students'],
+            ['Rank', 'Name', 'Year', 'Section', 'Solved'],
+            ...<%- JSON.stringify(reportData.topStudents) %>.map((s, i) => [i+1, s.fullName, s.year, s.section, s.solved])
+        ];
+        const csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "hod_departmental_report.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+});
+</script>
+
 </body>
-
 </html>

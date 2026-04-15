@@ -1,0 +1,1 @@
+Error: SQLITE_ERROR: ambiguous column name: subject

@@ -1108,150 +1108,7 @@ module.exports = (db) => {
     };
     router.get('/hos/profile', requireRole('hos'), checkScope, renderHosProfile);
     router.get('/college/hos/profile', requireRole('hos'), checkScope, renderHosProfile);
-    router.get('/hos/report', requireRole('hos'), checkScope, async (req, res) => {
-        const dbAll = (sql, params = []) =>
-            new Promise((resolve, reject) => db.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows || []))));
-        try {
-            const hosId = req.session.user.id;
-            const college = String(req.session.user.collegeName || '');
-            const department = String(req.session.user.department || '');
-            const subjects = await getAssignedSubjects(hosId);
 
-            let problems = [];
-            let contests = [];
-            let faculty = [];
-            if (subjects.length > 0) {
-                const placeholders = subjects.map(() => '?').join(',');
-
-                problems = await dbAll(
-                    `SELECT p.id, p.title, p.subject, p.difficulty, p.status, p.tags, p.createdAt, p.points,
-                            COUNT(s.id) AS totalSubmissions,
-                            SUM(CASE WHEN LOWER(COALESCE(s.status, '')) IN ('accepted','ac') THEN 1 ELSE 0 END) AS acceptedSubmissions
-                     FROM problems p
-                     LEFT JOIN submissions s ON s.problem_id = p.id
-                     WHERE p.subject IN (${placeholders})
-                     GROUP BY p.id
-                     ORDER BY p.id DESC`,
-                    subjects
-                );
-
-                contests = await dbAll(
-                    `SELECT c.id, c.title, c.subject, c.status, c.contest_class, c.prize, c.guidelines, c.startDate, c.endDate, c.createdAt,
-                            COUNT(DISTINCT cp.user_id) AS participants
-                     FROM contests c
-                     LEFT JOIN contest_participants cp ON cp.contest_id = c.id
-                     WHERE c.subject IN (${placeholders})
-                     GROUP BY c.id
-                     ORDER BY COALESCE(c.startDate, c.createdAt) DESC`,
-                    subjects
-                );
-
-                faculty = await dbAll(
-                    `SELECT u.id, u.fullName, u.email, u.role, u.post, u.department, u.course, u.program, u.status, u.joiningDate,
-                            (SELECT COUNT(*) FROM problems WHERE faculty_id = u.id) AS problems_created
-                     FROM account_users u
-                     JOIN faculty_assignments sa ON u.id = sa.user_id
-                     WHERE sa.subject IN (${placeholders}) AND u.collegeName = ? AND u.role IN ('faculty','hos')
-                     GROUP BY u.id
-                     ORDER BY u.fullName ASC`,
-                    [...subjects, college]
-                );
-            }
-
-            const studentsRaw = await dbAll(
-                `SELECT id, fullName, email, course, program, department, year, section, points, solvedCount, rank, joiningDate
-                 FROM account_users
-                 WHERE role = 'student' AND collegeName = ? AND department = ?
-                 ORDER BY fullName ASC`,
-                [college, department]
-            );
-            const studentIds = studentsRaw.map((s) => s.id);
-            const submissionsByStudent = studentIds.length
-                ? await dbAll(
-                    `SELECT user_id, COUNT(*) AS total,
-                            SUM(CASE WHEN LOWER(COALESCE(status, '')) IN ('accepted','ac') THEN 1 ELSE 0 END) AS accepted
-                     FROM submissions
-                     WHERE user_id IN (${studentIds.map(() => '?').join(',')})
-                     GROUP BY user_id`,
-                    studentIds
-                )
-                : [];
-            const subMap = new Map(submissionsByStudent.map((r) => [r.user_id, r]));
-            const students = studentsRaw.map((s) => {
-                const sub = subMap.get(s.id) || { total: 0, accepted: 0 };
-                return {
-                    ...s,
-                    submissions: Number(sub.total || 0),
-                    acceptedSubmissions: Number(sub.accepted || 0)
-                };
-            });
-
-            const progressRows = studentIds.length
-                ? await dbAll(
-                    `SELECT substr(COALESCE(createdAt, datetime('now')), 1, 7) AS monthKey,
-                            COUNT(*) AS total,
-                            SUM(CASE WHEN LOWER(COALESCE(status, '')) IN ('accepted','ac') THEN 1 ELSE 0 END) AS accepted
-                     FROM submissions
-                     WHERE user_id IN (${studentIds.map(() => '?').join(',')})
-                     GROUP BY monthKey
-                     ORDER BY monthKey DESC
-                     LIMIT 8`,
-                    studentIds
-                )
-                : [];
-            const progress = progressRows.slice().reverse().map((row) => {
-                const total = Number(row.total || 0);
-                const accepted = Number(row.accepted || 0);
-                return {
-                    month: row.monthKey,
-                    totalSubmissions: total,
-                    acceptedSubmissions: accepted,
-                    acceptanceRate: total ? Math.round((accepted * 10000) / total) / 100 : 0
-                };
-            });
-
-            const totalSubmissions = progress.reduce((acc, r) => acc + Number(r.totalSubmissions || 0), 0);
-            const totalAccepted = progress.reduce((acc, r) => acc + Number(r.acceptedSubmissions || 0), 0);
-            const uniq = (arr) => [...new Set((arr || []).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b)));
-
-            const reportData = {
-                generatedAt: new Date().toISOString(),
-                scope: { college, department, subjects },
-                summary: {
-                    facultyCount: faculty.length,
-                    studentCount: students.length,
-                    problemCount: problems.length,
-                    contestCount: contests.length,
-                    submissionCount: totalSubmissions,
-                    acceptanceRate: totalSubmissions ? Math.round((totalAccepted * 10000) / totalSubmissions) / 100 : 0
-                },
-                filters: {
-                    years: uniq(students.map((s) => s.year)),
-                    sections: uniq(students.map((s) => s.section)),
-                    departments: uniq(students.map((s) => s.department).concat(faculty.map((f) => f.department))),
-                    programs: uniq(students.map((s) => s.program || s.course).concat(faculty.map((f) => f.program || f.course))),
-                    difficulties: uniq(problems.map((p) => p.difficulty)),
-                    statuses: uniq(problems.map((p) => p.status).concat(contests.map((c) => c.status))),
-                    subjects: uniq((subjects || []).concat(problems.map((p) => p.subject)).concat(contests.map((c) => c.subject))),
-                    contestClasses: uniq(contests.map((c) => c.contest_class))
-                },
-                problems,
-                contests,
-                faculty,
-                students,
-                progress
-            };
-
-            res.render('hos/report.html', {
-                user: req.session.user,
-                currentPage: 'report',
-                reportData
-            });
-        } catch (e) {
-            console.error('HOS Report Error:', e);
-            res.status(500).send("Internal Server Error");
-        }
-    });
     router.get('/hos/help', requireRole('hos'), checkScope, (req, res) => res.render('hos/help.html', { user: req.session.user, currentPage: 'help' }));
     router.get('/hos/settings', requireRole('hos'), checkScope, async (req, res) => {
         try {
@@ -1911,6 +1768,210 @@ module.exports = (db) => {
                 });
             });
         });
+    });
+
+    // ==========================================
+    // HOS ANALYTICS REPORTING
+    // ==========================================
+    router.get('/hos/report', requireRole('hos'), checkScope, async (req, res) => {
+        const user = req.session.user;
+        const college = user.collegeName;
+        const hosId = user.id;
+
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const labels = [];
+        const monthMap = [];
+        const now = new Date();
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            labels.push(monthNames[d.getMonth()]);
+            monthMap.push(String(d.getMonth() + 1).padStart(2, '0'));
+        }
+        const weekLabels = ['6w ago','5w ago','4w ago','3w ago','2w ago','Last wk','This wk'];
+
+        try {
+            const hosDbAll = (sql, params = []) => new Promise((res, rej) => db.all(sql, params, (err, rs) => err ? rej({err, sql, params}) : res(rs || [])));
+            const hosDbGet = (sql, params = []) => new Promise((res, rej) => db.get(sql, params, (err, r) => err ? rej({err, sql, params}) : res(r)));
+
+            const subjects = await getAssignedSubjects(hosId, college);
+            if (!subjects.length) {
+                return res.render('hos/report.html', {
+                    user, currentPage: 'report', pageTitle: 'Subject Analytics',
+                    reportData: {
+                        labels, participationTrend: Array(6).fill(0), difficulty: [0,0,0],
+                        problems:0, contests:0, activeStudents:0, totalSubmissions:0,
+                        acceptedSubmissions:0, acceptanceRate:0, topProblems:[],
+                        topStudents:[], subjectBreakdown:[], recentContests:[],
+                        weekLabels, weeklyData: Array(7).fill(0), facultyLeaderboard:[],
+                        sectionPerformance:[], skillsDistribution:[]
+                    }
+                });
+            }
+
+            const subPh = subjects.map(() => '?').join(',');
+
+            const [monthlyRows, difficultyRows, problemsRow, contestsRow, submissionStats,
+                   activeStudentsRow, topProblems, topStudents, subjectBreakdown, recentContests, weeklyRows,
+                   facultyRows, sectionRows, tagRows] = await Promise.all([
+                hosDbAll(`SELECT strftime('%m', s.createdAt) as month, COUNT(*) as count FROM submissions s JOIN problems p ON p.id = s.problem_id JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id WHERE p.subject IN (${subPh}) AND u.collegeName = ? GROUP BY month`, [...subjects, college]),
+                hosDbAll(`SELECT p.difficulty, COUNT(*) as count FROM problems p JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id WHERE p.subject IN (${subPh}) AND u.collegeName = ? GROUP BY p.difficulty`, [...subjects, college]),
+                hosDbGet(`SELECT COUNT(*) as count FROM problems p JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id WHERE p.subject IN (${subPh}) AND u.collegeName = ?`, [...subjects, college]),
+                hosDbGet(`SELECT COUNT(*) as count FROM contests WHERE subject IN (${subPh}) AND collegeName = ?`, [...subjects, college]),
+                hosDbGet(`SELECT COUNT(*) as total, SUM(CASE WHEN LOWER(COALESCE(s.status,'')) IN ('accepted','ac','pass') THEN 1 ELSE 0 END) as accepted FROM submissions s JOIN problems p ON p.id = s.problem_id JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id WHERE p.subject IN (${subPh}) AND u.collegeName = ?`, [...subjects, college]),
+                hosDbGet(`SELECT COUNT(DISTINCT s.user_id) as count FROM submissions s JOIN problems p ON p.id = s.problem_id JOIN account_users u ON u.id = s.user_id WHERE p.subject IN (${subPh}) AND u.collegeName = ?`, [...subjects, college]),
+                hosDbAll(`SELECT p.title, p.difficulty, COUNT(s.id) as submissions, SUM(CASE WHEN LOWER(COALESCE(s.status,'')) IN ('accepted','ac','pass') THEN 1 ELSE 0 END) as accepted FROM problems p JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id LEFT JOIN submissions s ON s.problem_id = p.id WHERE p.subject IN (${subPh}) AND u.collegeName = ? GROUP BY p.id ORDER BY submissions DESC LIMIT 5`, [...subjects, college]),
+                hosDbAll(`SELECT u.fullName, u.year, u.section, COUNT(DISTINCT s.problem_id) as solved, COALESCE(u.points, 0) as points FROM submissions s JOIN problems p ON p.id = s.problem_id JOIN account_users u ON u.id = s.user_id WHERE p.subject IN (${subPh}) AND u.collegeName = ? AND LOWER(COALESCE(s.status,'')) IN ('accepted','ac','pass') GROUP BY s.user_id ORDER BY solved DESC LIMIT 5`, [...subjects, college]),
+                hosDbAll(`SELECT p.subject, COUNT(*) as count FROM problems p JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id WHERE p.subject IN (${subPh}) AND u.collegeName = ? GROUP BY p.subject ORDER BY count DESC`, [...subjects, college]),
+                hosDbAll(`SELECT title, status, COALESCE(startDate,'') as startDate, COALESCE(endDate,'') as endDate FROM contests WHERE subject IN (${subPh}) AND collegeName = ? ORDER BY createdAt DESC LIMIT 6`, [...subjects, college]),
+                hosDbAll(`SELECT strftime('%W', s.createdAt) as week, COUNT(*) as count FROM submissions s JOIN problems p ON p.id = s.problem_id JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id WHERE p.subject IN (${subPh}) AND u.collegeName = ? AND s.createdAt >= date('now', '-49 days') GROUP BY week ORDER BY week ASC`, [...subjects, college]),
+                hosDbAll(`SELECT u.fullName, COUNT(p.id) as contributions FROM problems p JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id WHERE p.subject IN (${subPh}) AND u.collegeName = ? AND p.status = 'accepted' GROUP BY u.id ORDER BY contributions DESC LIMIT 5`, [...subjects, college]),
+                hosDbAll(`SELECT u.year, u.section, AVG(s.points_earned) as avgPoints, COUNT(DISTINCT s.user_id) as studentCount FROM submissions s JOIN problems p ON p.id = s.problem_id JOIN account_users u ON s.user_id = u.id WHERE p.subject IN (${subPh}) AND u.collegeName = ? AND LOWER(COALESCE(s.status,'')) IN ('accepted','ac','pass') GROUP BY u.year, u.section ORDER BY u.year ASC, u.section ASC`, [...subjects, college]),
+                hosDbAll(`SELECT p.tags FROM problems p JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id WHERE p.subject IN (${subPh}) AND u.collegeName = ? AND p.status = 'accepted' AND p.tags IS NOT NULL AND p.tags != ''`, [...subjects, college])
+            ]);
+
+            // Post-processing same as HOD
+            const monthlyByMonth = {};
+            (monthlyRows || []).forEach(r => { monthlyByMonth[r.month] = Number(r.count || 0); });
+            const participationTrend = monthMap.map(m => monthlyByMonth[m] || 0);
+
+            let easy = 0, medium = 0, hard = 0;
+            (difficultyRows || []).forEach(r => {
+                if (String(r.difficulty || '').toLowerCase() === 'easy') easy = Number(r.count || 0);
+                if (String(r.difficulty || '').toLowerCase() === 'medium') medium = Number(r.count || 0);
+                if (String(r.difficulty || '').toLowerCase() === 'hard') hard = Number(r.count || 0);
+            });
+
+            const tagCounts = {};
+            (tagRows || []).forEach(r => {
+                const ts = (r.tags || '').split(',').map(t => t.trim()).filter(Boolean);
+                ts.forEach(t => { tagCounts[t] = (tagCounts[t] || 0) + 1; });
+            });
+            const skillsDistribution = Object.entries(tagCounts)
+                .map(([name, count]) => ({ name, count }))
+                .sort((a,b) => b.count - a.count).slice(0, 8);
+
+            const totalSub = Number(submissionStats?.total || 0);
+            const acceptedSub = Number(submissionStats?.accepted || 0);
+            const acceptanceRate = totalSub > 0 ? Math.round((acceptedSub / totalSub) * 100) : 0;
+
+            const weeklyData = Array(7).fill(0);
+            (weeklyRows || []).slice(-7).forEach((r, i) => { weeklyData[i] = Number(r.count || 0); });
+
+            res.render('hos/report.html', {
+                user, currentPage: 'report', pageTitle: 'Subject Analytics',
+                reportData: {
+                    labels, participationTrend,
+                    difficulty: [easy, medium, hard],
+                    problems: Number(problemsRow?.count || 0),
+                    contests: Number(contestsRow?.count || 0),
+                    activeStudents: Number(activeStudentsRow?.count || 0),
+                    totalSubmissions: totalSub,
+                    acceptedSubmissions: acceptedSub,
+                    acceptanceRate,
+                    topProblems: topProblems || [],
+                    topStudents: topStudents || [],
+                    subjectBreakdown: subjectBreakdown || [],
+                    recentContests: recentContests || [],
+                    weekLabels, weeklyData,
+                    facultyLeaderboard: facultyRows || [],
+                    sectionPerformance: sectionRows || [],
+                    skillsDistribution
+                }
+            });
+        } catch (error) {
+            console.error("HOS Report Error:", error);
+            fs.writeFileSync(path.join(__dirname, '..', 'hos_report_error.txt'), error.stack || error.message);
+            res.status(500).send("Internal Server Error during report generation.");
+        }
+    });
+
+    router.get('/hos/report/pdf', requireRole('hos'), checkScope, async (req, res) => {
+        // Mirrored logic for PDF parity
+        const user = req.session.user;
+        const college = user.collegeName;
+        const hosId = user.id;
+
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const labels = [];
+        const monthMap = [];
+        const now = new Date();
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            labels.push(monthNames[d.getMonth()]);
+            monthMap.push(String(d.getMonth() + 1).padStart(2, '0'));
+        }
+
+        try {
+            const hosDbAll = (sql, params = []) => new Promise((res, rej) => db.all(sql, params, (err, rs) => err ? rej({err, sql, params}) : res(rs || [])));
+            const hosDbGet = (sql, params = []) => new Promise((res, rej) => db.get(sql, params, (err, r) => err ? rej({err, sql, params}) : res(r)));
+
+            const subjects = await getAssignedSubjects(hosId, college);
+            if (!subjects.length) return res.send("No assigned subjects found.");
+
+            const subPh = subjects.map(() => '?').join(',');
+
+            const [monthlyRows, difficultyRows, problemsCount, contestsCount, submissionStats,
+                   activeStudentsCount, topProblems, topStudents, facultyRows, sectionRows, tagRows] = await Promise.all([
+                hosDbAll(`SELECT strftime('%m', s.createdAt) as month, COUNT(*) as count FROM submissions s JOIN problems p ON p.id = s.problem_id JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id WHERE p.subject IN (${subPh}) AND u.collegeName = ? GROUP BY month`, [...subjects, college]),
+                hosDbAll(`SELECT p.difficulty, COUNT(*) as count FROM problems p JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id WHERE p.subject IN (${subPh}) AND u.collegeName = ? GROUP BY p.difficulty`, [...subjects, college]),
+                hosDbGet(`SELECT COUNT(*) as count FROM problems p JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id WHERE p.subject IN (${subPh}) AND u.collegeName = ?`, [...subjects, college]),
+                hosDbGet(`SELECT COUNT(*) as count FROM contests WHERE subject IN (${subPh}) AND collegeName = ?`, [...subjects, college]),
+                hosDbGet(`SELECT COUNT(*) as total, SUM(CASE WHEN LOWER(COALESCE(s.status,'')) IN ('accepted','ac','pass') THEN 1 ELSE 0 END) as accepted FROM submissions s JOIN problems p ON p.id = s.problem_id JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id WHERE p.subject IN (${subPh}) AND u.collegeName = ?`, [...subjects, college]),
+                hosDbGet(`SELECT COUNT(DISTINCT s.user_id) as count FROM submissions s JOIN problems p ON p.id = s.problem_id JOIN account_users u ON u.id = s.user_id WHERE p.subject IN (${subPh}) AND u.collegeName = ?`, [...subjects, college]),
+                hosDbAll(`SELECT p.title, p.difficulty, COUNT(s.id) as submissions FROM problems p JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id LEFT JOIN submissions s ON s.problem_id = p.id WHERE p.subject IN (${subPh}) AND u.collegeName = ? GROUP BY p.id ORDER BY submissions DESC LIMIT 5`, [...subjects, college]),
+                hosDbAll(`SELECT u.fullName, u.year, u.section, COUNT(DISTINCT s.problem_id) as solved FROM submissions s JOIN problems p ON p.id = s.problem_id JOIN account_users u ON u.id = s.user_id WHERE p.subject IN (${subPh}) AND u.collegeName = ? AND LOWER(COALESCE(s.status,'')) IN ('accepted','ac','pass') GROUP BY s.user_id ORDER BY solved DESC LIMIT 5`, [...subjects, college]),
+                hosDbAll(`SELECT u.fullName, COUNT(p.id) as contributions FROM problems p JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id WHERE p.subject IN (${subPh}) AND u.collegeName = ? AND p.status = 'accepted' GROUP BY u.id ORDER BY contributions DESC LIMIT 5`, [...subjects, college]),
+                hosDbAll(`SELECT u.year, u.section, AVG(s.points_earned) as avgPoints FROM submissions s JOIN problems p ON s.problem_id = p.id JOIN account_users u ON s.user_id = u.id WHERE p.subject IN (${subPh}) AND u.collegeName = ? AND LOWER(COALESCE(s.status,'')) IN ('accepted','ac','pass') GROUP BY u.year, u.section ORDER BY u.year ASC, u.section ASC`, [...subjects, college]),
+                hosDbAll(`SELECT p.tags FROM problems p JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id WHERE p.subject IN (${subPh}) AND u.collegeName = ? AND p.status = 'accepted' AND p.tags IS NOT NULL AND p.tags != ''`, [...subjects, college])
+            ]);
+
+            const monthlyByMonth = {};
+            (monthlyRows || []).forEach(r => { monthlyByMonth[r.month] = Number(r.count || 0); });
+            const participationTrend = monthMap.map(m => monthlyByMonth[m] || 0);
+
+            let easy = 0, medium = 0, hard = 0;
+            (difficultyRows || []).forEach(r => {
+                if (String(r.difficulty || '').toLowerCase() === 'easy') easy = r.count;
+                if (String(r.difficulty || '').toLowerCase() === 'medium') medium = r.count;
+                if (String(r.difficulty || '').toLowerCase() === 'hard') hard = r.count;
+            });
+
+            const tagCounts = {};
+            (tagRows || []).forEach(r => {
+                const ts = (r.tags || '').split(',').map(t => t.trim()).filter(Boolean);
+                ts.forEach(t => { tagCounts[t] = (tagCounts[t] || 0) + 1; });
+            });
+            const skillsDistribution = Object.entries(tagCounts)
+                .map(([name, count]) => ({ name, count }))
+                .sort((a,b) => b.count - a.count).slice(0, 8);
+
+            const totalSub = Number(submissionStats?.total || 0);
+            const acceptedSub = Number(submissionStats?.accepted || 0);
+            const acceptanceRate = totalSub > 0 ? Math.round((acceptedSub / totalSub) * 100) : 0;
+
+            const hos_subjects = subjects.join(', ');
+            res.render('hos/report_pdf.html', {
+                user,
+                hos_subjects,
+                reportData: {
+                    labels, participationTrend,
+                    difficulty: [easy, medium, hard],
+                    problems: problemsCount?.count || 0,
+                    contests: contestsCount?.count || 0,
+                    activeStudents: activeStudentsCount?.count || 0,
+                    totalSubmissions: totalSub,
+                    acceptanceRate,
+                    topProblems: topProblems || [],
+                    topStudents: topStudents || [],
+                    facultyLeaderboard: facultyRows || [],
+                    sectionPerformance: sectionRows || [],
+                    skillsDistribution
+                }
+            });
+        } catch (error) {
+            console.error("HOS PDF Report Error:", error);
+            res.status(500).send("Error generating PDF report.");
+        }
     });
 
     return router;

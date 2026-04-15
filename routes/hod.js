@@ -1378,241 +1378,325 @@ module.exports = (db, transporter) => {
         }
     });
 
+    // HOD: Community
     router.get('/hod/community', requireRole('hod'), checkScope, (req, res) => {
         res.render('hod/community.html', { user: req.session.user, currentPage: 'community' });
     });
 
-    // Reports & Analytics (Dynamic)
+    // ==========================================
+    // HOD: ANALYTICS REPORT (Modernized)
+    // ==========================================
     router.get('/hod/report', requireRole('hod'), checkScope, async (req, res) => {
-        const college = String(req.session.user.collegeName || '').trim();
-        const hodBranch = String(req.session.user.department || '').trim();
-        const hodProgram = String(req.session.user.course || req.session.user.program || '').trim();
-
-        const norm = (v) => String(v || '').toLowerCase().replace(/[\s&\-_\/]/g, '');
-        const inScope = (row) => {
-            const rowBranch = String(row.branch || row.department || '').trim();
-            const rowProgram = String(row.program || row.course || '').trim();
-            const branchOk = !hodBranch || !rowBranch || norm(rowBranch) === norm(hodBranch);
-            const programOk = !hodProgram || !rowProgram || norm(rowProgram) === norm(hodProgram);
-            return branchOk && programOk;
-        };
-
-        const dbAll = (sql, params = []) =>
-            new Promise((resolve, reject) => db.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows || []))));
+        const user = req.session.user;
+        const college = user.collegeName;
+        const dept = user.department;
+        
+        const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const now = new Date();
+        const labels = [];
+        const monthMap = [];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            labels.push(monthNames[d.getMonth()]);
+            monthMap.push(String(d.getMonth() + 1).padStart(2, '0'));
+        }
+        const weekLabels = ['6w ago','5w ago','4w ago','3w ago','2w ago','Last wk','This wk'];
 
         try {
-            const [allFacultyRaw, allStudentsRaw, problemsRaw, contestsRaw, assignmentsRaw] = await Promise.all([
+            const [monthlyRows, difficultyRows, problemsRow, contestsRow, activeStudentsRow,
+                   submissionStats, topProblems, topStudents, subjectBreakdown, recentContests, weeklyRows,
+                   facultyRows, sectionRows, tagRows] = await Promise.all([
+                // 0 - Monthly submissions trend (Department-wide)
                 dbAll(
-                    `SELECT id, fullName, email, role, status, joiningDate, department, branch, program, course, subject, points, solvedCount, rank
-                     FROM account_users
-                     WHERE collegeName = ? AND role IN ('faculty','hos')
-                     ORDER BY fullName ASC`,
-                    [college]
+                    `SELECT strftime('%m', s.createdAt) as month, COUNT(*) as count
+                     FROM submissions s
+                     JOIN problems p ON p.id = s.problem_id
+                     JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id
+                     WHERE p.department = ? AND u.collegeName = ?
+                     GROUP BY strftime('%m', s.createdAt)`,
+                    [dept, college]
                 ),
+                // 1 - Difficulty breakdown
                 dbAll(
-                    `SELECT id, fullName, email, status, department, branch, program, course, year, section, points, solvedCount, rank
-                     FROM account_users
-                     WHERE collegeName = ? AND role = 'student'
-                     ORDER BY fullName ASC`,
-                    [college]
-                ),
-                dbAll(
-                    `SELECT p.id, p.title, p.subject, p.difficulty, p.status, p.tags, p.createdAt, p.department, p.points,
-                            COUNT(s.id) AS totalSubmissions,
-                            SUM(CASE WHEN LOWER(COALESCE(s.status, '')) IN ('accepted','ac') THEN 1 ELSE 0 END) AS acceptedSubmissions
+                    `SELECT p.difficulty, COUNT(*) as count
                      FROM problems p
+                     JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id
+                     WHERE p.department = ? AND u.collegeName = ?
+                     GROUP BY p.difficulty`,
+                    [dept, college]
+                ),
+                // 2 - Total problems count
+                dbGet(`SELECT COUNT(*) as count FROM problems p JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id WHERE p.department = ? AND u.collegeName = ?`, [dept, college]),
+                // 3 - Total contests count (Contests table DOES have collegeName)
+                dbGet(`SELECT COUNT(*) as count FROM contests WHERE (department = ? AND collegeName = ?) OR (collegeName = '' AND department = ? AND visibility_scope = 'college')`, [dept, college, dept]),
+                // 4 - Active students (Distinct students in department who submitted)
+                dbGet(
+                    `SELECT COUNT(DISTINCT s.user_id) as count
+                     FROM submissions s
+                     JOIN account_users u ON u.id = s.user_id
+                     WHERE u.department = ? AND u.collegeName = ?`,
+                    [dept, college]
+                ),
+                // 5 - Total + accepted submissions
+                dbGet(
+                    `SELECT COUNT(*) as total,
+                            SUM(CASE WHEN LOWER(COALESCE(s.status,'')) IN ('accepted','ac','pass') THEN 1 ELSE 0 END) as accepted
+                     FROM submissions s
+                     JOIN problems p ON p.id = s.problem_id
+                     JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id
+                     WHERE p.department = ? AND u.collegeName = ?`,
+                    [dept, college]
+                ),
+                // 6 - Top 5 problems by submission count
+                dbAll(
+                    `SELECT p.title, p.difficulty, COUNT(s.id) as submissions,
+                            SUM(CASE WHEN LOWER(COALESCE(s.status,'')) IN ('accepted','ac','pass') THEN 1 ELSE 0 END) as accepted
+                     FROM problems p
+                     JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id
                      LEFT JOIN submissions s ON s.problem_id = p.id
-                     WHERE p.department = ?
-                     GROUP BY p.id
-                     ORDER BY p.id DESC`,
-                    [hodBranch]
+                     WHERE p.department = ? AND u.collegeName = ?
+                     GROUP BY p.id ORDER BY submissions DESC LIMIT 5`,
+                    [dept, college]
                 ),
+                // 7 - Top 5 students by problems solved
                 dbAll(
-                    `SELECT c.id, c.title, c.department, c.subject, c.status, c.contest_class, c.prize, c.guidelines,
-                            c.startDate, c.endDate, c.createdAt, c.visibility_scope,
-                            COUNT(DISTINCT cp.user_id) AS participants
-                     FROM contests c
-                     LEFT JOIN contest_participants cp ON cp.contest_id = c.id
-                     WHERE (
-                             c.department = ?
-                             AND (c.collegeName IS NULL OR c.collegeName = '' OR ${normalizeSql('c.collegeName')} = ${normalizeSql('?')})
-                           )
-                        OR LOWER(COALESCE(c.visibility_scope,'')) = 'global'
-                     GROUP BY c.id
-                     ORDER BY COALESCE(c.startDate, c.createdAt) DESC`,
-                    [hodBranch, college]
+                    `SELECT u.fullName, u.year, u.section, COUNT(DISTINCT s.problem_id) as solved,
+                            COALESCE(u.points, 0) as points
+                     FROM submissions s
+                     JOIN problems p ON p.id = s.problem_id
+                     JOIN account_users u ON u.id = s.user_id
+                     WHERE u.department = ? AND u.collegeName = ? AND LOWER(COALESCE(s.status,'')) IN ('accepted','ac','pass')
+                     GROUP BY s.user_id ORDER BY solved DESC LIMIT 5`,
+                    [dept, college]
                 ),
+                // 8 - Subject-wise breakdown
                 dbAll(
-                    `SELECT user_id, subject, year, section
-                     FROM faculty_assignments
-                     WHERE collegeName = ?`,
-                    [college]
+                    `SELECT COALESCE(NULLIF(p.subject,''),'Unassigned') as subject, COUNT(*) as count
+                     FROM problems p
+                     JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id
+                     WHERE p.department = ? AND u.collegeName = ? GROUP BY p.subject ORDER BY count DESC LIMIT 6`,
+                    [dept, college]
+                ),
+                // 9 - Recent contests
+                dbAll(
+                    `SELECT title, status, COALESCE(startDate,'') as startDate, COALESCE(endDate,'') as endDate
+                     FROM contests WHERE department = ? AND collegeName = ? ORDER BY createdAt DESC LIMIT 6`,
+                    [dept, college]
+                ),
+                // 10 - Weekly submissions (past 7 weeks)
+                dbAll(
+                    `SELECT strftime('%W', s.createdAt) as week, COUNT(*) as count
+                     FROM submissions s
+                     JOIN problems p ON p.id = s.problem_id
+                     JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id
+                     WHERE p.department = ? AND u.collegeName = ? AND s.createdAt >= date('now', '-49 days')
+                     GROUP BY week ORDER BY week ASC`,
+                    [dept, college]
+                ),
+                // 11 - Faculty leaderboard (Top contributors)
+                dbAll(
+                    `SELECT u.fullName, COUNT(p.id) as contributions
+                     FROM problems p
+                     JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id
+                     WHERE p.department = ? AND u.collegeName = ? AND p.status = 'accepted'
+                     GROUP BY u.id ORDER BY contributions DESC LIMIT 5`,
+                    [dept, college]
+                ),
+                // 12 - Section-wise performance
+                dbAll(
+                    `SELECT year, section, AVG(points) as avgPoints, COUNT(*) as studentCount
+                     FROM account_users
+                     WHERE role = 'student' AND department = ? AND collegeName = ?
+                     GROUP BY year, section
+                     ORDER BY year ASC, section ASC`,
+                    [dept, college]
+                ),
+                // 13 - Skills/Tags distribution
+                dbAll(
+                    `SELECT p.tags 
+                     FROM problems p
+                     JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id
+                     WHERE p.department = ? AND u.collegeName = ? AND p.status = 'accepted' AND p.tags IS NOT NULL AND p.tags != ''`,
+                    [dept, college]
                 )
             ]);
 
-            const allFaculty = allFacultyRaw.filter(inScope);
-            const allStudents = allStudentsRaw.filter(inScope);
-            const studentIds = allStudents.map(s => s.id);
-            const studentIdSet = new Set(studentIds);
-            const facultyIdSet = new Set(allFaculty.map(f => f.id));
+            const monthlyByMonth = {};
+            (monthlyRows || []).forEach(r => { monthlyByMonth[r.month] = Number(r.count || 0); });
+            const participationTrend = monthMap.map(m => monthlyByMonth[m] || 0);
 
-            const studentSubmissions = studentIds.length
-                ? await dbAll(
-                    `SELECT user_id,
-                            COUNT(*) AS total,
-                            SUM(CASE WHEN LOWER(COALESCE(status, '')) IN ('accepted','ac') THEN 1 ELSE 0 END) AS accepted
-                     FROM submissions
-                     WHERE user_id IN (${studentIds.map(() => '?').join(',')})
-                     GROUP BY user_id`,
-                    studentIds
-                )
-                : [];
-
-            const progressRows = studentIds.length
-                ? await dbAll(
-                    `SELECT substr(COALESCE(createdAt, datetime('now')), 1, 7) AS monthKey,
-                            COUNT(*) AS total,
-                            SUM(CASE WHEN LOWER(COALESCE(status, '')) IN ('accepted','ac') THEN 1 ELSE 0 END) AS accepted
-                     FROM submissions
-                     WHERE user_id IN (${studentIds.map(() => '?').join(',')})
-                     GROUP BY monthKey
-                     ORDER BY monthKey DESC
-                     LIMIT 8`,
-                    studentIds
-                )
-                : [];
-
-            const submissionsByStudent = new Map(studentSubmissions.map(r => [r.user_id, { total: Number(r.total || 0), accepted: Number(r.accepted || 0) }]));
-            const assignmentsByFaculty = new Map();
-            assignmentsRaw.forEach((a) => {
-                if (!facultyIdSet.has(a.user_id)) return;
-                if (!assignmentsByFaculty.has(a.user_id)) assignmentsByFaculty.set(a.user_id, []);
-                assignmentsByFaculty.get(a.user_id).push(a);
+            let easy = 0, medium = 0, hard = 0;
+            (difficultyRows || []).forEach(r => {
+                if (String(r.difficulty || '').toLowerCase() === 'easy') easy = Number(r.count || 0);
+                if (String(r.difficulty || '').toLowerCase() === 'medium') medium = Number(r.count || 0);
+                if (String(r.difficulty || '').toLowerCase() === 'hard') hard = Number(r.count || 0);
             });
 
-            const facultyData = allFaculty.map((f) => {
-                const assigned = assignmentsByFaculty.get(f.id) || [];
-                return {
-                    id: f.id,
-                    facultyId: `FAC-${f.id}`,
-                    name: f.fullName,
-                    email: f.email,
-                    role: String(f.role || '').toUpperCase(),
-                    status: f.status || 'active',
-                    department: f.branch || f.department || '',
-                    program: f.program || f.course || '',
-                    joined: f.joiningDate || '-',
-                    hosSubject: f.subject || '',
-                    assignedSubjects: [...new Set(assigned.map(a => a.subject).filter(Boolean))].join(', '),
-                    assignedCount: assigned.length
-                };
+            // Process Tags for Skills Distribution
+            const tagCounts = {};
+            (tagRows || []).forEach(r => {
+                const tags = (r.tags || '').split(',').map(t => t.trim()).filter(Boolean);
+                tags.forEach(t => { tagCounts[t] = (tagCounts[t] || 0) + 1; });
             });
+            const skillsDistribution = Object.entries(tagCounts)
+                .map(([name, count]) => ({ name, count }))
+                .sort((a,b) => b.count - a.count)
+                .slice(0, 8);
 
-            const studentsData = allStudents.map((s) => {
-                const sub = submissionsByStudent.get(s.id) || { total: 0, accepted: 0 };
-                return {
-                    id: s.id,
-                    studentId: `STU-${s.id}`,
-                    name: s.fullName,
-                    email: s.email,
-                    status: s.status || 'active',
-                    department: s.branch || s.department || '',
-                    program: s.program || s.course || '',
-                    year: s.year || '-',
-                    section: s.section || '-',
-                    points: Number(s.points || 0),
-                    solvedCount: Number(s.solvedCount || 0),
-                    rank: Number(s.rank || 0),
-                    submissions: sub.total,
-                    acceptedSubmissions: sub.accepted
-                };
+            const totalSub = Number(submissionStats?.total || 0);
+            const acceptedSub = Number(submissionStats?.accepted || 0);
+            const acceptanceRate = totalSub > 0 ? Math.round((acceptedSub / totalSub) * 100) : 0;
+
+            const weeklyData = Array(7).fill(0);
+            (weeklyRows || []).slice(-7).forEach((r, i) => { weeklyData[i] = Number(r.count || 0); });
+
+            res.render('hod/report.html', {
+                user,
+                currentPage: 'report',
+                pageTitle: 'Department Analytics',
+                reportData: {
+                    labels, participationTrend,
+                    difficulty: [easy, medium, hard],
+                    problems: Number(problemsRow?.count || 0),
+                    contests: Number(contestsRow?.count || 0),
+                    activeStudents: Number(activeStudentsRow?.count || 0),
+                    totalSubmissions: totalSub,
+                    acceptedSubmissions: acceptedSub,
+                    acceptanceRate,
+                    topProblems: topProblems || [],
+                    topStudents: topStudents || [],
+                    subjectBreakdown: subjectBreakdown || [],
+                    recentContests: recentContests || [],
+                    weekLabels,
+                    weeklyData,
+                    facultyLeaderboard: facultyRows || [],
+                    sectionPerformance: sectionRows || [],
+                    skillsDistribution
+                }
             });
-
-            const problemsData = problemsRaw.map((p) => {
-                const total = Number(p.totalSubmissions || 0);
-                const accepted = Number(p.acceptedSubmissions || 0);
-                const rate = total > 0 ? Math.round((accepted * 10000) / total) / 100 : 0;
-                return {
-                    id: p.id,
-                    title: p.title || '',
-                    subject: p.subject || '-',
-                    difficulty: p.difficulty || '-',
-                    status: p.status || '-',
-                    tags: p.tags || '',
-                    points: Number(p.points || 0),
-                    createdAt: p.createdAt || '-',
-                    totalSubmissions: total,
-                    acceptedSubmissions: accepted,
-                    acceptanceRate: rate
-                };
-            });
-
-            const contestsData = contestsRaw.map((c) => ({
-                id: c.id,
-                title: c.title || '',
-                department: c.department || '',
-                subject: c.subject || '-',
-                status: c.status || '-',
-                contestClass: c.contest_class || '-',
-                participants: Number(c.participants || 0),
-                prize: c.prize || '-',
-                startDate: c.startDate || '-',
-                endDate: c.endDate || '-',
-                createdAt: c.createdAt || '-',
-                guidelines: c.guidelines || '',
-                visibility: c.visibility_scope || 'department'
-            }));
-
-            const progressData = progressRows
-                .slice()
-                .reverse()
-                .map((r) => {
-                    const total = Number(r.total || 0);
-                    const accepted = Number(r.accepted || 0);
-                    return {
-                        month: r.monthKey,
-                        totalSubmissions: total,
-                        acceptedSubmissions: accepted,
-                        acceptanceRate: total > 0 ? Math.round((accepted * 10000) / total) / 100 : 0
-                    };
-                });
-
-            const totalSubmissions = progressData.reduce((acc, r) => acc + r.totalSubmissions, 0);
-            const totalAccepted = progressData.reduce((acc, r) => acc + r.acceptedSubmissions, 0);
-
-            const uniq = (arr) => [...new Set(arr.filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b)));
-
-            const reportData = {
-                generatedAt: new Date().toISOString(),
-                scope: { college, branch: hodBranch, program: hodProgram },
-                summary: {
-                    facultyCount: facultyData.length,
-                    studentCount: studentsData.length,
-                    problemCount: problemsData.length,
-                    contestCount: contestsData.length,
-                    submissionCount: totalSubmissions,
-                    acceptanceRate: totalSubmissions ? Math.round((totalAccepted * 10000) / totalSubmissions) / 100 : 0
-                },
-                filters: {
-                    departments: uniq(studentsData.map(s => s.department).concat(facultyData.map(f => f.department))),
-                    programs: uniq(studentsData.map(s => s.program).concat(facultyData.map(f => f.program))),
-                    years: uniq(studentsData.map(s => s.year)),
-                    sections: uniq(studentsData.map(s => s.section)),
-                    difficulties: uniq(problemsData.map(p => p.difficulty)),
-                    subjects: uniq(problemsData.map(p => p.subject).concat(contestsData.map(c => c.subject))),
-                    contestClasses: uniq(contestsData.map(c => c.contestClass)),
-                    statuses: uniq(problemsData.map(p => p.status).concat(contestsData.map(c => c.status)))
-                },
-                faculty: facultyData,
-                students: studentsData,
-                problems: problemsData,
-                contests: contestsData,
-                progress: progressData
-            };
-
-            res.render('hod/report.html', { user: req.session.user, currentPage: 'report', reportData });
         } catch (error) {
-            res.status(500).send(error.message);
+            console.error("HOD Report Error:", error);
+            res.status(500).send("Internal Server Error during report generation.");
+        }
+    });
+
+    // ==========================================
+    // HOD: REPORT — PDF PRINT VIEW
+    // ==========================================
+    router.get('/hod/report/pdf', requireRole('hod'), checkScope, async (req, res) => {
+        const user = req.session.user;
+        const college = user.collegeName;
+        const dept = user.department;
+        
+        const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const now = new Date();
+        const labels = [];
+        const monthMap = [];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            labels.push(monthNames[d.getMonth()]);
+            monthMap.push(String(d.getMonth() + 1).padStart(2, '0'));
+        }
+        const weekLabels = ['6w ago','5w ago','4w ago','3w ago','2w ago','Last wk','This wk'];
+
+        try {
+            const [monthlyRows, difficultyRows, problemsRow, contestsRow, activeStudentsRow,
+                   submissionStats, topProblems, topStudents, subjectBreakdown, recentContests, weeklyRows,
+                   facultyRows, sectionRows, tagRows] = await Promise.all([
+                dbAll(`SELECT strftime('%m', s.createdAt) as month, COUNT(*) as count FROM submissions s JOIN problems p ON p.id = s.problem_id JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id WHERE p.department = ? AND u.collegeName = ? GROUP BY strftime('%m', s.createdAt)`, [dept, college]),
+                dbAll(`SELECT p.difficulty, COUNT(*) as count FROM problems p JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id WHERE p.department = ? AND u.collegeName = ? GROUP BY p.difficulty`, [dept, college]),
+                dbGet(`SELECT COUNT(*) as count FROM problems p JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id WHERE p.department = ? AND u.collegeName = ?`, [dept, college]),
+                dbGet(`SELECT COUNT(*) as count FROM contests WHERE (department = ? AND collegeName = ?)`, [dept, college]),
+                dbGet(`SELECT COUNT(DISTINCT s.user_id) as count FROM submissions s JOIN account_users u ON u.id = s.user_id WHERE u.department = ? AND u.collegeName = ?`, [dept, college]),
+                dbGet(`SELECT COUNT(*) as total, SUM(CASE WHEN LOWER(COALESCE(s.status,'')) IN ('accepted','ac','pass') THEN 1 ELSE 0 END) as accepted FROM submissions s JOIN problems p ON p.id = s.problem_id JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id WHERE p.department = ? AND u.collegeName = ?`, [dept, college]),
+                dbAll(`SELECT p.title, p.difficulty, COUNT(s.id) as submissions, SUM(CASE WHEN LOWER(COALESCE(s.status,'')) IN ('accepted','ac','pass') THEN 1 ELSE 0 END) as accepted FROM problems p JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id LEFT JOIN submissions s ON s.problem_id = p.id WHERE p.department = ? AND u.collegeName = ? GROUP BY p.id ORDER BY submissions DESC LIMIT 5`, [dept, college]),
+                dbAll(`SELECT u.fullName, u.year, u.section, COUNT(DISTINCT s.problem_id) as solved, COALESCE(u.points, 0) as points FROM submissions s JOIN problems p ON p.id = s.problem_id JOIN account_users u ON u.id = s.user_id WHERE u.department = ? AND u.collegeName = ? AND LOWER(COALESCE(s.status,'')) IN ('accepted','ac','pass') GROUP BY s.user_id ORDER BY solved DESC LIMIT 5`, [dept, college]),
+                dbAll(`SELECT COALESCE(NULLIF(p.subject,''),'Unassigned') as subject, COUNT(*) as count FROM problems p JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id WHERE p.department = ? AND u.collegeName = ? GROUP BY p.subject ORDER BY count DESC LIMIT 6`, [dept, college]),
+                dbAll(`SELECT title, status, COALESCE(startDate,'') as startDate, COALESCE(endDate,'') as endDate FROM contests WHERE department = ? AND collegeName = ? ORDER BY createdAt DESC LIMIT 6`, [dept, college]),
+                dbAll(`SELECT strftime('%W', s.createdAt) as week, COUNT(*) as count FROM submissions s JOIN problems p ON p.id = s.problem_id JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id WHERE p.department = ? AND u.collegeName = ? AND s.createdAt >= date('now', '-49 days') GROUP BY week ORDER BY week ASC`, [dept, college]),
+                // 11 - Faculty leaderboard
+                dbAll(
+                    `SELECT u.fullName, COUNT(p.id) as contributions
+                     FROM problems p
+                     JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id
+                     WHERE p.department = ? AND u.collegeName = ? AND p.status = 'accepted'
+                     GROUP BY u.id ORDER BY contributions DESC LIMIT 5`,
+                    [dept, college]
+                ),
+                // 12 - Section-wise performance
+                dbAll(
+                    `SELECT year, section, AVG(points) as avgPoints, COUNT(*) as studentCount
+                     FROM account_users
+                     WHERE role = 'student' AND department = ? AND collegeName = ?
+                     GROUP BY year, section
+                     ORDER BY year ASC, section ASC`,
+                    [dept, college]
+                ),
+                // 13 - Skills/Tags distribution
+                dbAll(
+                    `SELECT p.tags 
+                     FROM problems p
+                     JOIN account_users u ON COALESCE(p.faculty_id, p.created_by) = u.id
+                     WHERE p.department = ? AND u.collegeName = ? AND p.status = 'accepted' AND p.tags IS NOT NULL AND p.tags != ''`,
+                    [dept, college]
+                )
+            ]);
+
+            const monthlyByMonth = {};
+            (monthlyRows || []).forEach(r => { monthlyByMonth[r.month] = Number(r.count || 0); });
+            const participationTrend = monthMap.map(m => monthlyByMonth[m] || 0);
+
+            let easy = 0, medium = 0, hard = 0;
+            (difficultyRows || []).forEach(r => {
+                const diff = String(r.difficulty || '').toLowerCase();
+                if (diff === 'easy') easy = Number(r.count || 0);
+                if (diff === 'medium') medium = Number(r.count || 0);
+                if (diff === 'hard') hard = Number(r.count || 0);
+            });
+
+            // Process Tags for Skills Distribution
+            const tagCounts = {};
+            (tagRows || []).forEach(r => {
+                const tags = (r.tags || '').split(',').map(t => t.trim()).filter(Boolean);
+                tags.forEach(t => { tagCounts[t] = (tagCounts[t] || 0) + 1; });
+            });
+            const skillsDistribution = Object.entries(tagCounts)
+                .map(([name, count]) => ({ name, count }))
+                .sort((a,b) => b.count - a.count)
+                .slice(0, 8);
+
+            const totalSub = Number(submissionStats?.total || 0);
+            const acceptedSub = Number(submissionStats?.accepted || 0);
+            const acceptanceRate = totalSub > 0 ? Math.round((acceptedSub / totalSub) * 100) : 0;
+
+            const weeklyData = Array(7).fill(0);
+            (weeklyRows || []).slice(-7).forEach((r, i) => { weeklyData[i] = Number(r.count || 0); });
+
+            res.render('hod/report_pdf.html', {
+                user,
+                reportData: {
+                    labels, participationTrend,
+                    difficulty: [easy, medium, hard],
+                    problems: Number(problemsRow?.count || 0),
+                    contests: Number(contestsRow?.count || 0),
+                    activeStudents: Number(activeStudentsRow?.count || 0),
+                    totalSubmissions: totalSub,
+                    acceptedSubmissions: acceptedSub,
+                    acceptanceRate,
+                    topProblems: topProblems || [],
+                    topStudents: topStudents || [],
+                    subjectBreakdown: subjectBreakdown || [],
+                    recentContests: recentContests || [],
+                    weekLabels,
+                    weeklyData,
+                    facultyLeaderboard: facultyRows || [],
+                    sectionPerformance: sectionRows || [],
+                    skillsDistribution
+                }
+            });
+        } catch (error) {
+            console.error("HOD Report PDF Error:", error);
+            res.status(500).send("Error generating PDF report.");
         }
     });
 

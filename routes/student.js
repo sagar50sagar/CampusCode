@@ -420,7 +420,7 @@ const GLOBAL_SOLVE_WEIGHT_FOR_COLLEGE_RANK = 0.3;
             const displayUser = await buildDisplayUser(sessionUser, userRow, solvedDifficultyCounts);
 
             const allContests = await dbAll(`
-                SELECT c.id, c.title, c.startDate, c.endDate, c.status, c.department, c.collegeName, c.contest_class, c.level, c.prize,
+                SELECT c.*,
                        u.fullName as creatorName, u.role as creatorRole, u.collegeName as creatorCollegeName
                 FROM contests c
                 JOIN account_users u ON c.createdBy = u.id
@@ -585,8 +585,7 @@ const GLOBAL_SOLVE_WEIGHT_FOR_COLLEGE_RANK = 0.3;
                     WHERE s.user_id = ? AND s.status = 'accepted'
                 `, [userId]),
                 dbAll(`
-                    SELECT c.id, c.title, c.startDate, c.endDate, c.status, c.contest_class, c.level, c.department, c.collegeName, c.prize,
-                           u.role as creatorRole, u.collegeName as creatorCollegeName
+                    SELECT c.*, u.fullName as creatorName, u.role as creatorRole, u.collegeName as creatorCollegeName
                     FROM contest_participants cp
                     JOIN contests c ON c.id = cp.contest_id
                     JOIN account_users u ON c.createdBy = u.id
@@ -613,8 +612,7 @@ const GLOBAL_SOLVE_WEIGHT_FOR_COLLEGE_RANK = 0.3;
             }
             if (!contestRows.length) {
                 const visibleContests = await dbAll(`
-                    SELECT c.id, c.title, c.startDate, c.endDate, c.status, c.contest_class, c.level, c.department, c.collegeName, c.prize,
-                           u.role as creatorRole, u.collegeName as creatorCollegeName
+                    SELECT c.*, u.fullName as creatorName, u.role as creatorRole, u.collegeName as creatorCollegeName
                     FROM contests c
                     JOIN account_users u ON c.createdBy = u.id
                     WHERE c.status = 'accepted'

@@ -37,10 +37,10 @@
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200 text-gray-800 dark:text-gray-200">
 
     <div class="flex h-screen overflow-hidden">
-        <%- include('../partials/hos_nav', { currentPage: 'faculty' }) %>
+        <%- include('partials/sidebar.html', { currentPage: 'faculty' }) %>
 
         <div class="flex-1 overflow-y-auto">
-            <%- include('../partials/hos_header', { pageTitle: 'Faculty Profile', user: user }) %>
+            <%- include('partials/header.html', { pageTitle: 'Faculty Profile', user: user }) %>
 
     <div id="loadingState" class="max-w-3xl mx-auto px-4 py-32 text-center flex flex-col items-center justify-center animate-fade-in">
         <div class="relative w-20 h-20 mb-6">
@@ -193,7 +193,7 @@
 
         try {
             // Fetch data from backend
-            const response = await fetch(`/college/api/faculty/public-profile/${facultyId}`);
+            const response = await fetch(`/hos/api/faculty/public-profile/${facultyId}`);
             
             if (!response.ok) throw new Error(`Network response was not ok (Status: ${response.status})`);
             

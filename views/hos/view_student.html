@@ -38,10 +38,10 @@
 
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-200 text-gray-800 dark:text-gray-200">
     <div class="flex h-screen overflow-hidden">
-        <%- include('../partials/hos_nav', { currentPage: 'student' }) %>
+        <%- include('partials/sidebar.html', { currentPage: 'student' }) %>
 
         <div class="flex-1 overflow-y-auto">
-            <%- include('../partials/hos_header', { pageTitle: 'Student Profile', user: user }) %>
+            <%- include('partials/header.html', { pageTitle: 'Student Profile', user: user }) %>
 
             <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 
@@ -239,8 +239,8 @@
         }
 
         try {
-            // Fetch data from isolated Faculty API
-            const response = await fetch(`/college/faculty/api/student/public-profile/${studentId}`);
+            // Fetch data from isolated HOS API
+            const response = await fetch(`/hos/api/student/public-profile/${studentId}`);
             if (!response.ok) throw new Error(`Network response was not ok (Status: ${response.status})`);
             const data = await response.json();
             

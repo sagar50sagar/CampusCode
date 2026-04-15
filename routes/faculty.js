@@ -522,7 +522,7 @@ module.exports = (db) => {
         const regDeadline = registrationEndDate || deadline || null;
 
         db.run(`INSERT INTO contests (title, createdBy, created_by, status, isVerified, startDate, endDate, registrationEndDate, deadline, duration, department, subject, visibility_scope, scope, level, collegeName, description, rulesAndDescription, guidelines, problems, eligibility, hos_verified, hod_verified, approved_by, approved_at, is_live, live_mode, live_user_ids, live_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [title, user.id, user.id, status, isVerified, startDate, endDate, regDeadline, regDeadline, computedDuration, user.department, subject || '', scope, 'college', 'college', user.collegeName || '', description || null, rulesAndDescription || null, guidelines || '', JSON.stringify(problems || []), eligibility || null, hosVerified, hodVerified, isAutoApproved ? user.id : null, isAutoApproved ? new Date().toISOString() : null, 0, 'manual_hold', '[]', null],
+            [title, user.id, user.id, status, isVerified, startDate, endDate, regDeadline, regDeadline, computedDuration, user.department, subject || '', scope, 'college', 'college', user.collegeName || '', description || null, rulesAndDescription || null, guidelines || '', JSON.stringify(problems || []), eligibility || null, hosVerified, hodVerified, isAutoApproved ? user.id : null, isAutoApproved ? new Date().toISOString() : null, 1, 'all_students', '[]', null],
             function(err) {
                 if (err) {
                     console.error("[Create Contest] DB Error:", err.message);
@@ -1093,23 +1093,43 @@ module.exports = (db) => {
         if (!computedDuration) return res.json({ success: false, message: 'End time must be after start time.' });
 
         const creatorRole = String(user.role || '').toLowerCase();
-        const hosVerified = creatorRole === 'hos' || creatorRole === 'hod' ? 1 : 0;
-        const hodVerified = creatorRole === 'hod' ? 1 : 0;
-        const isAutoApproved = creatorRole === 'hod';
-        const status = isAutoApproved ? 'accepted' : 'pending';
-        const approvedBy = isAutoApproved ? user.id : null;
-        const approvedAt = isAutoApproved ? new Date().toISOString() : null;
-        const visibilityScope = creatorRole === 'hod' ? 'college' : 'college';
-        const scope = creatorRole === 'hod' ? 'college' : 'college';
-        const level = creatorRole === 'hod' ? 'college' : 'college';
+        
+        // Determine verification and status based on creator role
+        let hosVerified = 0;
+        let hodVerified = 0;
+        let status = 'pending';
+        let approvedBy = null;
+        let approvedAt = null;
+        
+        if (creatorRole === 'hod') {
+            // HOD creates: Auto-approved, immediately accepted
+            hodVerified = 1;
+            hosVerified = 1;
+            status = 'accepted';
+            approvedBy = user.id;
+            approvedAt = new Date().toISOString();
+        } else if (creatorRole === 'hos') {
+            // HOS creates: Mark as HOS verified, but needs HOD approval
+            hosVerified = 1;
+            hodVerified = 0;
+            status = 'pending';
+        } else if (creatorRole === 'faculty') {
+            // Faculty creates: Needs both HOS and HOD verification
+            hosVerified = 0;
+            hodVerified = 0;
+            status = 'pending';
+        }
+        
+        const visibilityScope = 'college';
 
         db.run(
             `INSERT INTO contests (title, startDate, endDate, registrationEndDate, deadline, duration, eligibility, description, rulesAndDescription, guidelines, problems, createdBy, created_by, collegeName, department, subject, visibility_scope, scope, level, status, hos_verified, hod_verified, isVerified, approved_by, approved_at, is_live, live_mode, live_user_ids, live_at)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [title, startDate, endDate, registrationEndDate || deadline || null, registrationEndDate || deadline || null, computedDuration, eligibility || null, description || null, rulesAndDescription || null, guidelines || '', JSON.stringify(problems || []), user.id, user.id, user.collegeName, user.department || '', subject || '', visibilityScope, scope, level, status, hosVerified, hodVerified, isAutoApproved ? 1 : 0, approvedBy, approvedAt, 0, 'manual_hold', '[]', null],
+            [title, startDate, endDate, registrationEndDate || deadline || null, registrationEndDate || deadline || null, computedDuration, eligibility || null, description || null, rulesAndDescription || null, guidelines || '', JSON.stringify(problems || []), user.id, user.id, user.collegeName, user.department || '', subject || '', visibilityScope, visibilityScope, visibilityScope, status, hosVerified, hodVerified, status === 'accepted' ? 1 : 0, approvedBy, approvedAt, 1, 'all_students', '[]', null],
             function(err) {
                 if (err) { console.error('Create Contest Error:', err); return res.json({ success: false, message: err.message }); }
-                res.json({ success: true, message: 'Contest created successfully!', id: this.lastID });
+                const message = creatorRole === 'hod' ? 'Contest created and immediately visible to students!' : 'Contest created! Awaiting approvals before visibility.';
+                res.json({ success: true, message: message, id: this.lastID });
             }
         );
     });

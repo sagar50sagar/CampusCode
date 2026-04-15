@@ -6,36 +6,108 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const problemTabs = document.querySelectorAll('.problem-tab');
     const problemTabContents = document.querySelectorAll('.problem-tab-content');
+    const problemFilterSearch = document.getElementById('problemFilterSearch');
+    const problemSubjectFilters = document.querySelectorAll('.problem-filter-subject');
+    const problemDifficultyFilters = document.querySelectorAll('.problem-filter-difficulty');
+    const problemTagFilters = document.querySelectorAll('.problem-filter-tag');
+
+    function setActiveProblemTab(tab) {
+        if (!tab) return;
+        problemTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        const target = tab.dataset.tab;
+        problemTabContents.forEach(content => {
+            if (content.id === target) content.classList.remove('hidden');
+            else content.classList.add('hidden');
+        });
+
+        applyProblemFilters();
+    }
+
+    function getCheckedValues(nodeList) {
+        return Array.from(nodeList)
+            .filter((input) => input.checked)
+            .map((input) => String(input.value || '').trim().toLowerCase())
+            .filter(Boolean);
+    }
+
+    function syncProblemEmptyState(content) {
+        if (!content) return;
+        const tbody = content.querySelector('tbody');
+        if (!tbody) return;
+
+        const rows = Array.from(tbody.querySelectorAll('tr[data-problem-id]'));
+        const visibleRows = rows.filter((row) => row.style.display !== 'none');
+        let emptyRow = tbody.querySelector('tr[data-problem-empty-state="true"]');
+
+        if (!rows.length || visibleRows.length) {
+            if (emptyRow) emptyRow.remove();
+            return;
+        }
+
+        if (!emptyRow) {
+            emptyRow = document.createElement('tr');
+            emptyRow.dataset.problemEmptyState = 'true';
+            emptyRow.innerHTML = '<td colspan="5" class="py-8 text-center text-gray-500 dark:text-gray-400">No problems match the current filters.</td>';
+            tbody.appendChild(emptyRow);
+        }
+
+        const cell = emptyRow.querySelector('td');
+        if (cell) {
+            const table = content.querySelector('table');
+            const columnCount = table ? table.querySelectorAll('thead th').length : 5;
+            cell.colSpan = columnCount || 5;
+        }
+    }
+
+    function applyProblemFilters() {
+        const hasProblemFilters = problemFilterSearch || problemSubjectFilters.length || problemDifficultyFilters.length || problemTagFilters.length;
+        if (!hasProblemFilters || !problemTabContents.length) return;
+
+        const searchTerm = String(problemFilterSearch?.value || '').trim().toLowerCase();
+        const selectedSubjects = getCheckedValues(problemSubjectFilters);
+        const selectedDifficulties = getCheckedValues(problemDifficultyFilters);
+        const selectedTags = getCheckedValues(problemTagFilters);
+
+        problemTabContents.forEach((content) => {
+            const rows = content.querySelectorAll('tbody tr[data-problem-id]');
+            rows.forEach((row) => {
+                const title = String(row.dataset.problemTitle || '').toLowerCase();
+                const subject = String(row.dataset.problemSubject || '').toLowerCase();
+                const tags = String(row.dataset.problemTags || '').toLowerCase();
+                const difficulty = String(row.dataset.problemDifficulty || '').toLowerCase();
+                const searchableText = `${title} ${subject} ${tags} ${difficulty}`;
+
+                const matchesSearch = !searchTerm || searchableText.includes(searchTerm);
+                const matchesSubject = !selectedSubjects.length || selectedSubjects.includes(subject);
+                const matchesDifficulty = !selectedDifficulties.length || selectedDifficulties.includes(difficulty);
+                const matchesTags = !selectedTags.length || selectedTags.some((tag) => tags.includes(tag));
+
+                row.style.display = matchesSearch && matchesSubject && matchesDifficulty && matchesTags ? '' : 'none';
+            });
+
+            syncProblemEmptyState(content);
+        });
+    }
 
     problemTabs.forEach(tab => {
         tab.addEventListener('click', () => {
-            // Reset ALL tabs to inactive state
-            problemTabs.forEach(t => {
-                // Remove active classes
-                t.classList.remove('active', 'border-primary-500', 'text-primary-600', 'dark:text-primary-400', 'dark:border-primary-400');
-                // Add inactive classes (gray text, transparent border)
-                t.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
-            });
-
-            // Set clicked tab to active state
-            // Remove inactive classes
-            tab.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
-            // Add active classes
-            tab.classList.add('active', 'border-primary-500', 'text-primary-600', 'dark:text-primary-400', 'dark:border-primary-400');
-
-            const target = tab.dataset.tab;
-            problemTabContents.forEach(content => {
-                if (content.id === target) content.classList.remove('hidden');
-                else content.classList.add('hidden');
-            });
+            setActiveProblemTab(tab);
         });
     });
 
-    // Default to "All Problems" tab on load
-    const defaultTab = document.querySelector('[data-tab="all-problems"]');
-    if (defaultTab) {
-        defaultTab.click();
+    if (problemTabs.length && problemTabContents.length) {
+        const defaultTab = document.querySelector('.problem-tab[data-tab="all-problems"]') || problemTabs[0];
+        setActiveProblemTab(defaultTab);
     }
+
+    if (problemFilterSearch) {
+        problemFilterSearch.addEventListener('input', applyProblemFilters);
+    }
+    problemSubjectFilters.forEach((input) => input.addEventListener('change', applyProblemFilters));
+    problemDifficultyFilters.forEach((input) => input.addEventListener('change', applyProblemFilters));
+    problemTagFilters.forEach((input) => input.addEventListener('change', applyProblemFilters));
 
     const btnCreateProblem = document.getElementById('btn-create-problem');
     const problemsListContainer = document.getElementById('problems-list-container');
@@ -3422,7 +3494,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const facultyProfileTooltip = document.getElementById('facultyProfileTooltip');
     const subjectListTooltip = document.getElementById('subjectListTooltip');
 
-    if (facultyProfileTooltip) {
+    if (false) { // Disabled hover logic for direct navigation
         // Faculty Name Hover
         document.addEventListener('mouseover', (e) => {
             const trigger = e.target.closest('.faculty-name-trigger');
@@ -3476,7 +3548,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    if (subjectListTooltip) {
+    if (false) { // Disabled subject hover logic
         // Subject Count Hover
         document.addEventListener('mouseover', (e) => {
             const trigger = e.target.closest('.subject-count-trigger');

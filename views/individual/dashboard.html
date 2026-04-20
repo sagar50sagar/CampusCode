@@ -674,8 +674,17 @@
                     const utcDelta = Math.abs(now - utcCandidate.getTime());
                     return localDelta <= utcDelta ? localCandidate : utcCandidate;
                 }
-                const dt = new Date(raw);
-                return Number.isNaN(dt.getTime()) ? null : dt;
+                const primary = new Date(raw);
+                if (Number.isNaN(primary.getTime())) return null;
+                const hasTzSuffix = /([zZ]|[+\-]\d{2}:\d{2})$/.test(raw);
+                if (!hasTzSuffix) return primary;
+                const stripped = raw.replace(/([zZ]|[+\-]\d{2}:\d{2})$/, '');
+                const localCandidate = new Date(stripped);
+                if (Number.isNaN(localCandidate.getTime())) return primary;
+                const now = Date.now();
+                return Math.abs(localCandidate.getTime() - now) < Math.abs(primary.getTime() - now)
+                    ? localCandidate
+                    : primary;
             };
             const localDateKey = (value) => {
                 const d = parseServerDate(value);
@@ -685,8 +694,9 @@
                 const day = String(d.getDate()).padStart(2, '0');
                 return `${y}-${m}-${day}`;
             };
-            const formatAgo = (dateValue) => {
-                const then = parseServerDate(dateValue);
+            const formatAgo = (dateValue, dateMs) => {
+                const ms = Number(dateMs);
+                const then = Number.isFinite(ms) ? new Date(ms) : parseServerDate(dateValue);
                 if (!then) return 'Recently';
                 const now = Date.now();
                 const diffMs = now - then.getTime();
@@ -789,7 +799,7 @@
                                         <p class="text-sm font-medium text-gray-900 dark:text-gray-200">${String(row.title || 'Problem')}</p>
                                         <div class="flex items-center mt-1 gap-2">
                                             <span class="px-2 py-0.5 rounded-full text-xs font-medium ${difficultyBadgeClass(row.difficulty)}">${String(row.difficulty || 'Easy')}</span>
-                                            <span class="text-xs text-gray-500 dark:text-gray-400">${formatAgo(row.solvedAt)}</span>
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">${formatAgo(row.solvedAt, row.solvedAtMs)}</span>
                                         </div>
                                     </div>
                                 </div>

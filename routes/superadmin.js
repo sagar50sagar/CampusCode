@@ -549,9 +549,10 @@ module.exports = (db) => {
                 ${where}
                 ORDER BY CASE
                     WHEN LOWER(t.status) = 'open' THEN 1
-                    WHEN LOWER(t.status) = 'in_progress' THEN 2
-                    WHEN LOWER(t.status) = 'resolved' THEN 3
-                    ELSE 4
+                    WHEN LOWER(t.status) = 'reopened' THEN 2
+                    WHEN LOWER(t.status) = 'in_progress' THEN 3
+                    WHEN LOWER(t.status) = 'resolved' THEN 4
+                    ELSE 5
                 END, t.id DESC
             `, params);
             res.json({ success: true, tickets });
@@ -566,7 +567,7 @@ module.exports = (db) => {
             if (!Number.isInteger(ticketId) || ticketId <= 0) {
                 return res.status(400).json({ success: false, error: 'Invalid ticket id' });
             }
-            const allowedStatuses = ['open', 'in_progress', 'resolved'];
+            const allowedStatuses = ['open', 'reopened', 'in_progress', 'resolved'];
             const status = String(req.body.status || '').toLowerCase();
             const reply = String(req.body.reply || '').trim();
             if (status && !allowedStatuses.includes(status)) {

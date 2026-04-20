@@ -469,17 +469,39 @@ module.exports = (db) => {
     });
 
     // ==========================================
-    // 8. DELETE REPLY (SUPER ADMIN)
+    // 8. DELETE REPLY (OWNER ONLY)
     // ==========================================
     router.delete('/replies/:id', requireAuth, (req, res) => {
-        if (req.session.user.role !== 'superadmin') {
-            return res.status(403).json({ success: false, message: 'Forbidden.' });
-        }
         const replyId = req.params.id;
+        const userId = Number(req.session.user.id || 0);
 
-        db.run(`DELETE FROM forum_replies WHERE id = ?`, [replyId], function (err) {
+        db.run(`DELETE FROM forum_replies WHERE id = ? AND user_id = ?`, [replyId, userId], function (err) {
             if (err) return res.status(500).json({ success: false, message: 'Database error' });
+            if ((this.changes || 0) === 0) {
+                return res.status(403).json({ success: false, message: 'You can delete only your own reply.' });
+            }
             res.json({ success: true, message: 'Reply deleted' });
+        });
+    });
+
+    // ==========================================
+    // 8b. EDIT REPLY (OWNER ONLY)
+    // ==========================================
+    router.put('/replies/:id', requireAuth, (req, res) => {
+        const replyId = req.params.id;
+        const content = String(req.body?.content || '').trim();
+        const userId = Number(req.session.user.id || 0);
+
+        if (!content) {
+            return res.status(400).json({ success: false, message: 'Reply content is required.' });
+        }
+
+        db.run(`UPDATE forum_replies SET content = ? WHERE id = ? AND user_id = ?`, [content, replyId, userId], function (updateErr) {
+            if (updateErr) return res.status(500).json({ success: false, message: 'Database error' });
+            if ((this.changes || 0) === 0) {
+                return res.status(403).json({ success: false, message: 'You can edit only your own reply.' });
+            }
+            return res.json({ success: true, message: 'Reply updated.' });
         });
     });
 

@@ -12,8 +12,23 @@ module.exports = (db) => {
         if (value instanceof Date && !Number.isNaN(value.getTime())) return value;
         const raw = String(value).trim();
         if (!raw) return null;
-        const dt = new Date(raw.replace(' ', 'T'));
-        return Number.isNaN(dt.getTime()) ? null : dt;
+
+        const normalized = raw.replace(' ', 'T');
+        const primary = new Date(normalized);
+        if (Number.isNaN(primary.getTime())) return null;
+
+        // Handle mixed storage where UTC suffix exists but stored clock-time is local.
+        const hasTzSuffix = /([zZ]|[+\-]\d{2}:\d{2})$/.test(normalized);
+        if (!hasTzSuffix) return primary;
+
+        const tzStripped = normalized.replace(/([zZ]|[+\-]\d{2}:\d{2})$/, '');
+        const localCandidate = new Date(tzStripped);
+        if (Number.isNaN(localCandidate.getTime())) return primary;
+
+        const now = Date.now();
+        const primaryDelta = Math.abs(primary.getTime() - now);
+        const localDelta = Math.abs(localCandidate.getTime() - now);
+        return localDelta < primaryDelta ? localCandidate : primary;
     };
     const localDateKey = (value) => {
         const d = parseDateValue(value);
@@ -313,11 +328,16 @@ module.exports = (db) => {
                 ORDER BY "solvedAt" DESC
                 LIMIT 4
             `, [userId]);
-            const recentProblemsNormalized = recentProblems.map((row) => ({
-                title: row.title,
-                difficulty: row.difficulty,
-                solvedAt: row.solvedAt || row.solvedat || row.createdAt || row.createdat || null
-            }));
+            const recentProblemsNormalized = recentProblems.map((row) => {
+                const solvedAtRaw = row.solvedAt || row.solvedat || row.createdAt || row.createdat || null;
+                const solvedAtDate = parseDateValue(solvedAtRaw);
+                return {
+                    title: row.title,
+                    difficulty: row.difficulty,
+                    solvedAt: solvedAtRaw,
+                    solvedAtMs: solvedAtDate ? solvedAtDate.getTime() : null
+                };
+            });
 
             const last7 = await dbAll(`
                 SELECT strftime('%Y-%m-%d', createdAt) AS "dayKey", COUNT(*) AS cnt

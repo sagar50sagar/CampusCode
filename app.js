@@ -123,6 +123,12 @@ app.delete('/api/contests/:id', requireRole('superadmin'), (req, res) => res.red
 app.post('/api/contests/:id/publish', requireRole('superadmin'), (req, res) => res.redirect(307, `/superadmin/api/contests/${req.params.id}/publish`));
 app.post('/api/contests/:id/problems', requireRole('superadmin'), (req, res) => res.redirect(307, `/superadmin/api/contests/${req.params.id}/problems`));
 
+// Backward-compatible alias for legacy forum thread links without .html
+app.get('/forum/thread', (req, res) => {
+    const query = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+    res.redirect(`/forum/thread.html${query}`);
+});
+
 // Backward-compatible alias for legacy admin HOD toggle calls without /college prefix
 app.put('/api/faculty/:id/hod', requireRole('admin'), (req, res) =>
     res.redirect(307, `/college/api/faculty/${req.params.id}/hod`)

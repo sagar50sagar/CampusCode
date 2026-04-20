@@ -397,17 +397,27 @@ const GLOBAL_SOLVE_WEIGHT_FOR_COLLEGE_RANK = 0.3;
 
     const parseDbDate = (value) => {
         if (!value) return null;
-        if (value instanceof Date) return value;
+        if (value instanceof Date && !Number.isNaN(value.getTime())) return value;
         const raw = String(value).trim();
         if (!raw) return null;
-        // Treat plain "YYYY-MM-DD HH:mm:ss" as local server/app timestamp to avoid UTC drift.
-        if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}(\.\d+)?$/.test(raw)) {
-            const localIsoLike = raw.replace(' ', 'T');
-            const dt = new Date(localIsoLike);
-            return Number.isNaN(dt.getTime()) ? null : dt;
-        }
-        const dt = new Date(raw);
-        return Number.isNaN(dt.getTime()) ? null : dt;
+
+        const normalized = raw.replace(' ', 'T');
+        const primary = new Date(normalized);
+        if (Number.isNaN(primary.getTime())) return null;
+
+        // For mixed datasets: if timezone suffix exists, also try local interpretation
+        // and keep the one closest to system current time.
+        const hasTzSuffix = /([zZ]|[+\-]\d{2}:\d{2})$/.test(normalized);
+        if (!hasTzSuffix) return primary;
+
+        const tzStripped = normalized.replace(/([zZ]|[+\-]\d{2}:\d{2})$/, '');
+        const localCandidate = new Date(tzStripped);
+        if (Number.isNaN(localCandidate.getTime())) return primary;
+
+        const now = Date.now();
+        const primaryDelta = Math.abs(primary.getTime() - now);
+        const localDelta = Math.abs(localCandidate.getTime() - now);
+        return localDelta < primaryDelta ? localCandidate : primary;
     };
 
     const toLocalDateKey = (value) => {

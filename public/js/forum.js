@@ -6,6 +6,14 @@ let currentUser = null;
 let currentNavConfig = null;
 let forumTopics = [];
 
+function normalizeTopicSlug(value) {
+    const raw = String(value || '').trim().toLowerCase();
+    if (!raw) return 'general';
+    if (raw === 'back') return 'backend';
+    if (raw === 'algorithms' || raw === 'algorithm') return 'algo';
+    return raw;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initializeTheme();
 
@@ -37,6 +45,7 @@ async function fetchUserContext() {
             currentNavConfig = getNavConfig(currentUser.role);
             // Keep legacy forum layout behavior; do not rebuild role shells/sidebar dynamically.
             applyLegacyForumUser();
+            applyRoleLinkOverrides();
             renderRoleSidebar();
             bindProfileOverlay();
             bindNotificationDropdown();
@@ -249,13 +258,8 @@ function applyUserShell() {
         supportLink.querySelector('i')?.classList.replace('fa-question-circle', 'fa-sign-out-alt');
     }
 
-    // Automatically rewrite all back links globally so users don't get stuck in the wrong shell
-    const forumLinkObj = currentNavConfig?.items.find(item => item.key === 'community');
-    if (forumLinkObj) {
-        document.querySelectorAll('a[href="/forum/forum.html"]').forEach(link => {
-            link.href = forumLinkObj.href;
-        });
-    }
+    // Automatically rewrite role-sensitive links globally so users don't get stuck in the wrong shell
+    applyRoleLinkOverrides();
 
     document.body.classList.toggle('superadmin-shell', normalizedRole === 'superadmin');
 
@@ -416,10 +420,24 @@ function initForumListing() {
         return 'fas fa-hashtag';
     };
 
-    const getTopicTextClass = (topic) => topicClassBySlug[String(topic?.slug || '').toLowerCase()] || 'text-primary-500';
+    const getTopicTextClass = (topic) => topicClassBySlug[normalizeTopicSlug(topic?.slug)] || 'text-primary-500';
 
     const renderTopicCards = () => {
         if (!topicCardsContainer) return;
+        const defaultTopics = [
+            { name: 'Algorithms', slug: 'algo', icon: 'fas fa-code' },
+            { name: 'Web', slug: 'web', icon: 'fas fa-globe' },
+            { name: 'Backend', slug: 'backend', icon: 'fas fa-server' },
+            { name: 'General', slug: 'general', icon: 'fas fa-comments' }
+        ];
+        const merged = new Map();
+        defaultTopics.forEach((t) => merged.set(normalizeTopicSlug(t.slug), { ...t, slug: normalizeTopicSlug(t.slug) }));
+        forumTopics.forEach((t) => {
+            const slug = normalizeTopicSlug(t.slug);
+            merged.set(slug, { ...t, slug });
+        });
+        const normalizedTopics = Array.from(merged.values());
+
         const allCard = `
             <div class="topic-card selected bg-white dark:bg-gray-800 rounded-2xl p-6 border border-primary-100 dark:border-gray-700 text-center" data-topic="all">
                 <i class="fas fa-layer-group text-2xl text-primary-500"></i>
@@ -427,8 +445,8 @@ function initForumListing() {
             </div>
         `;
 
-        const dynamicCards = forumTopics.map((topic) => `
-            <div class="topic-card bg-white dark:bg-gray-800 rounded-2xl p-6 border border-primary-100 dark:border-gray-700 text-center" data-topic="${escapeHTML(topic.slug)}">
+        const dynamicCards = normalizedTopics.map((topic) => `
+            <div class="topic-card bg-white dark:bg-gray-800 rounded-2xl p-6 border border-primary-100 dark:border-gray-700 text-center" data-topic="${escapeHTML(normalizeTopicSlug(topic.slug))}">
                 <i class="${escapeHTML(getTopicIconClass(topic))} text-2xl ${escapeHTML(getTopicTextClass(topic))}"></i>
                 <p class="mt-3 text-xl font-bold text-gray-800 dark:text-gray-100">${escapeHTML(topic.name)}</p>
             </div>
@@ -444,7 +462,7 @@ function initForumListing() {
             card.addEventListener('click', () => {
                 topicCards.forEach(t => t.classList.remove('selected'));
                 card.classList.add('selected');
-                currentTopic = card.dataset.topic || 'all';
+                currentTopic = normalizeTopicSlug(card.dataset.topic || 'all');
                 loadThreads();
             });
         });
@@ -582,8 +600,8 @@ function initForumListing() {
             let threads = data.threads;
             
             // Filter locally by topic if not 'all'
-            if(currentTopic !== 'all') {
-                threads = threads.filter(t => t.topic === currentTopic);
+            if (currentTopic !== 'all') {
+                threads = threads.filter(t => normalizeTopicSlug(t.topic) === currentTopic);
             }
 
             if (threads.length === 0) {
@@ -592,22 +610,20 @@ function initForumListing() {
             }
 
             threads.forEach(t => {
-                const badgeColor = getBadgeColor(t.topic);
+                const normalizedTopic = normalizeTopicSlug(t.topic);
+                const badgeColor = getBadgeColor(normalizedTopic);
                 
                 let deleteButtonHTML = '';
                 if(currentUser && currentUser.role === 'superadmin') {
                     deleteButtonHTML = `<button onclick="deleteThread(${t.id}, event)" class="absolute top-4 right-4 text-red-500 hover:bg-red-50 p-2 rounded-lg text-sm"><i class="fas fa-trash"></i> Delete</button>`;
                 }
 
-                const prefixMatch = window.location.pathname.match(/^(\/(?:faculty|student|hos|college\/hod))/);
-                const prefix = prefixMatch ? prefixMatch[1] : '';
-
                 container.innerHTML += `
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all cursor-pointer p-6 relative" 
-                         onclick="window.location.href='${prefix}/forum/thread?id=${t.id}'">
+                         onclick="window.location.href='/forum/thread.html?id=${t.id}'">
                         ${deleteButtonHTML}
                         <div class="flex items-center space-x-3 mb-2">
-                            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${badgeColor}">${t.topic.toUpperCase()}</span>
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${badgeColor}">${normalizedTopic.toUpperCase()}</span>
                             <span class="text-sm text-gray-500"><i class="far fa-user mr-1"></i> ${t.author_name} <span class="opacity-60">(${t.author_college || 'Independent'})</span></span>
                             <span class="text-sm text-gray-400"><i class="far fa-clock mr-1"></i> ${new Date(t.createdAt).toLocaleDateString()}</span>
                         </div>
@@ -743,7 +759,8 @@ function initThreadDetail() {
     const threadId = urlParams.get('id');
 
     if(!threadId) {
-        window.location.href = '/forum/forum.html';
+        const forumLinkObj = currentNavConfig?.items.find(item => item.key === 'community');
+        window.location.href = forumLinkObj ? forumLinkObj.href : '/forum/forum.html';
         return;
     }
 
@@ -768,10 +785,12 @@ function initThreadDetail() {
             const upActive = r.user_vote === 1 ? 'text-primary-600 bg-primary-100 dark:bg-primary-900/50' : 'text-gray-400 hover:text-primary-500 hover:bg-gray-100 dark:hover:bg-gray-700';
             const downActive = r.user_vote === -1 ? 'text-red-600 bg-red-100 dark:bg-red-900/50' : 'text-gray-400 hover:text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700';
 
-            let deleteBtnHTML = '';
-            if(currentUser && currentUser.role === 'superadmin') {
-                deleteBtnHTML = `<button onclick="deleteReply(${r.id})" class="text-xs text-red-500 hover:underline"><i class="fas fa-trash"></i> Delete</button>`;
-            }
+            const isOwner = Number(currentUser?.id || 0) === Number(r.user_id || 0);
+            const encodedReply = encodeURIComponent(String(r.content || ''));
+            const actionButtonsHTML = isOwner
+                ? `<button onclick="editReply(${r.id}, '${encodedReply}')" class="text-xs text-blue-500 hover:underline"><i class="fas fa-pen"></i> Edit</button>
+                   <button onclick="deleteReply(${r.id})" class="text-xs text-red-500 hover:underline"><i class="fas fa-trash"></i> Delete</button>`
+                : '';
 
             repliesContainer.innerHTML += `
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 transition-all flex gap-4">
@@ -789,7 +808,7 @@ function initThreadDetail() {
                             <div class="text-sm text-gray-500"><b class="text-gray-800 dark:text-white">${r.author_name}</b> <span class="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-xs ml-2">${r.author_role.toUpperCase()}</span></div>
                             <div class="text-xs text-gray-400 flex items-center gap-3">
                                 <span>${new Date(r.createdAt).toLocaleString()}</span>
-                                ${deleteBtnHTML}
+                                ${actionButtonsHTML}
                             </div>
                         </div>
                         <div class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">${escapeHTML(r.content)}</div>
@@ -988,6 +1007,95 @@ function initThreadDetail() {
         }
     }
 
+    window.editReply = async function(replyId, encodedContent) {
+        const currentContent = decodeURIComponent(String(encodedContent || ''));
+
+        const existing = document.getElementById('replyEditOverlay');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'replyEditOverlay';
+        overlay.className = 'fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4';
+        overlay.innerHTML = `
+            <div class="w-full max-w-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+                    <h3 class="text-base font-semibold text-gray-800 dark:text-gray-100">Edit Reply</h3>
+                    <button id="closeReplyEditModal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="p-5">
+                    <textarea id="replyEditInput" class="w-full min-h-[140px] px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-400 outline-none"></textarea>
+                    <p id="replyEditError" class="mt-2 text-xs text-red-500 hidden"></p>
+                </div>
+                <div class="px-5 pb-5 flex items-center justify-end gap-2">
+                    <button id="cancelReplyEditBtn" class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Cancel</button>
+                    <button id="saveReplyEditBtn" class="px-4 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold">Save Changes</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        const close = () => overlay.remove();
+        const input = document.getElementById('replyEditInput');
+        const errEl = document.getElementById('replyEditError');
+        const saveBtn = document.getElementById('saveReplyEditBtn');
+        const closeBtn = document.getElementById('closeReplyEditModal');
+        const cancelBtn = document.getElementById('cancelReplyEditBtn');
+
+        if (input) {
+            input.value = currentContent;
+            input.focus();
+            input.setSelectionRange(input.value.length, input.value.length);
+        }
+
+        if (closeBtn) closeBtn.addEventListener('click', close);
+        if (cancelBtn) cancelBtn.addEventListener('click', close);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+
+        if (saveBtn) {
+            saveBtn.addEventListener('click', async () => {
+                const content = String(input?.value || '').trim();
+                if (!content) {
+                    if (errEl) {
+                        errEl.textContent = 'Reply cannot be empty.';
+                        errEl.classList.remove('hidden');
+                    }
+                    return;
+                }
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Saving...';
+                try {
+                    const res = await fetch(`/api/forum/replies/${replyId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content })
+                    });
+                    const data = await res.json();
+                    if (!data.success) {
+                        if (errEl) {
+                            errEl.textContent = data.message || 'Error editing reply';
+                            errEl.classList.remove('hidden');
+                        }
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = 'Save Changes';
+                        return;
+                    }
+                    close();
+                    fetchThread();
+                } catch (err) {
+                    console.error(err);
+                    if (errEl) {
+                        errEl.textContent = 'Network error.';
+                        errEl.classList.remove('hidden');
+                    }
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Save Changes';
+                }
+            });
+        }
+    }
+
     // Initial
     fetchThread();
 }
@@ -1009,10 +1117,34 @@ function escapeHTML(str) {
 }
 
 function getBadgeColor(topic) {
-    switch(topic) {
+    switch(normalizeTopicSlug(topic)) {
         case 'web': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
         case 'backend': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
         case 'algo': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
+        case 'general': return 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-300';
         default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
     }
+}
+
+function applyRoleLinkOverrides() {
+    if (!currentNavConfig) return;
+    const forumLinkObj = currentNavConfig.items.find((item) => item.key === 'community');
+    const forumHref = forumLinkObj ? forumLinkObj.href : '/forum/forum.html';
+    const dashboardHref = currentNavConfig.dashboard || '/';
+    const byKey = (keys) => currentNavConfig.items.find((item) => keys.includes(item.key))?.href || null;
+
+    const replacements = new Map([
+        ['/superadmin/dashboard', dashboardHref],
+        ['/superadmin/problems', byKey(['problems', 'problem']) || dashboardHref],
+        ['/superadmin/contest', byKey(['contest', 'contests']) || dashboardHref],
+        ['/superadmin/support', byKey(['support']) || '/auth/logout'],
+        ['/forum/forum.html', forumHref]
+    ]);
+
+    document.querySelectorAll('a[href]').forEach((a) => {
+        const href = a.getAttribute('href');
+        if (replacements.has(href)) {
+            a.setAttribute('href', replacements.get(href));
+        }
+    });
 }

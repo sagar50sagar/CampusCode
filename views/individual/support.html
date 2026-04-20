@@ -175,12 +175,12 @@
                                 </div>                            </div>
                         </div>
 
-                        <div class="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-sm p-5">
+                        <div class="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-sm p-5 h-[360px] flex flex-col">
                             <div class="flex items-center justify-between mb-3">
                                 <h4 class="text-lg font-bold text-gray-800 dark:text-white">Track Your Issues</h4>
                                 <button id="refreshTicketsBtn" type="button" class="text-sm font-semibold text-primary-500 hover:text-primary-600">Refresh</button>
                             </div>
-                            <div id="ticketsList" class="max-h-64 overflow-y-auto space-y-3 pr-1">
+                            <div id="ticketsList" class="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1">
                                 <div class="text-sm text-gray-500 dark:text-gray-400">No tickets yet.</div>
                             </div>
                         </div>
@@ -342,14 +342,14 @@
     </div>
 
     <div id="ticketOverlay" class="fixed inset-0 z-[90] hidden items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div class="w-full max-w-2xl mx-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-2xl">
+        <div class="w-full max-w-2xl mx-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-2xl max-h-[90vh] flex flex-col">
             <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
                 <h3 class="text-lg font-bold text-gray-800 dark:text-white">Ticket Details</h3>
                 <button id="ticketOverlayClose" class="w-8 h-8 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-300">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <div class="p-5 space-y-4">
+            <div class="p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Ticket ID</p>
@@ -376,6 +376,11 @@
                     <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Concerned Member Solution / Reply</p>
                     <div id="overlayTicketReply" class="rounded-xl border border-gray-200 dark:border-gray-700 bg-green-50 dark:bg-green-900/20 p-3 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">No response yet.</div>
                 </div>
+            </div>
+            <div class="px-5 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-2">
+                <button id="overlayReopenBtn" type="button" class="hidden px-4 py-2 rounded-lg bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200 hover:bg-amber-200 dark:hover:bg-amber-900/50 text-sm font-semibold">
+                    Reopen Issue (Not Satisfied)
+                </button>
             </div>
         </div>
     </div>
@@ -551,9 +556,13 @@
             function badgeClass(status) {
                 const s = String(status || '').toLowerCase();
                 if (s === 'resolved' || s === 'closed') return 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-300';
+                if (s === 'reopened') return 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300';
                 if (s === 'in_progress' || s === 'in progress') return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-300';
                 return 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300';
             }
+
+            const ticketsCache = new Map();
+            let currentOverlayTicketId = null;
 
             async function loadTickets() {
                 if (!ticketsList) return;
@@ -562,23 +571,25 @@
                     const json = await res.json();
                     if (!json.success) throw new Error(json.message || 'Failed');
                     const tickets = Array.isArray(json.tickets) ? json.tickets : [];
+                    ticketsCache.clear();
                     if (!tickets.length) {
                         ticketsList.innerHTML = '<div class="text-sm text-gray-500 dark:text-gray-400">No tickets yet.</div>';
                         return;
                     }
                     ticketsList.innerHTML = tickets.map((t) => {
-                        const status = String(t.status || 'open').replace(/_/g, ' ');
-                        const reply = String(t.superadmin_reply || '').trim();
-                        const safePayload = encodeURIComponent(JSON.stringify({
+                        ticketsCache.set(Number(t.id), {
                             id: t.id,
                             subject: String(t.subject || ''),
                             category: String(t.category || ''),
                             details: String(t.details || ''),
-                            status,
-                            reply
-                        }));
+                            status: String(t.status || 'open').replace(/_/g, ' '),
+                            reply: String(t.superadmin_reply || '').trim()
+                        });
+                        const status = String(t.status || 'open').replace(/_/g, ' ');
+                        const ticketId = Number(t.id);
+                        const canReopen = ['resolved', 'closed'].includes(String(t.status || '').toLowerCase());
                         return `
-                            <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-3 bg-gray-50 dark:bg-gray-900/30">
+                            <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-3 bg-gray-50 dark:bg-gray-900/30 cursor-pointer hover:border-primary-300 dark:hover:border-primary-700 transition-colors" onclick="openTicketOverlayById(${ticketId})">
                                 <div class="flex items-start justify-between gap-3">
                                     <div>
                                         <div class="text-sm font-semibold text-gray-800 dark:text-gray-100">${String(t.subject || 'Untitled').replace(/[<>&"']/g, '')}</div>
@@ -586,7 +597,7 @@
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <span class="text-xs font-semibold px-2 py-1 rounded-full ${badgeClass(status)}">${status}</span>
-                                        <button class="text-xs font-semibold px-3 py-1 rounded-full bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-200 hover:bg-primary-200 dark:hover:bg-primary-900/50" onclick="openTicketOverlay('${safePayload}')">open</button>
+                                        ${canReopen ? `<button type="button" class="text-xs font-semibold px-3 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200 hover:bg-amber-200 dark:hover:bg-amber-900/50" onclick="event.stopPropagation(); reopenTicket(${ticketId})">reopen</button>` : ''}
                                     </div>
                                 </div>
                             </div>
@@ -646,6 +657,26 @@
             await loadProfileMini();
             await loadTickets();
 
+            window.openTicketOverlayById = function (ticketId) {
+                const t = ticketsCache.get(Number(ticketId));
+                if (!t) return;
+                currentOverlayTicketId = Number(t.id);
+                const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val || '-'; };
+                set('overlayTicketId', `#TKT-${t.id || '-'}`);
+                set('overlayTicketStatus', t.status || 'open');
+                set('overlayTicketCategory', t.category || 'General Question');
+                set('overlayTicketSubject', t.subject || 'Untitled');
+                set('overlayTicketDetails', t.details || '-');
+                set('overlayTicketReply', t.reply || 'No response yet.');
+                const reopenBtn = document.getElementById('overlayReopenBtn');
+                if (reopenBtn) {
+                    const s = String(t.status || '').toLowerCase();
+                    reopenBtn.classList.toggle('hidden', !['resolved', 'closed'].includes(s));
+                }
+                if (ticketOverlay) ticketOverlay.classList.remove('hidden');
+                if (ticketOverlay) ticketOverlay.classList.add('flex');
+            };
+
             window.openTicketOverlay = function (payload) {
                 try {
                     const t = JSON.parse(decodeURIComponent(payload));
@@ -662,6 +693,7 @@
             };
             const closeTicketOverlay = () => {
                 if (!ticketOverlay) return;
+                currentOverlayTicketId = null;
                 ticketOverlay.classList.add('hidden');
                 ticketOverlay.classList.remove('flex');
             };
@@ -669,6 +701,32 @@
             if (ticketOverlay) {
                 ticketOverlay.addEventListener('click', (e) => {
                     if (e.target === ticketOverlay) closeTicketOverlay();
+                });
+            }
+
+            window.reopenTicket = async function (ticketId) {
+                const id = Number(ticketId);
+                if (!Number.isInteger(id) || id <= 0) return;
+                try {
+                    const res = await fetch(`/api/support/tickets/${id}/reopen`, { method: 'PATCH' });
+                    const json = await res.json().catch(() => ({}));
+                    if (!res.ok || !json.success) {
+                        alert(json.message || 'Failed to reopen ticket');
+                        return;
+                    }
+                    await loadTickets();
+                    if (currentOverlayTicketId === id) {
+                        window.openTicketOverlayById(id);
+                    }
+                } catch (_) {
+                    alert('Network error while reopening ticket.');
+                }
+            };
+
+            const overlayReopenBtn = document.getElementById('overlayReopenBtn');
+            if (overlayReopenBtn) {
+                overlayReopenBtn.addEventListener('click', () => {
+                    if (currentOverlayTicketId) window.reopenTicket(currentOverlayTicketId);
                 });
             }
         });

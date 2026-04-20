@@ -78,5 +78,36 @@ module.exports = (db) => {
         }
     });
 
+    router.patch('/tickets/:id/reopen', requireAuth, async (req, res) => {
+        try {
+            const ticketId = Number(req.params.id);
+            const userId = Number(req.session.user.id);
+            if (!Number.isInteger(ticketId) || ticketId <= 0) {
+                return res.status(400).json({ success: false, message: 'Invalid ticket id.' });
+            }
+
+            const ownRows = await dbAll(`SELECT id, status FROM support_tickets WHERE id = ? AND user_id = ? LIMIT 1`, [ticketId, userId]);
+            const ownTicket = ownRows[0];
+            if (!ownTicket) {
+                return res.status(404).json({ success: false, message: 'Ticket not found.' });
+            }
+
+            const currentStatus = String(ownTicket.status || '').toLowerCase();
+            if (!['resolved', 'closed'].includes(currentStatus)) {
+                return res.status(400).json({ success: false, message: 'Only resolved/closed tickets can be reopened.' });
+            }
+
+            await dbRun(`
+                UPDATE support_tickets
+                SET status = 'reopened', resolved_by = NULL, updatedAt = CURRENT_TIMESTAMP
+                WHERE id = ? AND user_id = ?
+            `, [ticketId, userId]);
+
+            return res.json({ success: true, status: 'reopened' });
+        } catch (error) {
+            return res.status(500).json({ success: false, message: error.message });
+        }
+    });
+
     return router;
 };
